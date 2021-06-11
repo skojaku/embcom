@@ -26,7 +26,7 @@
 \def\cf{cf.\ }
 \def\viz{viz.\ }
 \def\vs{vs.\ }
-
+\author{Sadamori Kojaku}
 % Refs
 \usepackage{biblatex}
 \addbibresource{../main.bib}
@@ -75,10 +75,10 @@ We consider a network generated from a stochastic block model (SBM) composed of 
 Each edge between nodes $i$ and $j$ appears with probability
 \begin{align}
     p_{ij} = \left\{
-        \begin{array}{cl}
-            p_{\text{in}} & \text{($i$ and $j$ belong to the same block)} \\
-            p_{\text{out}} & \text{(otherwise)},
-        \end{array}
+    \begin{array}{cl}
+        p_{\text{in}}  & \text{($i$ and $j$ belong to the same block)} \\
+        p_{\text{out}} & \text{(otherwise)},
+    \end{array}
     \right.
 \end{align}
 We assume that the network is sparse such that
@@ -100,9 +100,9 @@ Assuming that the network is connected, there exists a stationary distribution f
 where $\pi_i$ is the stationary probability at node $i$.
 Using $\pi_i$, we rewrite $R_{ij}$ as
 \begin{align}
-    R_{ij} & = \log{ \frac{1}{T}\sum_{t=1}^T d_i P^{(t)}_{ij}} - \log \frac{d_i d_j}{2M} \\
+    R_{ij} & = \log{ \frac{1}{T}\sum_{t=1}^T d_i P^{(t)}_{ij}} - \log \frac{d_i d_j}{2M}             \\
            & = \log{\frac{1}{T}\sum_{t=1}^T \frac{d_i}{2M} P^{(t)}_{ij}} - \log \frac{d_i d_j}{4M^2} \\
-           & = \log{\frac{1}{T}\sum_{t=1}^T \pi_i P^{(t)}_{ij}} - \log \pi_i \pi_j \\
+           & = \log{\frac{1}{T}\sum_{t=1}^T \pi_i P^{(t)}_{ij}} - \log \pi_i \pi_j                   \\
            & = \log{\tilde W_{ij}} - \log \pi_i \pi_j
 \end{align}
 where $\tilde W_{ij} = \pi_i P_{ij} ^{(t)}$ is the probability that, at the stationary state,
@@ -135,8 +135,8 @@ Consequently, mean $\Exp[\tilde W_{ij}]$ and variance $\Var[\tilde W_{ij}]$ also
 If the variance $\Var[\tilde W_{ij}] \rightarrow 0$, Taylor expansion can be used to obtain a good approximation of the moments of $\log W_{ij}$.
 Specifically, by taking Taylor expansion of $\log \tilde W_{ij}$ at $\Exp[\tilde W_{ij}]$, we have
 \begin{align}
-\Exp\left[ \log \tilde W_{ij}\right]_{\text{SBM}} & \simeq \Exp\left[ \log \Exp\left[ \tilde W_{ij}\right]_{\text{SBM}} -\frac{\left(\tilde W_{ij}-\Exp\left[ \tilde W_{ij}\right]_{\text{SBM}}\right)^2}{2\Exp\left[ \tilde W_{ij}\right]^2 _{\text{SBM}}} \right]_{\text{SBM}} \nonumber \\
-                                     & = \log \Exp\left[ \tilde W_{ij}\right]_{\text{SBM}} -\frac{\Var\left[\tilde W_{ij}\right]_{\text{SBM}}}{2\Exp\left[ \tilde W_{ij}\right]^2 _{\text{SBM}}}.
+    \Exp\left[ \log \tilde W_{ij}\right]_{\text{SBM}} & \simeq \Exp\left[ \log \Exp\left[ \tilde W_{ij}\right]_{\text{SBM}} -\frac{\left(\tilde W_{ij}-\Exp\left[ \tilde W_{ij}\right]_{\text{SBM}}\right)^2}{2\Exp\left[ \tilde W_{ij}\right]^2 _{\text{SBM}}} \right]_{\text{SBM}} \nonumber \\
+                                                      & = \log \Exp\left[ \tilde W_{ij}\right]_{\text{SBM}} -\frac{\Var\left[\tilde W_{ij}\right]_{\text{SBM}}}{2\Exp\left[ \tilde W_{ij}\right]^2 _{\text{SBM}}}.
 \end{align}
 Likewise, we obtain
 \begin{align}
@@ -195,37 +195,37 @@ to the same block or not, respectively, and
 degree $d = (c_{\text{in}} + c_{\text{out}})/2$.
 Therefore, we rewrite $\Exp\left[ P_{ij} \right]$ as
 \begin{align}
-     \Exp\left[ \mat{P} \right] = \mat{\Theta} \mat{\Lambda}\mat{\Theta}^\top  \frac{2}{n},\quad
+    \Exp\left[ \mat{P} \right] = \mat{\Theta} \mat{\Lambda}\mat{\Theta}^\top  \frac{2}{n},\quad
     \mat{\Lambda} =
     \frac{1}{c_{\text{in}} + c_{\text{out}}}\left[
-    \begin{array}{cc}
-        c_{\text{in}} &
-        c_{\text{out}} \\
-        c_{\text{out}} &
-        c_{\text{in}}
-    \end{array}
-    \right],
+        \begin{array}{cc}
+            c_{\text{in}}  &
+            c_{\text{out}}   \\
+            c_{\text{out}} &
+            c_{\text{in}}
+        \end{array}
+        \right],
 \end{align}
 where $\mat{\Theta} = (\Theta_{ik})$ is an $N\times 2$ membership matrix, \ie
 \begin{align}
     \Theta_{ik} = \left\{
-        \begin{array}{cl}
-           1 & \text{(if node $i$ belongs to block $k$)} \\
-           0 & \text{(otherwise)}.
-        \end{array}
+    \begin{array}{cl}
+        1 & \text{(if node $i$ belongs to block $k$)} \\
+        0 & \text{(otherwise)}.
+    \end{array}
     \right.
 \end{align}
 The power $\Exp\left[ \mat{P}^{(t)} \right]$ can be computed by
 \begin{align}
-    \Exp\left[ \mat{P} \right] ^t &=
+    \Exp\left[ \mat{P} \right] ^t & =
     \left( \frac{2}{n}\mat{\Theta} \mat{\Lambda} \mat{\Theta}^\top\right) \left(\frac{2}{n}\mat{\Theta} \mat{\Lambda} \mat{\Theta}^\top \right)\Exp\left[ \mat{P} \right] ^{t-2} \nonumber \\
-    & = \frac{2}{n}\mat{\Theta} \mat{\Lambda}^2 \mat{\Theta}^\top \Exp\left[ \mat{P} \right] ^{t-2} \nonumber \\
-    & = \frac{2}{n}\mat{\Theta} \mat{\Lambda}^t \mat{\Theta}^\top.
+                                  & = \frac{2}{n}\mat{\Theta} \mat{\Lambda}^2 \mat{\Theta}^\top \Exp\left[ \mat{P} \right] ^{t-2} \nonumber                                                \\
+                                  & = \frac{2}{n}\mat{\Theta} \mat{\Lambda}^t \mat{\Theta}^\top.
 \end{align}
 or equivalently,
 \begin{align}
     \mu_{ij}(t)
-    & = \frac{2}{n}\left(\mat{\Lambda}^t \right)_{g_i, g_j}.
+     & = \frac{2}{n}\left(\mat{\Lambda}^t \right)_{g_i, g_j}.
 \end{align}
 where $g_i \in \{0, 1\}$ is the membership of node $i$, and we have used $\mat{\Theta}^\top \mat{\Theta} = \frac{n}{2}\mat{I}$.
 
@@ -245,18 +245,18 @@ The variance for $P_{ij}^{(t)}$ is then given by
 \begin{align}
     \label{eq:variance_2}
     \sigma_{ij}(t)^2 = \Exp\left[ \left( P_{ij}^{(t)} - \Exp\left[ P_{ij}^{(t)} \right] \right)^2 \right]
-        & \leq \frac{n^{t-1}}{d^{2t}}\theta_{ij}(1-\theta_{ij})
-        \leq \frac{n^{t-1}}{d^{2t}}\theta_{ij} \\
-        & = \frac{\Exp\left[ P_{ij}^{(t)} \right]}{d^t} \\
-        & = \frac{ 2\left(\mat{\Lambda} ^t \right)_{g_i, g_j}}{n d^t}
+     & \leq \frac{n^{t-1}}{d^{2t}}\theta_{ij}(1-\theta_{ij})
+    \leq \frac{n^{t-1}}{d^{2t}}\theta_{ij}                         \\
+     & = \frac{\Exp\left[ P_{ij}^{(t)} \right]}{d^t}               \\
+     & = \frac{ 2\left(\mat{\Lambda} ^t \right)_{g_i, g_j}}{n d^t}
 \end{align}
 
 Taken together, $\Exp[\tilde W_{ij}]_{\text{SBM}}$ and (the upper bound of) $\Var[\tilde W_{ij}]_{\text{SBM}}$ are given by
 \begin{align}
     \Exp\left[ \tilde W_{ij} \right]_{\text{SBM}} & = \frac{1}{T} \sum_{t=1}^T \mu_{ij}(t)
-             = \frac{2}{nT} \left( \sum_{t=1}^T \Exp\left[ \mat{\Lambda}\right]^t\right)_{g_i, g_j}, \label{eq:ewij} \\
-    \Var\left[\tilde W_{ij}\right]_{\text{SBM}} & = \frac{1}{T^2} \sum_{t=1}^T \sigma_{ij}(t)^2
-             = \frac{1}{nT^2} \sum_{t=1}^T \frac{ 2\left(\mat{\Lambda} ^t \right)_{g_i, g_j}}{d^t}.  \label{eq:vwij}
+    = \frac{2}{nT} \left( \sum_{t=1}^T \Exp\left[ \mat{\Lambda}\right]^t\right)_{g_i, g_j}, \label{eq:ewij} \\
+    \Var\left[\tilde W_{ij}\right]_{\text{SBM}}   & = \frac{1}{T^2} \sum_{t=1}^T \sigma_{ij}(t)^2
+    = \frac{1}{nT^2} \sum_{t=1}^T \frac{ 2\left(\mat{\Lambda} ^t \right)_{g_i, g_j}}{d^t}.  \label{eq:vwij}
 \end{align}
 
 \subsection{Validation}
@@ -281,14 +281,14 @@ See Fig.~\ref{fig:validation}.
 
 Using Eqs.~\eqref{eq:varxij} and ~\eqref{eq:variance_2}, we have
 \begin{align}
-\Var\left[ X_{ij}\right]_{\text{SBM}}
-&\simeq \frac{\Var\left[\tilde W_{ij}\right]_{\text{SBM}}}{\Exp\left[ \tilde W_{ij}\right]^2 _{\text{SBM}}}
-= \frac{
+    \Var\left[ X_{ij}\right]_{\text{SBM}}
+     & \simeq \frac{\Var\left[\tilde W_{ij}\right]_{\text{SBM}}}{\Exp\left[ \tilde W_{ij}\right]^2 _{\text{SBM}}}
+    = \frac{
         \frac{1}{nT^2} \sum_{t=1}^T \frac{ 2\left(\mat{\Lambda} ^t \right)_{g_i, g_j}}{d^t}
     }{
         \frac{4}{T^2n^2} \left( \sum_{t=1}^T \Exp\left[ \mat{\Lambda}\right]^t\right)_{g_i, g_j} ^2
-    } \nonumber \\
-&= n \cdot \frac{
+    } \nonumber                                                                                                   \\
+     & = n \cdot \frac{
         \sum_{t=1}^T d^{-t}\left(\mat{\Lambda} ^t \right)_{g_i, g_j}
     }{
         2\left( \sum_{t=1}^T \Exp\left[ \mat{\Lambda}\right]^t\right)_{g_i, g_j} ^2
@@ -296,6 +296,20 @@ Using Eqs.~\eqref{eq:varxij} and ~\eqref{eq:variance_2}, we have
 \end{align}
 which means if $n \rightarrow \infty$ then $\Var[X_{ij}] \rightarrow \infty$.
 
+\subsection{Validation}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\hsize]{two-coms-auc.pdf}
+    \caption{
+        Similarity between and within communities.
+        We compute the Area Under Curve of the receiving operator characteristics (AUC) for
+        the inter- and intra-node similarity measured by the cosine similarity and euclidean distance.
+        A higher AUC means that the communities are clustered and well separated with each other.
+        As $n$ increases, the AUC decreases, suggesting that node2vec and deepwalk fail to capture the communities in large sparse networks.
+    }
+    \label{fig:two_com_n}
+\end{figure}
 
 \subsubsection*{Network Properties}
 
