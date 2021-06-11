@@ -1,17 +1,45 @@
+import numpy as np
 from os.path import join as j
 
 configfile: "workflow/config.yaml"
 
 DATA_DIR = config["data_dir"]
 FIG_DIR = "figs"
+RES_DIR = j(DATA_DIR, "results")
+
 PAPER_DIR = config["paper_dir"]
 PAPER_SRC, SUPP_SRC = [j(PAPER_DIR, f) for f in ("main.tex", "supp.tex")]
 PAPER, SUPP = [j(PAPER_DIR, f) for f in ("main.pdf", "supp.pdf")]
 
-DERIVED_DIR = j("data", "derived")
+DERIVED_DIR = j(DATA_DIR, "derived")
 SIM_R_DIR = j(DERIVED_DIR, "sim_R")
 SIM_R_RES = j(SIM_R_DIR, "rvals.csv")
 
+TWO_COM_NET_DIR = j(DATA_DIR, "networks", "two_coms")
+TWO_COM_EMB_DIR = j(DATA_DIR, "embeddings", "two_coms")
+sim_net_params = {
+    "n": [50, 100, 500, 1000, 5000, 10000, 50000, 100000], 
+    "cin":[20],
+    "cout":[10],
+    "sample": np.arange(30) 
+}
+SIM_TWO_COM_NET = j(TWO_COM_NET_DIR, "net_n={n}_cin={cin}_cout={cout}_sample={sample}.npz")
+SIM_TWO_COM_NET_ALL = expand(SIM_TWO_COM_NET, **sim_net_params) 
+
+TWO_COM_EMB_FILE_DIR = j(TWO_COM_EMB_DIR, "embeddings")
+emb_params = {
+    "model_name": ["node2vec", "deepwalk"],
+    "window_length": [10],
+    "dim": [128],
+}
+TWO_COM_EMB_FILE = j(
+    TWO_COM_EMB_FILE_DIR,
+    "embnet_n={n}_cin={cin}_cout={cout}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
+)
+TWO_COM_EMB_FILE_ALL = expand(TWO_COM_EMB_FILE, **sim_net_params, **emb_params)
+TWO_COM_AUC_FILE = j(RES_DIR, "two_coms", "auc.csv")
+TWO_COM_SIM_FILE = j(RES_DIR, "two_coms", "sim_vals.csv")
+FIG_TWO_COM_AUC = j(FIG_DIR, "two-coms-auc.pdf") 
 FIG_SIM_WIJ = j(FIG_DIR, "rvals.pdf")
 
 rule all:
@@ -47,6 +75,53 @@ rule plot_Wij_entry:
     script:
         "workflow/plot-rvals.py"
 
+
+rule generate_2com_net:
+    params:
+        cin = lambda wildcards: int(wildcards.cin),
+        cout = lambda wildcards: int(wildcards.cout),
+        n = lambda wildcards: int(wildcards.n)
+    output:
+        output_file = SIM_TWO_COM_NET
+    script:
+        "workflow/generate-2com-net.py"
+
+rule com_embedding:
+    input:
+        netfile=SIM_TWO_COM_NET,
+    output:
+        embfile=TWO_COM_EMB_FILE
+    params:
+        model_name=lambda wildcards: wildcards.model_name,
+        dim=lambda wildcards: wildcards.dim,
+        window_length=lambda wildcards: wildcards.window_length,
+        directed = "undirected",
+        num_walks=10,
+    script:
+        "workflow/embedding.py"
+
+rule eval_auc_embedding:
+    input:
+        emb_files=TWO_COM_EMB_FILE_ALL
+    output:
+        output_file=TWO_COM_AUC_FILE,
+        output_sim_file=TWO_COM_SIM_FILE
+    script:
+        "workflow/eval-community.py"
+
+rule plot_two_com_auc:
+    input:
+        input_file=TWO_COM_AUC_FILE
+    output:
+        output_file=FIG_TWO_COM_AUC
+    script:
+        "workflow/plot-two-com-auc.py"
+
+rule _all:
+    input:
+        #SIM_TWO_COM_NET_ALL
+        FIG_TWO_COM_AUC
+        #TWO_COM_EMB_FILE_ALL
 # rule some_data_processing:
     # input:
         # "data/some_data.csv"
