@@ -1,4 +1,5 @@
 # %%
+import sys
 import pathlib
 import glob
 import numpy as np
@@ -9,6 +10,7 @@ from sklearn import metrics
 from tqdm import tqdm
 import faiss
 from scipy import stats
+from sklearn.cluster import KMeans
 
 if "snakemake" in sys.modules:
     emb_files = snakemake.input["emb_files"]
@@ -86,15 +88,21 @@ def calc_esim(y, ypred):
     return S
 
 
-def eval(emb, group_ids, K=2, sample=100000, iterations=5, metric="cosine"):
+def eval(emb, group_ids, K=2, iterations=5, metric="cosine"):
 
     _, group_ids = np.unique(group_ids, return_inverse=True)
 
+    emb[np.isnan(emb)] = 0
+    emb[np.isinf(emb)] = 0
+    kmeans = KMeans(n_clusters=K, random_state=0, n_init=1, max_iter = 100).fit(emb)
+    cids = kmeans.labels_
+    return calc_esim(group_ids, cids), calc_nmi(group_ids, cids)
+
+    results = []
     if metric == "cosine":
         km = faiss.Kmeans(emb.shape[1], K, niter=iterations, spherical=True)
     else:
         km = faiss.Kmeans(emb.shape[1], K, niter=iterations)
-
     km.train(emb)
     _, cids = km.index.search(emb, 1)
     return calc_esim(group_ids, cids), calc_nmi(group_ids, cids)
@@ -127,7 +135,6 @@ def eval_clu(df):
                     {"score": score_nmi, "metric": metric, "score_type": "nmi"},
                 ]
             )
-            dh = pd.DataFrame()
             for k, v in row.items():
                 dh[k] = v
 
@@ -149,3 +156,5 @@ sim_table = pd.concat(list_results)
 # Save
 #
 sim_table.to_csv(output_sim_file, index=False)
+
+# %%

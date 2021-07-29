@@ -17,23 +17,55 @@ else:
 # Load
 #
 data_table = pd.read_csv(input_file)
-# simval_table = pd.read_csv(input_sim_file)
+data_table = data_table[~data_table["model"].str.contains("pagerank")]
 
 # %%
-# Preprocess
+# Data filtering
 #
-nmin = 100
-data_table = data_table[data_table.n >= nmin]
-# simval_table = simval_table[simval_table.n >= nmin]
+n_min = 100
+n_max = 10 ** 5
+cin_max = 40
+metric = "cosine"
+model_list = ["node2vec"]
+data_table = data_table[data_table.n.between(n_min, n_max)]
+data_table = data_table[data_table.cin <= cin_max]
+data_table = data_table[data_table.metric == metric]
+data_table = data_table[data_table["model"].isin(model_list)]
 
 # %%
 #
 # Visualization
 #
+sns.set_style("white")
+sns.set(font_scale=1.2)
+sns.set_style("ticks")
+g = sns.FacetGrid(
+    data=data_table,
+    col_wrap = 4,
+    col="dim",
+    hue="cin",
+    aspect=1,
+    height=4,
+    palette = "plasma",
+    hue_kws={"marker": ["o", "o", "o", "o"]},
+)
+g.map(sns.lineplot, "n", "auc")
+
+g.set(xscale="log")
+g.axes.flat[0].legend(frameon=False)
+
+g.set_ylabels("AUC")
+g.set_xlabels("Number of nodes, n")
+#sns.lineplot(data = data_table, x = "n", y = "auc", hue = "dim")
+
+
+# %%
 df = data_table.copy()
+
 g = sns.FacetGrid(
     data=df,
-    col="metric",
+    col="cin",
+    row="dim",
     hue="model",
     aspect=1,
     height=4,
@@ -51,26 +83,31 @@ g.set_xlabels("Number of nodes, n")
 g.fig.savefig(output_file, dpi=300, bbox_inches="tight")
 
 
-## %%
-##
-## Visualize the distribution of matrix elements
-##
-# sns.set_style("white")
-# sns.set(font_scale=1.2)
-# sns.set_style("ticks")
-#
-# df = simval_table.copy()
-# g = sns.FacetGrid(
-#    data=df,
-#    row="metric",
-#    col="model",
-#    hue="is_intra_com_edges",
-#    aspect=1.5,
-#    sharey=False,
-# )
-#
-# g.map(sns.lineplot, "n", "score", ci="sd")
-# g.set(xscale="log")
-# g.axes.flat[0].legend(frameon=False)
-# g.set_ylabels("Distance")
-# g.set_xlabels("Number of nodes, n")
+# %%
+# %%
+sns.set_style('white')
+sns.set(font_scale=1.5)
+sns.set_style('ticks')
+
+fig, axes  = plt.subplots(ncols= 2, figsize=(15,7))
+
+dim = 64
+metric = "cosine"
+for i, (model, df) in enumerate(data_table.groupby("model")):
+    ax = axes[i]
+    df = df[df.dim == dim]
+    df = df[df.metric == metric]
+
+    ax = sns.lineplot(data = df, x = "n", y="auc", hue = "cin", palette = "coolwarm", marker = "o", markersize = 20, ax = ax)
+    ax.set_xlim(90,5e+5 * 1.1)
+    ax.set_ylabel("AUC")
+    ax.set_xlabel("Number of nodes, n")
+    ax.set(xscale="log")
+    if i == 0:
+        ax.legend(frameon = False)
+    else:
+        ax.legend().remove()
+
+sns.despine()
+#fig.savefig(output_file, dpi=300)
+# %%
