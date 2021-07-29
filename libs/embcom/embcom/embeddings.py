@@ -221,6 +221,87 @@ class DeepWalk(Node2Vec):
         }
 
 
+class LevyWord2Vec(NodeEmbeddings):
+    """A python class for the Levy's matrix MF.
+
+    Equivalent to pResidual2Vec with the configuration sampler
+    """
+
+    def __init__(
+        self,
+        num_walks=10,
+        walk_length=40,
+        window_length=10,
+        restart_prob=0,
+        p=1.0,
+        q=1.0,
+        verbose=False,
+    ):
+        self.in_vec = None  # In-vector
+        self.out_vec = None  # Out-vector
+        self.sampler = samplers.SimpleWalkSampler(
+            num_walks,
+            walk_length,
+            window_length,
+            restart_prob,
+            p,
+            q,
+            sample_center_context_pairs=True,
+            verbose=False,
+        )
+
+    def fit(self, net):
+        """Estimating the parameters for embedding.
+
+        Parameters
+        ---------
+        net : nx.Graph object
+            Network to be embedded. The graph type can be anything if
+            the graph type is supported for the node samplers.
+
+        Return
+        ------
+        self : Node2Vec
+        """
+        logger.debug("sampling - start")
+        A = utils.to_adjacency_matrix(net)
+        self.sampler.sampling(A)
+        logger.debug("sampling - finished")
+        return self
+
+    def update_embedding(self, dim):
+        # Update the dimension and train the model
+
+        # Sample the sequence of nodes using a random walk
+        logger.debug("retrieve center context pairs")
+        center, context, freq = self.sampler.get_center_context_pairs()
+        center = center.astype(int)
+        context = context.astype(int)
+        logger.debug("{} pairs generated".format(len(center)))
+
+        logger.debug("count the frequency of words")
+        Pi = np.bincount(center, weights=freq, minlength=self.sampler.A.shape[0])
+        Pi = np.minimum(Pi, 1)
+        logger.debug("Calculate the Q matrix")
+        Qij = (
+            np.log(np.sum(freq))
+            + np.log(freq)
+            - np.log(Pi[center])
+            - np.log(Pi[context])
+        )
+        s = Qij > 0
+        Q = sparse.csr_matrix(
+            (freq[s], (center[s], context[s])), shape=self.sampler.A.shape
+        )
+        logger.debug("SVD")
+        in_vec, val, out_vec = rsvd.rSVD(Q, dim)
+        order = np.argsort(val)[::-1]
+        val = val[order]
+        alpha = 0.5
+        self.in_vec = in_vec[:, order] @ np.diag(np.power(val, alpha))
+        self.out_vec = out_vec[order, :].T @ np.diag(np.power(val, 1 - alpha))
+
+
 class LaplacianEigenMap(NodeEmbeddings):
     def __init__(self):
         self.in_vec = None
