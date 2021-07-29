@@ -1,7 +1,9 @@
 import numpy as np
 from os.path import join as j
 
+
 configfile: "workflow/config.yaml"
+
 
 DATA_DIR = config["data_dir"]
 FIG_DIR = "figs"
@@ -18,18 +20,24 @@ SIM_R_RES = j(SIM_R_DIR, "rvals.csv")
 TWO_COM_NET_DIR = j(DATA_DIR, "networks", "two_coms")
 TWO_COM_EMB_DIR = j(DATA_DIR, "embeddings", "two_coms")
 sim_net_params = {
-    "n": [50, 100, 500, 1000, 10000, 100000, 1000000], 
-    "cin":[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 40],
-    "cout":[5],
-    "sample": np.arange(10) 
+    "n": [50, 100, 500, 1000, 10000, 100000],
+    "cin": [10, 12, 14, 16, 18, 20, 30, 40],
+    "cout": [5],
+    "sample": np.arange(10),
 }
-SIM_TWO_COM_NET = j(TWO_COM_NET_DIR, "net_n={n}_cin={cin}_cout={cout}_sample={sample}.npz")
-SIM_TWO_COM_NET_ALL = expand(SIM_TWO_COM_NET, **sim_net_params) 
+SIM_TWO_COM_NET = j(
+    TWO_COM_NET_DIR, "net_n={n}_cin={cin}_cout={cout}_sample={sample}.npz"
+)
+SIM_TWO_COM_NET_ALL = expand(SIM_TWO_COM_NET, **sim_net_params)
 
 TWO_COM_EMB_FILE_DIR = j(TWO_COM_EMB_DIR, "embeddings")
+emb_params_rw = {  # parameter for methods baesd on random walks
+    "model_name": ["node2vec", "glove"],
+    "window_length": [3, 5, 10],
+    "dim": [1, 2, 8, 32, 128],
+}
 emb_params = {
-    "model_name": ["node2vec", "leigenmap", "levy-word2vec"],
-    #"model_name": ["node2vec", "deepwalk", "node2vec-pagerank", "deepwalk-pagerank"],
+    "model_name": ["leigenmap", "levy-word2vec", "adjspec", "modspec"],
     "window_length": [10],
     "dim": [1, 2, 8, 32, 128],
 }
@@ -37,107 +45,120 @@ TWO_COM_EMB_FILE = j(
     TWO_COM_EMB_FILE_DIR,
     "embnet_n={n}_cin={cin}_cout={cout}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
 )
-TWO_COM_EMB_FILE_ALL = expand(TWO_COM_EMB_FILE, **sim_net_params, **emb_params)
+TWO_COM_EMB_FILE_ALL = expand(
+    TWO_COM_EMB_FILE, **sim_net_params, **emb_params
+) + expand(TWO_COM_EMB_FILE, **sim_net_params, **emb_params_rw)
 TWO_COM_AUC_FILE = j(RES_DIR, "two_coms", "auc.csv")
 TWO_COM_SIM_FILE = j(RES_DIR, "two_coms", "sim_vals.csv")
-RES_TWO_COM_KMEANS_FILE =  j(RES_DIR, "two_coms", "res-kmeans.csv")
-FIG_TWO_COM_AUC = j(FIG_DIR, "two-coms-auc.pdf") 
+RES_TWO_COM_KMEANS_FILE = j(RES_DIR, "two_coms", "res-kmeans.csv")
+FIG_TWO_COM_AUC = j(FIG_DIR, "two-coms-auc.pdf")
 FIG_SIM_WIJ = j(FIG_DIR, "rvals.pdf")
+
 
 rule all:
     input:
-        PAPER, SUPP
+        PAPER,
+        SUPP,
+
 
 rule paper:
     input:
-        PAPER_SRC, SUPP_SRC
+        PAPER_SRC,
+        SUPP_SRC,
     params:
-        paper_dir = PAPER_DIR
+        paper_dir=PAPER_DIR,
     output:
-        PAPER, SUPP
+        PAPER,
+        SUPP,
     shell:
         "cd {params.paper_dir}; make"
 
+
 rule sample_Wij_entry:
     params:
-        cin = 30,
-        cout = 5,
-        num_sample = 100
+        cin=30,
+        cout=5,
+        num_sample=100,
     output:
-        output_file = SIM_R_RES 
+        output_file=SIM_R_RES,
     script:
         "workflow/simulate-R-matrix.py"
 
 
 rule plot_Wij_entry:
     params:
-        input_file = SIM_R_RES 
+        input_file=SIM_R_RES,
     output:
-        output_file = FIG_SIM_WIJ
+        output_file=FIG_SIM_WIJ,
     script:
         "workflow/plot-rvals.py"
 
 
 rule generate_2com_net:
     params:
-        cin = lambda wildcards: int(wildcards.cin),
-        cout = lambda wildcards: int(wildcards.cout),
-        n = lambda wildcards: int(wildcards.n)
+        cin=lambda wildcards: int(wildcards.cin),
+        cout=lambda wildcards: int(wildcards.cout),
+        n=lambda wildcards: int(wildcards.n),
     output:
-        output_file = SIM_TWO_COM_NET
+        output_file=SIM_TWO_COM_NET,
     script:
         "workflow/generate-2com-net.py"
+
 
 rule com_embedding:
     input:
         netfile=SIM_TWO_COM_NET,
     output:
-        embfile=TWO_COM_EMB_FILE
+        embfile=TWO_COM_EMB_FILE,
     params:
         model_name=lambda wildcards: wildcards.model_name,
         dim=lambda wildcards: wildcards.dim,
         window_length=lambda wildcards: wildcards.window_length,
-        directed = "undirected",
+        directed="undirected",
         num_walks=5,
     script:
         "workflow/embedding.py"
 
+
 rule eval_auc_embedding:
     input:
-        emb_files=TWO_COM_EMB_FILE_ALL
+        emb_files=TWO_COM_EMB_FILE_ALL,
     output:
         output_file=TWO_COM_AUC_FILE,
-        output_sim_file=TWO_COM_SIM_FILE
+        output_sim_file=TWO_COM_SIM_FILE,
     script:
         "workflow/eval-community.py"
 
 
 rule eval_embedding_kmeans:
     input:
-        emb_files=TWO_COM_EMB_FILE_ALL
+        emb_files=TWO_COM_EMB_FILE_ALL,
     output:
-        output_sim_file=RES_TWO_COM_KMEANS_FILE
+        output_sim_file=RES_TWO_COM_KMEANS_FILE,
     script:
         "workflow/eval-community-kmeans.py"
 
+
 rule plot_two_com_auc:
     input:
-        input_file=TWO_COM_AUC_FILE
+        input_file=TWO_COM_AUC_FILE,
     output:
-        output_file=FIG_TWO_COM_AUC
+        output_file=FIG_TWO_COM_AUC,
     script:
         "workflow/plot-two-com-auc.py"
 
+
 rule _all:
     input:
-        TWO_COM_EMB_FILE_ALL
-        #SIM_TWO_COM_NET_ALL
-        #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
-        #TWO_COM_EMB_FILE_ALL
+        TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
+         #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
+         #TWO_COM_EMB_FILE_ALL
+
+
 # rule some_data_processing:
-    # input:
-        # "data/some_data.csv"
-    # output:
-        # "data/derived/some_derived_data.csv"
-    # script:
-        # "workflow/scripts/process_some_data.py"
+# input:
+# "data/some_data.csv"
+# output:
+# "data/derived/some_derived_data.csv"
+# script:
+# "workflow/scripts/process_some_data.py"
