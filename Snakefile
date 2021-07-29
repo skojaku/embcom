@@ -18,19 +18,20 @@ SIM_R_RES = j(SIM_R_DIR, "rvals.csv")
 TWO_COM_NET_DIR = j(DATA_DIR, "networks", "two_coms")
 TWO_COM_EMB_DIR = j(DATA_DIR, "embeddings", "two_coms")
 sim_net_params = {
-    "n": [50, 100, 500, 1000, 5000, 10000, 50000, 100000], 
-    "cin":[20],
-    "cout":[10],
-    "sample": np.arange(30) 
+    "n": [50, 100, 500, 1000, 10000, 100000, 1000000], 
+    "cin":[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 40],
+    "cout":[5],
+    "sample": np.arange(10) 
 }
 SIM_TWO_COM_NET = j(TWO_COM_NET_DIR, "net_n={n}_cin={cin}_cout={cout}_sample={sample}.npz")
 SIM_TWO_COM_NET_ALL = expand(SIM_TWO_COM_NET, **sim_net_params) 
 
 TWO_COM_EMB_FILE_DIR = j(TWO_COM_EMB_DIR, "embeddings")
 emb_params = {
-    "model_name": ["node2vec", "deepwalk"],
+    "model_name": ["node2vec", "leigenmap", "levy-word2vec"],
+    #"model_name": ["node2vec", "deepwalk", "node2vec-pagerank", "deepwalk-pagerank"],
     "window_length": [10],
-    "dim": [128],
+    "dim": [1, 2, 8, 32, 128],
 }
 TWO_COM_EMB_FILE = j(
     TWO_COM_EMB_FILE_DIR,
@@ -39,6 +40,7 @@ TWO_COM_EMB_FILE = j(
 TWO_COM_EMB_FILE_ALL = expand(TWO_COM_EMB_FILE, **sim_net_params, **emb_params)
 TWO_COM_AUC_FILE = j(RES_DIR, "two_coms", "auc.csv")
 TWO_COM_SIM_FILE = j(RES_DIR, "two_coms", "sim_vals.csv")
+RES_TWO_COM_KMEANS_FILE =  j(RES_DIR, "two_coms", "res-kmeans.csv")
 FIG_TWO_COM_AUC = j(FIG_DIR, "two-coms-auc.pdf") 
 FIG_SIM_WIJ = j(FIG_DIR, "rvals.pdf")
 
@@ -96,7 +98,7 @@ rule com_embedding:
         dim=lambda wildcards: wildcards.dim,
         window_length=lambda wildcards: wildcards.window_length,
         directed = "undirected",
-        num_walks=10,
+        num_walks=5,
     script:
         "workflow/embedding.py"
 
@@ -109,6 +111,15 @@ rule eval_auc_embedding:
     script:
         "workflow/eval-community.py"
 
+
+rule eval_embedding_kmeans:
+    input:
+        emb_files=TWO_COM_EMB_FILE_ALL
+    output:
+        output_sim_file=RES_TWO_COM_KMEANS_FILE
+    script:
+        "workflow/eval-community-kmeans.py"
+
 rule plot_two_com_auc:
     input:
         input_file=TWO_COM_AUC_FILE
@@ -119,8 +130,9 @@ rule plot_two_com_auc:
 
 rule _all:
     input:
+        TWO_COM_EMB_FILE_ALL
         #SIM_TWO_COM_NET_ALL
-        FIG_TWO_COM_AUC
+        #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
         #TWO_COM_EMB_FILE_ALL
 # rule some_data_processing:
     # input:

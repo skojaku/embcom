@@ -1,4 +1,5 @@
 # %%
+import sys
 import pathlib
 import glob
 import numpy as np
@@ -100,12 +101,12 @@ def eval_clu(df):
             n = int(X.shape[0] / 2)
             y = np.concatenate([np.zeros(n), np.ones(n)]).astype(int)
             score, sim_vals, is_intra_com_edges = auc_pred_groups(X, y, iterations=1, metric =metric)
-            
+
             dh = pd.DataFrame({"score":sim_vals, "is_intra_com_edges":is_intra_com_edges, "metric":metric})
             for k, v in row.items():
                 dh[k] = v
-            
-            row["auc"] = score 
+
+            row["auc"] = score
             row["metric"] = metric
 
 
@@ -115,7 +116,7 @@ def eval_clu(df):
     return (results, dh)
 
 
-list_results = Parallel(n_jobs=30)(
+list_results = Parallel(n_jobs=3)(
     delayed(eval_clu)(df) for emb_file, df in tqdm(emb_file_table.groupby("emb_file"))
 )
 
@@ -130,7 +131,7 @@ result_table = pd.DataFrame(results)
 results = []
 for res in list_results:
     results += [res[1]]
-sim_table = pd.concat(results) 
+sim_table = pd.concat(results)
 
 # %%
 # Save
