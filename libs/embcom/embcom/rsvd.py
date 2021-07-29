@@ -1,5 +1,6 @@
 import numpy as np
-from scipy import sparsee
+from scipy import sparse
+
 
 #
 # Randomized SVD
@@ -36,6 +37,7 @@ def _rSVD_matrix(X, r, p=10, q=1):
     """
     Nr, Nc = X.shape
     dim = r + p
+    R = np.random.randn(Nc, dim)
     Z = X @ R
     for _i in range(q):
         Z = X @ (X.T @ Z)

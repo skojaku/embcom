@@ -53,7 +53,7 @@ class NodeEmbeddings:
         pass
 
 
-class Glove:
+class Glove(NodeEmbeddings):
     def __init__(
         self,
         num_walks=10,
@@ -165,7 +165,7 @@ class Node2Vec(NodeEmbeddings):
         self.w2vparams = {
             "sg": 1,
             "min_count": 0,
-            "iter": 1,
+            "epochs": 1,
             "workers": 4,
         }
 
@@ -195,17 +195,19 @@ class Node2Vec(NodeEmbeddings):
             self.sampler.walks, self.sampler.window_length
         )
 
-        self.w2vparams["size"] = dim
+        self.w2vparams["vector_size"] = dim
         self.model = gensim.models.Word2Vec(sentences=self.sentences, **self.w2vparams)
 
-        num_nodes = len(self.model.wv.index2word)
+        num_nodes = len(self.model.wv.index_to_key)
         self.in_vec = np.zeros((num_nodes, dim))
         self.out_vec = np.zeros((num_nodes, dim))
         for i in range(num_nodes):
             if "%d" % i not in self.model.wv:
                 continue
             self.in_vec[i, :] = self.model.wv["%d" % i]
-            self.out_vec[i, :] = self.model.syn1neg[self.model.wv.vocab["%d" % i].index]
+            self.out_vec[i, :] = self.model.syn1neg[
+                self.model.wv.key_to_index["%d" % i]
+            ]
 
 
 class DeepWalk(Node2Vec):
@@ -252,3 +254,43 @@ class LaplacianEigenMap(NodeEmbeddings):
         Dsqrt = sparse.diags(1 / np.maximum(np.sqrt(self.deg), 1e-12), format="csr")
         self.in_vec = Dsqrt @ u
         self.out_vec = u
+
+
+class AdjacencySpectralEmbedding(NodeEmbeddings):
+    def __init__(
+        self, verbose=False,
+    ):
+        self.in_vec = None  # In-vector
+        self.out_vec = None  # Out-vector
+
+    def fit(self, net):
+        A = utils.to_adjacency_matrix(net)
+        self.A = A
+        return self
+
+    def update_embedding(self, dim):
+        u, s, v = rsvd.rSVD(self.A, dim=dim)
+        self.in_vec = u @ sparse.diags(s)
+
+
+class ModularitySpectralEmbedding(NodeEmbeddings):
+    def __init__(
+        self, verbose=False,
+    ):
+        self.in_vec = None  # In-vector
+        self.out_vec = None  # Out-vector
+
+    def fit(self, net):
+        A = utils.to_adjacency_matrix(net)
+        self.A = A
+        self.deg = np.array(A.sum(axis=1)).reshape(-1)
+        return self
+
+    def update_embedding(self, dim):
+        Q = [
+            [self.A],
+            [-self.deg.reshape((-1, 1)) / np.sum(self.deg), self.deg.reshape((1, -1))],
+        ]
+        u, s, v = rsvd.rSVD(Q, dim=dim)
+        self.in_vec = u @ sparse.diags(s)
+        self.out_vec = None
