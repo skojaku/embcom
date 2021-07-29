@@ -1,4 +1,4 @@
-"""Module for embedding"""
+"""Module for embedding."""
 import logging
 
 import faiss
@@ -8,10 +8,9 @@ import numba
 import numpy as np
 import pandas as pd
 import scipy
-from embcom import samplers, utils, rsvds
-
 from scipy import sparse, stats
 
+from embcom import rsvd, samplers, utils
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +116,7 @@ class Glove:
         else:
             return self.in_vec
 
+
 class Node2Vec(NodeEmbeddings):
     """A python class for the node2vec.
 
@@ -218,6 +218,7 @@ class DeepWalk(Node2Vec):
             "workers": 4,
         }
 
+
 class LaplacianEigenMap(NodeEmbeddings):
     def __init__(self):
         self.in_vec = None
@@ -244,7 +245,7 @@ class LaplacianEigenMap(NodeEmbeddings):
         return self.in_vec
 
     def update_embedding(self, dim):
-        u, s, _ = rsvds.rSVD(self.L, dim + 1)  # add one for the trivial solution
+        u, s, _ = rsvd.rSVD(self.L, dim + 1)  # add one for the trivial solution
         order = np.argsort(s)[::-1][1:]
         u = u[:, order]
 

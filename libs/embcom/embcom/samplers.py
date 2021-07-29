@@ -8,15 +8,16 @@ from abc import ABCMeta, abstractmethod
 from collections import Counter
 
 import faiss
+import numba
 import numpy as np
-from embcom import utils
+from numba import prange
 from scipy import sparse
 from sklearn.cluster import KMeans
 
-import numba
-from numba import prange
+from embcom import utils
 
 logger = logging.getLogger(__name__)
+
 
 class NodeSampler(metaclass=ABCMeta):
     """Super class for node sampler class.
@@ -243,13 +244,14 @@ class SimpleWalkSampler(NodeSampler):
 
 
 #
-# Helper function 
+# Helper function
 #
 def calc_cum_trans_prob(A):
     P = A.copy()
     a = _calc_cum_trans_prob(P.indptr, P.indices, P.data.astype(float), P.shape[0])
     P.data = a
     return P
+
 
 # @numba.jit(nopython=True, parallel=True)
 def _calc_cum_trans_prob(
