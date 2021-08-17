@@ -20,7 +20,7 @@ SIM_R_RES = j(SIM_R_DIR, "rvals.csv")
 TWO_COM_NET_DIR = j(DATA_DIR, "networks", "two_coms")
 TWO_COM_EMB_DIR = j(DATA_DIR, "embeddings", "two_coms")
 sim_net_params = {
-    "n": [50, 100, 500, 1000, 10000, 100000],
+    "n": [50, 100, 500, 1000, 10000, 100000, 1000000],
     "cin": [10, 12, 14, 16, 18, 20, 30, 40],
     "cout": [5],
     "sample": np.arange(10),
