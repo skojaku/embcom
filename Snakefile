@@ -20,14 +20,16 @@ SIM_R_RES = j(SIM_R_DIR, "rvals.csv")
 TWO_COM_NET_DIR = j(DATA_DIR, "networks", "two_coms")
 TWO_COM_EMB_DIR = j(DATA_DIR, "embeddings", "two_coms")
 sim_net_params = {
-    "n": [50, 100, 500, 1000, 10000, 100000],
+    "n": [250, 500, 1000, 10000],
     #"n": [50, 100, 500, 1000, 10000, 100000, 1000000],
-    "cin": [10, 12, 14, 16, 18, 20, 30, 40],
-    "cout": [5],
+    "cave": [50, 100, 200],
+    "cdiff": [5, 10, 20, 30, 40], # cin - cout
+    #"cin": [10, 12, 14, 16, 18, 20, 30, 40],
+    #"cout": [5],
     "sample": np.arange(10),
 }
 SIM_TWO_COM_NET = j(
-    TWO_COM_NET_DIR, "net_n={n}_cin={cin}_cout={cout}_sample={sample}.npz"
+    TWO_COM_NET_DIR, "net_n={n}_cave={cave}_cdiff={cdiff}_sample={sample}.npz"
 )
 SIM_TWO_COM_NET_ALL = expand(SIM_TWO_COM_NET, **sim_net_params)
 
@@ -44,7 +46,7 @@ emb_params = {
 }
 TWO_COM_EMB_FILE = j(
     TWO_COM_EMB_FILE_DIR,
-    "embnet_n={n}_cin={cin}_cout={cout}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
+    "embnet_n={n}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
 )
 TWO_COM_EMB_FILE_ALL = expand(
     TWO_COM_EMB_FILE, **sim_net_params, **emb_params
@@ -97,8 +99,8 @@ rule plot_Wij_entry:
 
 rule generate_2com_net:
     params:
-        cin=lambda wildcards: int(wildcards.cin),
-        cout=lambda wildcards: int(wildcards.cout),
+        cave=lambda wildcards: int(wildcards.cave),
+        cdiff=lambda wildcards: int(wildcards.cdiff),
         n=lambda wildcards: int(wildcards.n),
     output:
         output_file=SIM_TWO_COM_NET,
@@ -156,7 +158,7 @@ rule plot_two_com_auc:
 MULTI_COM_NET_DIR = j(DATA_DIR, "networks", "multi_coms")
 MULTI_COM_EMB_DIR = j(DATA_DIR, "embeddings", "milti_coms")
 sim_net_params = {
-    "n": [200, 500, 1000, 10000, 100000],
+    "n": [200, 500, 1000, 10000],
     "nc": [100],
     "cave": [50, 100, 200],
     "cdiff": [5, 10, 20, 30, 40], # cin - cout
@@ -220,7 +222,12 @@ rule _all:
          #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
          #TWO_COM_EMB_FILE_ALL
 
-
+rule __all:
+    input:
+        TWO_COM_EMB_FILE_ALL
+        #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
+         #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
+         #TWO_COM_EMB_FILE_ALL
 # rule some_data_processing:
 # input:
 # "data/some_data.csv"
