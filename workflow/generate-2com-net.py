@@ -1,9 +1,10 @@
-"""Generate networks with two communities"""
+"""Generate networks with two communities."""
 # %%
+import sys
+
 import numpy as np
 import pandas as pd
 from scipy import sparse, stats
-import sys
 
 if "snakemake" in sys.modules:
     cave = int(snakemake.params["cave"])
