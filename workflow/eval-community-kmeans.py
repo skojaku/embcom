@@ -1,16 +1,16 @@
 # %%
-import sys
-import pathlib
 import glob
+import pathlib
+import sys
+
+import faiss
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from scipy import sparse
+from scipy import sparse, stats
 from sklearn import metrics
-from tqdm import tqdm
-import faiss
-from scipy import stats
 from sklearn.cluster import KMeans
+from tqdm import tqdm
 
 if "snakemake" in sys.modules:
     emb_files = snakemake.input["emb_files"]
@@ -18,6 +18,9 @@ if "snakemake" in sys.modules:
 else:
     emb_files = list(glob.glob("../data/embeddings/two_coms/embeddings/*"))
     output_sim_file = "../data/results/two_coms/res-kmeans.csv"
+
+# %%
+emb_files
 
 # %%
 # Load
@@ -94,7 +97,7 @@ def eval(emb, group_ids, K=2, iterations=5, metric="cosine"):
 
     emb[np.isnan(emb)] = 0
     emb[np.isinf(emb)] = 0
-    kmeans = KMeans(n_clusters=K, random_state=0, n_init=1, max_iter = 100).fit(emb)
+    kmeans = KMeans(n_clusters=K, random_state=0, n_init=5, max_iter=100).fit(emb)
     cids = kmeans.labels_
     return calc_esim(group_ids, cids), calc_nmi(group_ids, cids)
 

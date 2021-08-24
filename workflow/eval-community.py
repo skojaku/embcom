@@ -1,7 +1,8 @@
 # %%
-import sys
-import pathlib
 import glob
+import pathlib
+import sys
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -40,7 +41,9 @@ emb_file_table = emb_file_table.rename(
 # %%
 # Evaluation
 # G
-def auc_pred_groups(emb, group_ids, sample=100000, iterations=5, metric = "cosine", subsample = 100):
+def auc_pred_groups(
+    emb, group_ids, sample=100000, iterations=5, metric="cosine", subsample=100
+):
 
     clabels, group_ids = np.unique(group_ids, return_inverse=True)
     num_nodes = emb.shape[0]
@@ -59,7 +62,7 @@ def auc_pred_groups(emb, group_ids, sample=100000, iterations=5, metric = "cosin
             s = np.sum(np.multiply(e0, e1), axis=1)
             return metrics.roc_auc_score(y, s), s
         elif metric == "euclidean":
-            s = -np.sqrt(np.sum(np.power(e0 - e1, 2), axis = 1)).reshape(-1)
+            s = -np.sqrt(np.sum(np.power(e0 - e1, 2), axis=1)).reshape(-1)
             return metrics.roc_auc_score(y, -s), s
 
     auc_score = []
@@ -67,14 +70,14 @@ def auc_pred_groups(emb, group_ids, sample=100000, iterations=5, metric = "cosin
     is_intra_com_edges = []
     for _ in range(iterations):
         n1, n0, y = sample_node_pairs()
-        auc, sval  = eval_auc(emb, n1, n0, y, metric)
+        auc, sval = eval_auc(emb, n1, n0, y, metric)
         auc_score += [auc]
         sim_vals += [sval]
         is_intra_com_edges += [y]
     sim_vals = np.concatenate(sim_vals)
     is_intra_com_edges = np.concatenate(is_intra_com_edges)
 
-    s = np.random.choice( len(sim_vals), subsample )
+    s = np.random.choice(len(sim_vals), subsample)
     sim_vals = sim_vals[s]
     is_intra_com_edges = is_intra_com_edges[s]
     return np.mean(auc_score), sim_vals, is_intra_com_edges
@@ -96,21 +99,29 @@ def eval_clu(df):
         for _i, row in df.copy().iterrows():
             emb = emb_list[row["emb_file"]]
             X = emb.copy()
+            X[np.isnan(X)] = 0
             if metric == "cosine":
                 X = np.einsum("ij,i->ij", X, 1 / np.linalg.norm(X, axis=1))
             n = int(X.shape[0] / 2)
             y = np.concatenate([np.zeros(n), np.ones(n)]).astype(int)
-            score, sim_vals, is_intra_com_edges = auc_pred_groups(X, y, iterations=1, metric =metric)
+            score, sim_vals, is_intra_com_edges = auc_pred_groups(
+                X, y, iterations=1, metric=metric
+            )
 
-            dh = pd.DataFrame({"score":sim_vals, "is_intra_com_edges":is_intra_com_edges, "metric":metric})
+            dh = pd.DataFrame(
+                {
+                    "score": sim_vals,
+                    "is_intra_com_edges": is_intra_com_edges,
+                    "metric": metric,
+                }
+            )
             for k, v in row.items():
                 dh[k] = v
 
             row["auc"] = score
             row["metric"] = metric
 
-
-            dflist+=[dh]
+            dflist += [dh]
             results += [row]
     dh = pd.concat(dflist)
     return (results, dh)
