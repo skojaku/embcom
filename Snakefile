@@ -20,7 +20,8 @@ SIM_R_RES = j(SIM_R_DIR, "rvals.csv")
 TWO_COM_NET_DIR = j(DATA_DIR, "networks", "two_coms")
 TWO_COM_EMB_DIR = j(DATA_DIR, "embeddings", "two_coms")
 sim_net_params = {
-    "n": [50, 100, 500, 1000, 10000, 100000, 1000000],
+    "n": [50, 100, 500, 1000, 10000, 100000],
+    #"n": [50, 100, 500, 1000, 10000, 100000, 1000000],
     "cin": [10, 12, 14, 16, 18, 20, 30, 40],
     "cout": [5],
     "sample": np.arange(10),
@@ -148,9 +149,74 @@ rule plot_two_com_auc:
         "workflow/plot-two-com-auc.py"
 
 
+#
+# Multiple communities
+#
+
+MULTI_COM_NET_DIR = j(DATA_DIR, "networks", "multi_coms")
+MULTI_COM_EMB_DIR = j(DATA_DIR, "embeddings", "milti_coms")
+sim_net_params = {
+    "n": [200, 500, 1000, 10000, 100000],
+    "nc": [100],
+    "cave": [50, 100, 200],
+    "cdiff": [5, 10, 20, 30, 40], # cin - cout
+    "sample": np.arange(10),
+}
+SIM_MULTI_COM_NET = j(
+    MULTI_COM_NET_DIR, "net_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}.npz"
+)
+SIM_MULTI_COM_NET_ALL = expand(SIM_MULTI_COM_NET, **sim_net_params)
+
+MULTI_COM_EMB_FILE_DIR = j(MULTI_COM_EMB_DIR, "embeddings")
+emb_params_rw = {  # parameter for methods baesd on random walks
+    "model_name": ["node2vec", "glove"],
+    "window_length": [3, 5, 10],
+    "dim": [1, 2, 8, 32, 128],
+}
+emb_params = {
+    "model_name": [],
+    #"model_name": ["leigenmap", "levy-word2vec", "adjspec", "modspec"],
+    "window_length": [10],
+    "dim": [1, 2, 8, 32, 128],
+}
+MULTI_COM_EMB_FILE = j(
+    MULTI_COM_EMB_FILE_DIR,
+    "embnet_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
+)
+MULTI_COM_EMB_FILE_ALL = expand(
+    MULTI_COM_EMB_FILE, **sim_net_params, **emb_params
+) + expand(MULTI_COM_EMB_FILE, **sim_net_params, **emb_params_rw)
+
+rule generate_multi_com_net:
+    params:
+        cave=lambda wildcards: int(wildcards.cave),
+        cdiff=lambda wildcards: int(wildcards.cdiff),
+        n=lambda wildcards: int(wildcards.n),
+        nc=lambda wildcards: int(wildcards.nc),
+    output:
+        output_file=SIM_MULTI_COM_NET,
+    script:
+        "workflow/generate-multi-com-net.py"
+
+rule multi_com_embedding:
+    input:
+        netfile=SIM_MULTI_COM_NET,
+    output:
+        embfile=MULTI_COM_EMB_FILE,
+    params:
+        model_name=lambda wildcards: wildcards.model_name,
+        dim=lambda wildcards: wildcards.dim,
+        window_length=lambda wildcards: wildcards.window_length,
+        directed="undirected",
+        num_walks=5,
+    script:
+        "workflow/embedding.py"
+
+
 rule _all:
     input:
-        TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
+        MULTI_COM_EMB_FILE_ALL
+        #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
          #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
          #TWO_COM_EMB_FILE_ALL
 
