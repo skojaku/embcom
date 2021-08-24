@@ -7,8 +7,8 @@ import pandas as pd
 from scipy import sparse, stats
 
 if "snakemake" in sys.modules:
-    cin = int(snakemake.params["cin"])
-    cout = int(snakemake.params["cout"])
+    cave = int(snakemake.params["cave"])
+    cdiff = int(snakemake.params["cdiff"])
     n = int(snakemake.params["n"])
     nc = int(snakemake.params["nc"])
     output_file = snakemake.output["output_file"]
@@ -64,10 +64,18 @@ def generate_dcSBM(cin, cout, Nc, N):
 
     return A
 
+    #
+    # Preprocess
+    #
+    cave = int(snakemake.params["cave"])
+    coutin = int(snakemake.params["coutin"])
+    n = int(snakemake.params["n"])
+    nc = int(snakemake.params["nc"])
+    output_file = snakemake.output["output_file"]
 
-#
-# Preprocess
-#
+
+cin = (cave + cdiff) / 2
+cout = cave - cin
 A = generate_dcSBM(cin, cout, nc, n)
 
 
