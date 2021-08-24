@@ -10,27 +10,32 @@ if "snakemake" in sys.modules:
     cin = int(snakemake.params["cin"])
     cout = int(snakemake.params["cout"])
     n = int(snakemake.params["n"])
+    nc = int(snakemake.params["nc"])
     output_file = snakemake.output["output_file"]
 else:
     cin, cout = 30, 5
     n = 500
-    output_file = "../data/networks/2coms"
+    nc = 500
+    output_file = "../data/networks/multi-coms"
 
-#
+# %%
 # Load
 #
-def generate_dcSBM(cin, cout, N):
-    n = int(np.floor(N / 2))
+def generate_dcSBM(cin, cout, Nc, N):
+
     pin, pout = cin / N, cout / N
-    gids = np.concatenate([np.zeros(n), np.ones(n)])
-    # d = (cin + cout) / 2
+    K = int(np.floor(N / Nc))
+    gids = np.kron(np.arange(K), np.ones(Nc))
+
+    num_within_node_pairs = int(K * Nc * (Nc - 1) / 2)
+    num_between_node_pairs = int(N * (N - 1) / 2 - num_within_node_pairs)
 
     within_edges = set([])
-    target_num = stats.binom.rvs(int(n * (n - 1) / 2 * 2), pin, size=1)[0]
+    target_num = stats.binom.rvs(num_within_node_pairs, pin, size=1)[0]
     esize = 0
     while esize < target_num:
-        r = np.random.choice(2 * n, target_num - esize)
-        c = np.random.choice(2 * n, target_num - esize)
+        r = np.random.choice(N, target_num - esize)
+        c = np.random.choice(N, target_num - esize)
         s = (gids[r] == gids[c]) * (r != c)
         r, c = r[s], c[s]
         r, c = np.maximum(r, c), np.minimum(r, c)
@@ -39,11 +44,11 @@ def generate_dcSBM(cin, cout, N):
         esize = len(within_edges)
 
     between_edges = set([])
-    target_num = stats.binom.rvs(n * n, pout, size=1)[0]
+    target_num = stats.binom.rvs(num_between_node_pairs, pout, size=1)[0]
     esize = 0
     while esize < target_num:
-        r = np.random.choice(2 * n, target_num - esize)
-        c = np.random.choice(2 * n, target_num - esize)
+        r = np.random.choice(N, target_num - esize)
+        c = np.random.choice(N, target_num - esize)
         s = (gids[r] != gids[c]) * (r != c)
         r, c = r[s], c[s]
         r, c = np.maximum(r, c), np.minimum(r, c)
@@ -63,7 +68,8 @@ def generate_dcSBM(cin, cout, N):
 #
 # Preprocess
 #
-A = generate_dcSBM(cin, cout, n)
+A = generate_dcSBM(cin, cout, nc, n)
+
 
 # %%
 # Save
