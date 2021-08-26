@@ -10,7 +10,7 @@ if "snakemake" in sys.modules:
     cave = int(snakemake.params["cave"])
     cdiff = int(snakemake.params["cdiff"])
     n = int(snakemake.params["n"])
-    K = int(snakemake.params["K"])
+    nc = int(snakemake.params["nc"])
     output_file = snakemake.output["output_file"]
 else:
     cave, cdiff = 100, 40
@@ -75,7 +75,6 @@ def generate_dcSBM(cin, cout, Nc, N):
 #
 # Preprocess
 #
-nc = int(n / K)
 cin = (n - nc) / n * cdiff + cave
 cout = cave - nc / n * cdiff
 
