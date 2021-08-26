@@ -12,13 +12,20 @@ if "snakemake" in sys.modules:
     n = int(snakemake.params["n"])
     output_file = snakemake.output["output_file"]
 else:
-    cin, cout = 30, 5
+    cave, cdiff = 100, 20
     n = 500
     output_file = "../data/networks/2coms"
 
 #
 # Load
 #
+def sampling_num_edges(n, p):
+    try:
+        return stats.binom.rvs(n=n, p=p, size=1)[0]
+    except ValueError:
+        return np.sum(np.random.rand(n) < p)
+
+
 def generate_dcSBM(cin, cout, N):
     n = int(np.floor(N / 2))
     pin, pout = cin / N, cout / N
@@ -26,7 +33,7 @@ def generate_dcSBM(cin, cout, N):
     # d = (cin + cout) / 2
 
     within_edges = set([])
-    target_num = stats.binom.rvs(int(n * (n - 1) / 2 * 2), pin, size=1)[0]
+    target_num = sampling_num_edges(n=int(n * (n - 1) / 2 * 2), p=pin)
     esize = 0
     while esize < target_num:
         r = np.random.choice(2 * n, target_num - esize)
@@ -39,7 +46,7 @@ def generate_dcSBM(cin, cout, N):
         esize = len(within_edges)
 
     between_edges = set([])
-    target_num = stats.binom.rvs(n * n, pout, size=1)[0]
+    target_num = sampling_num_edges(n=n * n, p=pout)
     esize = 0
     while esize < target_num:
         r = np.random.choice(2 * n, target_num - esize)
@@ -63,8 +70,10 @@ def generate_dcSBM(cin, cout, N):
 #
 # Preprocess
 #
-cin = (cave + cdiff) / 2
-cout = cave - cin
+nc = n / 2
+cin = (n - nc) / n * cdiff + cave
+cout = cave - nc / n * cdiff
+
 A = generate_dcSBM(cin, cout, n)
 
 # %%
