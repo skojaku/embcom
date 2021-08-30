@@ -11,36 +11,20 @@ from sklearn import metrics
 from tqdm import tqdm
 
 if "snakemake" in sys.modules:
-    emb_files = snakemake.input["emb_files"]
-    output_file = snakemake.output["output_file"]
+    emb_file = snakemake.input["emb_files"]
+    K = snakemake.params["K"]
     output_sim_file = snakemake.output["output_sim_file"]
+    output_file = snakemake.output["output_file"]
 else:
-    emb_files = list(glob.glob("../data/embeddings/two_coms/embeddings/*"))
-    output_file = "../data/results/two_coms/auc.csv"
-    output_sim_file = "../data/results/two_coms/sim_vals.csv"
+    emb_file = "../data/embeddings/two_coms/embeddings/xxx"
+    output_file = snakemake.output["output_file"]
+    K = 2
+    output_sim_file = "unko"
+
 
 #
-# Load
-#
-def get_params(filename):
-    params = pathlib.Path(filename).stem.split("_")
-    retval = {"filename": filename}
-    for p in params:
-        if "=" not in p:
-            continue
-        kv = p.split("=")
-        retval[kv[0]] = kv[1]
-    return retval
-
-
-emb_file_table = pd.DataFrame([get_params(r) for r in emb_files])
-emb_file_table = emb_file_table.rename(
-    columns={"filename": "emb_file", "id": "param_id"}
-)
-
-# %%
 # Evaluation
-# G
+#
 def auc_pred_groups(
     emb, group_ids, sample=100000, iterations=5, metric="cosine", subsample=100
 ):
@@ -83,75 +67,39 @@ def auc_pred_groups(
     return np.mean(auc_score), sim_vals, is_intra_com_edges
 
 
-def eval_clu(df):
+# Load emebdding
+emb = np.load(emb_file)["emb"]
+emb = emb.copy(order="C").astype(np.float32)
+emb[np.isnan(emb)] = 0
+emb[np.isinf(emb)] = 0
+n = int(np.round(emb.shape[0] / K))
+group_ids = np.kron(np.arange(K), np.ones(n)).astype(int)
 
-    # Load emebdding
-    emb_list = {}
-    for _i, row in df.iterrows():
-        emb = np.load(row["emb_file"])["emb"]
-        emb = emb.copy(order="C").astype(np.float32)
-        emb_list[row["emb_file"]] = emb
-
-    # Evaluate
-    results = []
-    dflist = []
-    for metric in ["cosine", "euclidean"]:
-        for _i, row in df.copy().iterrows():
-            emb = emb_list[row["emb_file"]]
-            X = emb.copy()
-            X[np.isnan(X)] = 0
-            if metric == "cosine":
-                X = np.einsum("ij,i->ij", X, 1 / np.linalg.norm(X, axis=1))
-            n = int(X.shape[0] / 2)
-            y = np.concatenate([np.zeros(n), np.ones(n)]).astype(int)
-            score, sim_vals, is_intra_com_edges = auc_pred_groups(
-                X, y, iterations=1, metric=metric
-            )
-
-            dh = pd.DataFrame(
-                {
-                    "score": sim_vals,
-                    "is_intra_com_edges": is_intra_com_edges,
-                    "metric": metric,
-                }
-            )
-            for k, v in row.items():
-                dh[k] = v
-
-            row["auc"] = score
-            row["metric"] = metric
-
-            dflist += [dh]
-            results += [row]
-    dh = pd.concat(dflist)
-    return (results, dh)
-
-
-list_results = Parallel(n_jobs=3)(
-    delayed(eval_clu)(df) for emb_file, df in tqdm(emb_file_table.groupby("emb_file"))
-)
-
-# %%
-# Preprocess
-#
+# Evaluate
 results = []
-for res in list_results:
-    results += res[0]
+dflist = []
+for metric in ["cosine", "euclidean"]:
+    X = emb.copy()
+    X[np.isnan(X)] = 0
+    if metric == "cosine":
+        X = np.einsum("ij,i->ij", X, 1 / np.linalg.norm(X, axis=1))
+    n = int(X.shape[0] / 2)
+
+    score, sim_vals, is_intra_com_edges = auc_pred_groups(
+        X, group_ids, iterations=1, metric=metric
+    )
+
+    dh = pd.DataFrame(
+        {"score": sim_vals, "is_intra_com_edges": is_intra_com_edges, "metric": metric}
+    )
+    dflist += [dh]
+    results += [{"auc": score, "metric": metric}]
+
+sim_table = pd.concat(dflist)
 result_table = pd.DataFrame(results)
-
-results = []
-for res in list_results:
-    results += [res[1]]
-sim_table = pd.concat(results)
 
 # %%
 # Save
 #
 result_table.to_csv(output_file, index=False)
 sim_table.to_csv(output_sim_file, index=False)
-
-#
-# Save
-#
-
-# %%
