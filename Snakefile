@@ -403,14 +403,12 @@ RING_OF_CLIQUE_KMEANS_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "kmean
 
 rule generate_ring_of_clique_net:
     params:
-        cave=lambda wildcards: int(wildcards.cave),
-        cdiff=lambda wildcards: int(wildcards.cdiff),
         n=lambda wildcards: int(wildcards.n),
-        K=lambda wildcards: int(wildcards.K),
+        nc=lambda wildcards: int(wildcards.nc),
     output:
         output_file=SIM_RING_OF_CLIQUE_NET,
     script:
-        "workflow/generate-multi-com-net.py"
+        "workflow/generate-ring-of-cliques.py"
 
 rule ring_of_clique_embedding:
     input:
@@ -430,7 +428,7 @@ rule eval_auc_ring_of_clique_embedding:
     input:
         emb_files=RING_OF_CLIQUE_EMB_FILE,
     params:
-        K = lambda wildcards :wildcards.K
+        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
     output:
         output_file=RING_OF_CLIQUE_AUC_FILE,
         output_sim_file=RING_OF_CLIQUE_SIM_FILE,
