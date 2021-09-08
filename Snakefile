@@ -214,12 +214,12 @@ SIM_MULTI_COM_NET_ALL = expand(SIM_MULTI_COM_NET, **sim_net_params)
 emb_params_rw = {  # parameter for methods baesd on random walks
     "model_name": ["node2vec", "glove"],
     "window_length": [10],
-    "dim": [1, 64],
+    "dim": [1, 64] + sim_net_params["K"],
 }
 emb_params = {
     "model_name": ["leigenmap", "modspec"],
     "window_length": [10],
-    "dim": [1, 64],
+    "dim": [1, 64] + [ k-1 for k in sim_net_params["K"]],
 }
 MULTI_COM_EMB_FILE = j(
     MULTI_COM_EMB_DIR,
