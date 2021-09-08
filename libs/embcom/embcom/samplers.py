@@ -79,17 +79,6 @@ class NodeSampler(metaclass=ABCMeta):
     def sample_context(self, pos_pairs, sz):
         """sample context from center."""
 
-    @abstractmethod
-    def count_center_context_pairs(self):
-        """count the number of possible pairs."""
-
-    @abstractmethod
-    def get_batch_pairs(self, batch_size):
-        """get batch of center context pairs."""
-
-    def get_decomposed_trans_matrix(self, scale="normal"):
-        return [[self.get_trans_matrix(scale)]]
-
 
 #
 # SimpleWalk Sampler

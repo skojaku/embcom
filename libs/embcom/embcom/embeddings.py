@@ -53,7 +53,7 @@ class NodeEmbeddings:
         pass
 
 
-class Glove:
+class Glove(NodeEmbeddings):
     def __init__(
         self,
         num_walks=10,
@@ -165,7 +165,7 @@ class Node2Vec(NodeEmbeddings):
         self.w2vparams = {
             "sg": 1,
             "min_count": 0,
-            "iter": 1,
+            "epochs": 1,
             "workers": 4,
         }
 
@@ -195,17 +195,19 @@ class Node2Vec(NodeEmbeddings):
             self.sampler.walks, self.sampler.window_length
         )
 
-        self.w2vparams["size"] = dim
+        self.w2vparams["vector_size"] = dim
         self.model = gensim.models.Word2Vec(sentences=self.sentences, **self.w2vparams)
 
-        num_nodes = len(self.model.wv.index2word)
+        num_nodes = len(self.model.wv.index_to_key)
         self.in_vec = np.zeros((num_nodes, dim))
         self.out_vec = np.zeros((num_nodes, dim))
         for i in range(num_nodes):
             if "%d" % i not in self.model.wv:
                 continue
             self.in_vec[i, :] = self.model.wv["%d" % i]
-            self.out_vec[i, :] = self.model.syn1neg[self.model.wv.vocab["%d" % i].index]
+            self.out_vec[i, :] = self.model.syn1neg[
+                self.model.wv.key_to_index["%d" % i]
+            ]
 
 
 class DeepWalk(Node2Vec):
@@ -217,6 +219,87 @@ class DeepWalk(Node2Vec):
             "min_count": 0,
             "workers": 4,
         }
+
+
+class LevyWord2Vec(NodeEmbeddings):
+    """A python class for the Levy's matrix MF.
+
+    Equivalent to pResidual2Vec with the configuration sampler
+    """
+
+    def __init__(
+        self,
+        num_walks=10,
+        walk_length=40,
+        window_length=10,
+        restart_prob=0,
+        p=1.0,
+        q=1.0,
+        verbose=False,
+    ):
+        self.in_vec = None  # In-vector
+        self.out_vec = None  # Out-vector
+        self.sampler = samplers.SimpleWalkSampler(
+            num_walks,
+            walk_length,
+            window_length,
+            restart_prob,
+            p,
+            q,
+            sample_center_context_pairs=True,
+            verbose=False,
+        )
+
+    def fit(self, net):
+        """Estimating the parameters for embedding.
+
+        Parameters
+        ---------
+        net : nx.Graph object
+            Network to be embedded. The graph type can be anything if
+            the graph type is supported for the node samplers.
+
+        Return
+        ------
+        self : Node2Vec
+        """
+        logger.debug("sampling - start")
+        A = utils.to_adjacency_matrix(net)
+        self.sampler.sampling(A)
+        logger.debug("sampling - finished")
+        return self
+
+    def update_embedding(self, dim):
+        # Update the dimension and train the model
+
+        # Sample the sequence of nodes using a random walk
+        logger.debug("retrieve center context pairs")
+        center, context, freq = self.sampler.get_center_context_pairs()
+        center = center.astype(int)
+        context = context.astype(int)
+        logger.debug("{} pairs generated".format(len(center)))
+
+        logger.debug("count the frequency of words")
+        Pi = np.bincount(center, weights=freq, minlength=self.sampler.A.shape[0])
+        Pi = np.minimum(Pi, 1)
+        logger.debug("Calculate the Q matrix")
+        Qij = (
+            np.log(np.sum(freq))
+            + np.log(freq)
+            - np.log(Pi[center])
+            - np.log(Pi[context])
+        )
+        s = Qij > 0
+        Q = sparse.csr_matrix(
+            (freq[s], (center[s], context[s])), shape=self.sampler.A.shape
+        )
+        logger.debug("SVD")
+        in_vec, val, out_vec = rsvd.rSVD(Q, dim)
+        order = np.argsort(val)[::-1]
+        val = val[order]
+        alpha = 0.5
+        self.in_vec = in_vec[:, order] @ np.diag(np.power(val, alpha))
+        self.out_vec = out_vec[order, :].T @ np.diag(np.power(val, 1 - alpha))
 
 
 class LaplacianEigenMap(NodeEmbeddings):
@@ -252,3 +335,43 @@ class LaplacianEigenMap(NodeEmbeddings):
         Dsqrt = sparse.diags(1 / np.maximum(np.sqrt(self.deg), 1e-12), format="csr")
         self.in_vec = Dsqrt @ u
         self.out_vec = u
+
+
+class AdjacencySpectralEmbedding(NodeEmbeddings):
+    def __init__(
+        self, verbose=False,
+    ):
+        self.in_vec = None  # In-vector
+        self.out_vec = None  # Out-vector
+
+    def fit(self, net):
+        A = utils.to_adjacency_matrix(net)
+        self.A = A
+        return self
+
+    def update_embedding(self, dim):
+        u, s, v = rsvd.rSVD(self.A, dim=dim)
+        self.in_vec = u @ sparse.diags(s)
+
+
+class ModularitySpectralEmbedding(NodeEmbeddings):
+    def __init__(
+        self, verbose=False,
+    ):
+        self.in_vec = None  # In-vector
+        self.out_vec = None  # Out-vector
+
+    def fit(self, net):
+        A = utils.to_adjacency_matrix(net)
+        self.A = A
+        self.deg = np.array(A.sum(axis=1)).reshape(-1)
+        return self
+
+    def update_embedding(self, dim):
+        Q = [
+            [self.A],
+            [-self.deg.reshape((-1, 1)) / np.sum(self.deg), self.deg.reshape((1, -1))],
+        ]
+        u, s, v = rsvd.rSVD(Q, dim=dim)
+        self.in_vec = u @ sparse.diags(s)
+        self.out_vec = None
