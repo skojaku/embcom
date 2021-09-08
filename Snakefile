@@ -329,9 +329,9 @@ rule detect_community_by_infomap:
 
 rule eval_detected_community:
     input:
-        com_file = MULTI_FIXED_SZ_COM_FILE
+        com_file = MULTI_COM_FILE
     output:
-        output_file = MULTI_FIXED_SZ_COM_COM_DETECT_FILE
+        output_file = MULTI_COM_COM_DETECT_FILE
     params:
         K = lambda wildcards :wildcards.K
     script:
