@@ -182,11 +182,13 @@ rule detect_fixed_size_community_by_infomap:
     script:
         "workflow/detect-community-by-infomap.py"
 
-rule eval_detected_community:
+rule eval_fixed_size_detected_community:
     input:
         com_file = MULTI_FIXED_SZ_COM_FILE
     output:
         output_file = MULTI_FIXED_SZ_COM_COM_DETECT_FILE
+    params:
+        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
     script:
         "workflow/eval-detected-community.py"
 
@@ -324,6 +326,16 @@ rule detect_community_by_infomap:
         output_file = MULTI_COM_FILE
     script:
         "workflow/detect-community-by-infomap.py"
+
+rule eval_detected_community:
+    input:
+        com_file = MULTI_FIXED_SZ_COM_FILE
+    output:
+        output_file = MULTI_FIXED_SZ_COM_COM_DETECT_FILE
+    params:
+        K = lambda wildcards :wildcards.K
+    script:
+        "workflow/eval-detected-community.py"
 
 
 #
