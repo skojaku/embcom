@@ -6,7 +6,7 @@ import pandas as pd
 from scipy import sparse, stats
 
 if "snakemake" in sys.modules:
-    com_file = snakemake.input["com_files"]
+    com_file = snakemake.input["com_file"]
     K = int(snakemake.params["K"])
     output_file = snakemake.output["output_file"]
 else:
