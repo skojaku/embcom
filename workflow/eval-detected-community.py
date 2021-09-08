@@ -65,7 +65,7 @@ def calc_esim(y, ypred):
 
 
 # Load community assignment
-cids = np.load(com_file)["group_ids"]
+cids = np.unique(np.load(com_file)["group_ids"], return_inverse=True)[1]
 n = int(np.round(len(cids) / K))
 group_ids = np.kron(np.arange(K), np.ones(n)).astype(int)
 
