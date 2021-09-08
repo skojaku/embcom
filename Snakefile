@@ -338,6 +338,148 @@ rule eval_detected_community:
         "workflow/eval-detected-community.py"
 
 
+# ==================================
+# Ring of Cliques
+# ==================================
+RING_OF_CLIQUE_NET_DIR = j(DATA_DIR, "networks", "ring_of_cliques")
+RING_OF_CLIQUE_EMB_DIR = j(DATA_DIR, "embeddings", "ring_of_cliques")
+RING_OF_CLIQUE_DIR = j(DATA_DIR, "communities", "ring_of_cliques")
+sim_net_params = {
+    "n": [1000, 2500, 5000, 7500, 10000, 100000],
+    "cave": [50],
+    "cdiff": [20, 30, 40, 80, 160, 320, 640], # cin - cout
+    "nc": [10, 50, 100],
+    "sample": np.arange(10),
+}
+SIM_RING_OF_CLIQUE_NET = j(
+    RING_OF_CLIQUE_NET_DIR, "net_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}.npz"
+)
+SIM_RING_OF_CLIQUE_NET_ALL = expand(SIM_RING_OF_CLIQUE_NET, **sim_net_params)
+
+emb_params_rw = {  # parameter for methods baesd on random walks
+    "model_name": ["node2vec", "glove"],
+    "window_length": [10],
+    "dim": [1, 64],
+}
+emb_params = {
+    "model_name": ["leigenmap", "modspec"],
+    "window_length": [10],
+    "dim": [1, 64],
+}
+RING_OF_CLIQUE_EMB_FILE = j(
+    RING_OF_CLIQUE_EMB_DIR,
+    "embnet_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
+)
+RING_OF_CLIQUE_EMB_FILE_ALL = expand(
+    RING_OF_CLIQUE_EMB_FILE, **sim_net_params, **emb_params
+) + expand(RING_OF_CLIQUE_EMB_FILE, **sim_net_params, **emb_params_rw)
+
+# Community detection
+RING_OF_CLIQUE_FILE = j(
+    RING_OF_CLIQUE_DIR,
+    "community_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.npz",
+)
+com_detect_params = {
+    "model_name": ["infomap"],
+}
+RING_OF_CLIQUE_FILE_ALL = expand(
+    RING_OF_CLIQUE_FILE, **sim_net_params, **com_detect_params
+)
+
+
+# Derived
+RING_OF_CLIQUE_AUC_FILE = j(RES_DIR, "ring_of_cliques", "auc", "auc_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
+RING_OF_CLIQUE_SIM_FILE = j(RES_DIR, "ring_of_cliques", "similarity", "similarity_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
+RING_OF_CLIQUE_KMEANS_FILE =j(RES_DIR, "ring_of_cliques", "kmeans", "kmeans_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
+RING_OF_CLIQUE_COM_DETECT_FILE = j(RES_DIR, "ring_of_cliques", "community_detection", "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.csv")
+RING_OF_CLIQUE_AUC_FILE_ALL = expand(RING_OF_CLIQUE_AUC_FILE, **sim_net_params, **emb_params) + expand(RING_OF_CLIQUE_AUC_FILE, **sim_net_params, **emb_params_rw)
+RING_OF_CLIQUE_SIM_FILE_ALL = expand(RING_OF_CLIQUE_SIM_FILE, **sim_net_params, **emb_params) + expand(RING_OF_CLIQUE_SIM_FILE, **sim_net_params, **emb_params_rw)
+RING_OF_CLIQUE_KMEANS_FILE_ALL = expand(RING_OF_CLIQUE_KMEANS_FILE, **sim_net_params, **emb_params) + expand(RING_OF_CLIQUE_KMEANS_FILE, **sim_net_params, **emb_params_rw)
+RING_OF_CLIQUE_COM_DETECT_FILE_ALL = expand(RING_OF_CLIQUE_COM_DETECT_FILE, **sim_net_params, **com_detect_params)
+
+
+RING_OF_CLIQUE_AUC_RES_FILE  = j(RES_DIR, "ring_of_cliques", "results", "auc.csv")
+RING_OF_CLIQUE_KMEANS_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "kmeans.csv")
+
+rule generate_ring_of_clique_net:
+    params:
+        n=lambda wildcards: int(wildcards.n),
+        nc=lambda wildcards: int(wildcards.nc),
+    output:
+        output_file=SIM_RING_OF_CLIQUE_NET,
+    script:
+        "workflow/generate-ring-of-cliques.py"
+
+rule ring_of_clique_embedding:
+    input:
+        netfile=SIM_RING_OF_CLIQUE_NET,
+    output:
+        embfile=RING_OF_CLIQUE_EMB_FILE,
+    params:
+        model_name=lambda wildcards: wildcards.model_name,
+        dim=lambda wildcards: wildcards.dim,
+        window_length=lambda wildcards: wildcards.window_length,
+        directed="undirected",
+        num_walks=5,
+    script:
+        "workflow/embedding.py"
+
+rule eval_auc_ring_of_clique_embedding:
+    input:
+        emb_files=RING_OF_CLIQUE_EMB_FILE,
+    params:
+        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
+    output:
+        output_file=RING_OF_CLIQUE_AUC_FILE,
+        output_sim_file=RING_OF_CLIQUE_SIM_FILE,
+    script:
+        "workflow/eval-community.py"
+
+
+rule eval_ring_of_clique_embedding_kmeans:
+    input:
+        emb_files=RING_OF_CLIQUE_EMB_FILE,
+    params:
+        K = lambda wildcards :wildcards.K
+    output:
+        output_sim_file=RING_OF_CLIQUE_KMEANS_FILE,
+    script:
+        "workflow/eval-community-kmeans.py"
+
+rule concat_auc_result_ring_of_clique_file:
+    input:
+        input_files = RING_OF_CLIQUE_AUC_FILE_ALL
+    output:
+        output_file = RING_OF_CLIQUE_AUC_RES_FILE
+    script:
+        "workflow/concat-files.py"
+
+rule concat_kmeans_result_ring_of_clique_file:
+    input:
+        input_files = RING_OF_CLIQUE_KMEANS_FILE_ALL
+    output:
+        output_file = RING_OF_CLIQUE_KMEANS_RES_FILE
+    script:
+        "workflow/concat-files.py"
+
+rule detect_ring_of_clique_community_by_infomap:
+    input:
+        netfile=SIM_RING_OF_CLIQUE_NET
+    output:
+        output_file = RING_OF_CLIQUE_FILE
+    script:
+        "workflow/detect-community-by-infomap.py"
+
+rule eval_ring_of_clique_detected_community:
+    input:
+        com_file = RING_OF_CLIQUE_FILE
+    output:
+        output_file = RING_OF_CLIQUE_COM_DETECT_FILE
+    params:
+        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
+    script:
+        "workflow/eval-detected-community.py"
+
 #
 # Misc
 #
@@ -345,10 +487,12 @@ rule _all:
     input:
         #MULTI_COM_AUC_RES_FILE,
         #MULTI_COM_KMEANS_RES_FILE,
-        MULTI_FIXED_SZ_COM_AUC_RES_FILE,
-        MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
-        MULTI_COM_AUC_RES_FILE,
-        MULTI_COM_KMEANS_RES_FILE,
+#        MULTI_FIXED_SZ_COM_AUC_RES_FILE,
+#        MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
+#        MULTI_COM_AUC_RES_FILE,
+#        MULTI_COM_KMEANS_RES_FILE,
+        RING_OF_CLIQUE_COM_DETECT_FILE_ALL
+
         #TWO_COM_AUC_RES_FILE, RES_TWO_COM_KMEANS_RES_FILE,
         #MULTI_FIXED_SZ_COM_AUC_RES_FILE, RES_MULTI_FIXED_SZ_COM_KMEANS_RES_FILE
         #RES_TWO_COM_KMEANS_FILE_ALL,TWO_COM_SIM_FILE_ALL,TWO_COM_AUC_FILE_ALL,
@@ -365,7 +509,8 @@ rule _all:
 
 rule __all:
     input:
-        MULTI_FIXED_SZ_COM_FILE_ALL, MULTI_COM_FILE_ALL, MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL, MULTI_COM_COM_DETECT_FILE_ALL
+        MULTI_FIXED_SZ_COM_FILE_ALL, MULTI_COM_FILE_ALL, MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL, MULTI_COM_COM_DETECT_FILE_ALL,
+        RING_OF_CLIQUE_COM_DETECT_FILE_ALL
         #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
          #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
          #TWO_COM_EMB_FILE_ALL
