@@ -110,6 +110,7 @@ MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL = expand(MULTI_FIXED_SZ_COM_COM_DETECT_FI
 
 MULTI_FIXED_SZ_COM_AUC_RES_FILE  = j(RES_DIR, "multi_fixed_size_coms", "results", "auc.csv")
 MULTI_FIXED_SZ_COM_KMEANS_RES_FILE = j(RES_DIR, "multi_fixed_size_coms", "results", "kmeans.csv")
+MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE = j(RES_DIR, "multi_fixed_size_coms", "results", "community_detection.csv")
 
 rule generate_fixed_size_multi_com_net:
     params:
@@ -171,6 +172,14 @@ rule concat_kmeans_result_fixed_size_file:
         input_files = MULTI_FIXED_SZ_COM_KMEANS_FILE_ALL
     output:
         output_file = MULTI_FIXED_SZ_COM_KMEANS_RES_FILE
+    script:
+        "workflow/concat-files.py"
+
+rule concat_community_detection_result_fixed_size_file:
+    input:
+        input_files = MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL
+    output:
+        output_file = MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE
     script:
         "workflow/concat-files.py"
 
@@ -255,6 +264,7 @@ MULTI_COM_COM_DETECT_FILE_ALL = expand(MULTI_COM_COM_DETECT_FILE, **sim_net_para
 
 MULTI_COM_AUC_RES_FILE  = j(RES_DIR, "multi_coms", "results", "auc.csv")
 MULTI_COM_KMEANS_RES_FILE = j(RES_DIR, "multi_coms", "results", "kmeans.csv")
+MULTI_COM_COM_DETECT_RES_FILE = j(RES_DIR, "multi_coms", "results", "community_detection.csv")
 
 rule generate_multi_com_net:
     params:
@@ -316,6 +326,14 @@ rule concat_kmeans_result_multi_com_file:
         input_files = MULTI_COM_KMEANS_FILE_ALL
     output:
         output_file = MULTI_COM_KMEANS_RES_FILE
+    script:
+        "workflow/concat-files.py"
+
+rule concat_community_detection_result_multi_com_file:
+    input:
+        input_files = MULTI_COM_COM_DETECT_FILE_ALL
+    output:
+        output_file = MULTI_COM_COM_DETECT_RES_FILE
     script:
         "workflow/concat-files.py"
 
@@ -397,9 +415,9 @@ RING_OF_CLIQUE_SIM_FILE_ALL = expand(RING_OF_CLIQUE_SIM_FILE, **sim_net_params, 
 RING_OF_CLIQUE_KMEANS_FILE_ALL = expand(RING_OF_CLIQUE_KMEANS_FILE, **sim_net_params, **emb_params) + expand(RING_OF_CLIQUE_KMEANS_FILE, **sim_net_params, **emb_params_rw)
 RING_OF_CLIQUE_COM_DETECT_FILE_ALL = expand(RING_OF_CLIQUE_COM_DETECT_FILE, **sim_net_params, **com_detect_params)
 
-
 RING_OF_CLIQUE_AUC_RES_FILE  = j(RES_DIR, "ring_of_cliques", "results", "auc.csv")
 RING_OF_CLIQUE_KMEANS_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "kmeans.csv")
+RING_OF_CLIQUE_COM_DETECT_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "community_detection.csv")
 
 rule generate_ring_of_clique_net:
     params:
@@ -462,6 +480,14 @@ rule concat_kmeans_result_ring_of_clique_file:
     script:
         "workflow/concat-files.py"
 
+rule concat_community_detection_result_ring_of_clique_file:
+    input:
+        input_files = RING_OF_CLIQUE_COM_DETECT_FILE_ALL
+    output:
+        output_file = RING_OF_CLIQUE_COM_DETECT_RES_FILE
+    script:
+        "workflow/concat-files.py"
+
 rule detect_ring_of_clique_community_by_infomap:
     input:
         netfile=SIM_RING_OF_CLIQUE_NET
@@ -487,11 +513,15 @@ rule _all:
     input:
         #MULTI_COM_AUC_RES_FILE,
         #MULTI_COM_KMEANS_RES_FILE,
-#        MULTI_FIXED_SZ_COM_AUC_RES_FILE,
-#        MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
-#        MULTI_COM_AUC_RES_FILE,
-#        MULTI_COM_KMEANS_RES_FILE,
-        RING_OF_CLIQUE_COM_DETECT_FILE_ALL
+        MULTI_FIXED_SZ_COM_AUC_RES_FILE,
+        MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
+        MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
+        MULTI_COM_AUC_RES_FILE,
+        MULTI_COM_KMEANS_RES_FILE,
+        MULTI_COM_COM_DETECT_RES_FILE,
+        RING_OF_CLIQUE_AUC_RES_FILE,
+        RING_OF_CLIQUE_KMEANS_RES_FILE,
+        RING_OF_CLIQUE_COM_DETECT_RES_FILE,
 
         #TWO_COM_AUC_RES_FILE, RES_TWO_COM_KMEANS_RES_FILE,
         #MULTI_FIXED_SZ_COM_AUC_RES_FILE, RES_MULTI_FIXED_SZ_COM_KMEANS_RES_FILE
@@ -509,8 +539,8 @@ rule _all:
 
 rule __all:
     input:
-        MULTI_FIXED_SZ_COM_FILE_ALL, MULTI_COM_FILE_ALL, MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL, MULTI_COM_COM_DETECT_FILE_ALL,
-        RING_OF_CLIQUE_COM_DETECT_FILE_ALL
+        MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
+        MULTI_COM_KMEANS_FILE_ALL
         #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
          #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
          #TWO_COM_EMB_FILE_ALL

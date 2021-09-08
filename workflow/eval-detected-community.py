@@ -10,8 +10,8 @@ if "snakemake" in sys.modules:
     K = int(snakemake.params["K"])
     output_file = snakemake.output["output_file"]
 else:
-    com_file = "../data/communities/multi_coms/community_n=2500_K=2_cave=50_cdiff=40_sample=4_model=infomap.npz   "
-    K = 2
+    com_file = "../data/communities/ring_of_cliques/community_n=10000_nc=50_cave=50_cdiff=160_sample=1_model=infomap.npz"
+    K = int(10000 / 50)
     output_sim_file = ""
 
 # %%
@@ -64,10 +64,12 @@ def calc_esim(y, ypred):
     return S
 
 
+# %%
 # Load community assignment
 cids = np.unique(np.load(com_file)["group_ids"], return_inverse=True)[1]
 n = int(np.round(len(cids) / K))
 group_ids = np.kron(np.arange(K), np.ones(n)).astype(int)
+# %%
 
 # Evaluate
 dflist = []
