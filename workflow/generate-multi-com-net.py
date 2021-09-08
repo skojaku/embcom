@@ -13,8 +13,9 @@ if "snakemake" in sys.modules:
     K = int(snakemake.params["K"])
     output_file = snakemake.output["output_file"]
 else:
+    K = 2
     cave, cdiff = 100, 40
-    n = 500
+    n = 200
     nc = 100
     output_file = "../data/networks/multi-coms"
 
@@ -78,7 +79,6 @@ def generate_dcSBM(cin, cout, Nc, N):
 nc = int(n / K)
 cin = (n - nc) / n * cdiff + cave
 cout = cave - nc / n * cdiff
-
 # %%
 A = generate_dcSBM(cin, cout, nc, n)
 

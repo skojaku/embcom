@@ -8,7 +8,7 @@ from sklearn.cluster import KMeans
 
 if "snakemake" in sys.modules:
     emb_file = snakemake.input["emb_files"]
-    K = snakemake.params["K"]
+    K = int(snakemake.params["K"])
     output_sim_file = snakemake.output["output_sim_file"]
 else:
     emb_file = "../data/embeddings/two_coms/embeddings/xxx"

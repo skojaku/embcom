@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 if "snakemake" in sys.modules:
     emb_file = snakemake.input["emb_files"]
-    K = snakemake.params["K"]
+    K = int(snakemake.params["K"])
     output_sim_file = snakemake.output["output_sim_file"]
     output_file = snakemake.output["output_file"]
 else:
