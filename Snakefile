@@ -52,6 +52,7 @@ rule sample_Wij_entry:
 # ================================
 MULTI_FIXED_SZ_COM_NET_DIR = j(DATA_DIR, "networks", "multi_fixed_sz_coms")
 MULTI_FIXED_SZ_COM_EMB_DIR = j(DATA_DIR, "embeddings", "multi_fixed_sz_coms")
+MULTI_FIXED_SZ_COM_DIR = j(DATA_DIR, "communities", "multi_fixed_sz_coms")
 sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000],
     "nc": [100],
@@ -65,7 +66,6 @@ SIM_MULTI_FIXED_SZ_COM_NET = j(
 SIM_MULTI_FIXED_SZ_COM_NET_ALL = expand(SIM_MULTI_FIXED_SZ_COM_NET, **sim_net_params)
 
 # Embedding
-MULTI_FIXED_SZ_COM_EMB_FILE_DIR = j(MULTI_FIXED_SZ_COM_EMB_DIR, "embeddings")
 emb_params_rw = {  # parameter for methods baesd on random walks
     "model_name": ["node2vec", "glove"],
     "window_length": [3, 5, 10],
@@ -78,7 +78,7 @@ emb_params = {
     "dim": [1, 64],
 }
 MULTI_FIXED_SZ_COM_EMB_FILE = j(
-    MULTI_FIXED_SZ_COM_EMB_FILE_DIR,
+    MULTI_FIXED_SZ_COM_EMB_DIR,
     "embnet_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
 )
 MULTI_FIXED_SZ_COM_EMB_FILE_ALL = expand(
@@ -86,7 +86,6 @@ MULTI_FIXED_SZ_COM_EMB_FILE_ALL = expand(
 ) + expand(MULTI_FIXED_SZ_COM_EMB_FILE, **sim_net_params, **emb_params_rw)
 
 # Community
-MULTI_FIXED_SZ_COM_DIR = j(MULTI_FIXED_SZ_COM_EMB_DIR, "communities")
 MULTI_FIXED_SZ_COM_FILE = j(
     MULTI_FIXED_SZ_COM_DIR,
     "community_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.npz",
@@ -187,6 +186,7 @@ rule detect_fixed_size_community_by_infomap:
 # ==================================
 MULTI_COM_NET_DIR = j(DATA_DIR, "networks", "multi_coms")
 MULTI_COM_EMB_DIR = j(DATA_DIR, "embeddings", "multi_coms")
+MULTI_COM_DIR = j(DATA_DIR, "communities", "multi_coms")
 sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000, 100000],
     "cave": [50],
@@ -199,7 +199,6 @@ SIM_MULTI_COM_NET = j(
 )
 SIM_MULTI_COM_NET_ALL = expand(SIM_MULTI_COM_NET, **sim_net_params)
 
-MULTI_COM_EMB_FILE_DIR = j(MULTI_COM_EMB_DIR, "embeddings")
 emb_params_rw = {  # parameter for methods baesd on random walks
     "model_name": ["node2vec", "glove"],
     "window_length": [10],
@@ -211,7 +210,7 @@ emb_params = {
     "dim": [1, 64],
 }
 MULTI_COM_EMB_FILE = j(
-    MULTI_COM_EMB_FILE_DIR,
+    MULTI_COM_EMB_DIR,
     "embnet_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
 )
 MULTI_COM_EMB_FILE_ALL = expand(
@@ -219,7 +218,6 @@ MULTI_COM_EMB_FILE_ALL = expand(
 ) + expand(MULTI_COM_EMB_FILE, **sim_net_params, **emb_params_rw)
 
 # Community detection
-MULTI_COM_DIR = j(MULTI_COM_EMB_DIR, "communities")
 MULTI_COM_FILE = j(
     MULTI_COM_DIR,
     "community_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.npz",
