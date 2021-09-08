@@ -3,8 +3,8 @@ import sys
 
 import numpy as np
 import pandas as pd
+import utils
 from scipy import sparse, stats
-from sklearn.cluster import KMeans
 
 if "snakemake" in sys.modules:
     emb_file = snakemake.input["emb_files"]
@@ -65,6 +65,17 @@ def calc_esim(y, ypred):
     return S
 
 
+def KMeans(emb, group_ids):
+    N = emb.shape[0]
+    K = np.max(group_ids) + 1
+    U = sparse.csr_matrix(
+        (np.ones_like(group_ids), (np.arange(group_ids.size), group_ids)), shape=(N, K)
+    )
+    U = utils.row_normalize(U)
+    centers = U.T @ emb
+    return np.argmax(emb @ centers.T, axis=1)
+
+
 # Load emebdding
 emb = np.load(emb_file)["emb"]
 emb = emb.copy(order="C").astype(np.float32)
@@ -81,8 +92,7 @@ for metric in ["cosine", "euclidean"]:
         X = np.einsum("ij,i->ij", X, 1 / np.linalg.norm(X, axis=1))
     n = int(X.shape[0] / 2)
 
-    kmeans = KMeans(n_clusters=K, random_state=0, n_init=5, max_iter=100).fit(emb)
-    cids = kmeans.labels_
+    cids = KMeans(emb, group_ids)
     score_esim, score_nmi = calc_esim(group_ids, cids), calc_nmi(group_ids, cids)
 
     dh = pd.DataFrame(
