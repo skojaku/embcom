@@ -476,7 +476,7 @@ rule eval_ring_of_clique_detected_community:
     output:
         output_file = RING_OF_CLIQUE_COM_DETECT_FILE
     params:
-        K = lambda wildcards :wildcards.K
+        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
     script:
         "workflow/eval-detected-community.py"
 
@@ -509,7 +509,8 @@ rule _all:
 
 rule __all:
     input:
-        MULTI_FIXED_SZ_COM_FILE_ALL, MULTI_COM_FILE_ALL, MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL, MULTI_COM_COM_DETECT_FILE_ALL
+        MULTI_FIXED_SZ_COM_FILE_ALL, MULTI_COM_FILE_ALL, MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL, MULTI_COM_COM_DETECT_FILE_ALL,
+        RING_OF_CLIQUE_COM_DETECT_FILE_ALL
         #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
          #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
          #TWO_COM_EMB_FILE_ALL
