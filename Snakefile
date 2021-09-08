@@ -98,13 +98,15 @@ MULTI_FIXED_SZ_COM_FILE_ALL = expand(
 )
 
 # Derived
-MULTI_FIXED_SZ_COM_AUC_FILE =        j(RES_DIR, "multi_fixed_size_coms", "auc", "auc_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-MULTI_FIXED_SZ_COM_SIM_FILE =        j(RES_DIR, "multi_fixed_size_coms", "similarity", "similarity_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
+MULTI_FIXED_SZ_COM_AUC_FILE = j(RES_DIR, "multi_fixed_size_coms", "auc", "auc_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
+MULTI_FIXED_SZ_COM_SIM_FILE = j(RES_DIR, "multi_fixed_size_coms", "similarity", "similarity_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
 MULTI_FIXED_SZ_COM_KMEANS_FILE = j(RES_DIR, "multi_fixed_size_coms", "kmeans", "kmeans_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
+MULTI_FIXED_SZ_COM_COM_DETECT_FILE = j(RES_DIR, "multi_fixed_size_coms", "community_detection", "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.csv")
 
 MULTI_FIXED_SZ_COM_AUC_FILE_ALL = expand(MULTI_FIXED_SZ_COM_AUC_FILE, **sim_net_params, **emb_params) + expand(MULTI_FIXED_SZ_COM_AUC_FILE, **sim_net_params, **emb_params_rw)
 MULTI_FIXED_SZ_COM_SIM_FILE_ALL = expand(MULTI_FIXED_SZ_COM_SIM_FILE, **sim_net_params, **emb_params) + expand(MULTI_FIXED_SZ_COM_SIM_FILE, **sim_net_params, **emb_params_rw)
 MULTI_FIXED_SZ_COM_KMEANS_FILE_ALL = expand(MULTI_FIXED_SZ_COM_KMEANS_FILE, **sim_net_params, **emb_params) + expand(MULTI_FIXED_SZ_COM_KMEANS_FILE, **sim_net_params, **emb_params_rw)
+MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL = expand(MULTI_FIXED_SZ_COM_COM_DETECT_FILE, **sim_net_params, **com_detect_params)
 
 MULTI_FIXED_SZ_COM_AUC_RES_FILE  = j(RES_DIR, "multi_fixed_size_coms", "results", "auc.csv")
 MULTI_FIXED_SZ_COM_KMEANS_RES_FILE = j(RES_DIR, "multi_fixed_size_coms", "results", "kmeans.csv")
@@ -180,6 +182,14 @@ rule detect_fixed_size_community_by_infomap:
     script:
         "workflow/detect-community-by-infomap.py"
 
+rule eval_detected_community:
+    input:
+        com_file = MULTI_FIXED_SZ_COM_FILE
+    output:
+        output_file = MULTI_FIXED_SZ_COM_COM_DETECT_FILE
+    script:
+        "workflow/eval-detected-community.py"
+
 
 # ==================================
 # Multiple variable-size communities
@@ -231,12 +241,14 @@ MULTI_COM_FILE_ALL = expand(
 
 
 # Derived
-MULTI_COM_AUC_FILE =       j(RES_DIR, "multi_coms", "auc", "auc_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-MULTI_COM_SIM_FILE =       j(RES_DIR, "multi_coms", "similarity", "similarity_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
+MULTI_COM_AUC_FILE = j(RES_DIR, "multi_coms", "auc", "auc_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
+MULTI_COM_SIM_FILE = j(RES_DIR, "multi_coms", "similarity", "similarity_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
 MULTI_COM_KMEANS_FILE =j(RES_DIR, "multi_coms", "kmeans", "kmeans_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
+MULTI_COM_COM_DETECT_FILE = j(RES_DIR, "multi_coms", "community_detection", "result_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.csv")
 MULTI_COM_AUC_FILE_ALL = expand(MULTI_COM_AUC_FILE, **sim_net_params, **emb_params) + expand(MULTI_COM_AUC_FILE, **sim_net_params, **emb_params_rw)
 MULTI_COM_SIM_FILE_ALL = expand(MULTI_COM_SIM_FILE, **sim_net_params, **emb_params) + expand(MULTI_COM_SIM_FILE, **sim_net_params, **emb_params_rw)
 MULTI_COM_KMEANS_FILE_ALL = expand(MULTI_COM_KMEANS_FILE, **sim_net_params, **emb_params) + expand(MULTI_COM_KMEANS_FILE, **sim_net_params, **emb_params_rw)
+MULTI_COM_COM_DETECT_FILE_ALL = expand(MULTI_COM_COM_DETECT_FILE, **sim_net_params, **com_detect_params)
 
 
 MULTI_COM_AUC_RES_FILE  = j(RES_DIR, "multi_coms", "results", "auc.csv")
@@ -341,7 +353,7 @@ rule _all:
 
 rule __all:
     input:
-        MULTI_FIXED_SZ_COM_FILE_ALL, MULTI_COM_FILE_ALL
+        MULTI_FIXED_SZ_COM_FILE_ALL, MULTI_COM_FILE_ALL, MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL, MULTI_COM_COM_DETECT_FILE_ALL
         #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
          #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
          #TWO_COM_EMB_FILE_ALL
