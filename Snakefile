@@ -458,7 +458,7 @@ rule eval_ring_of_clique_embedding_kmeans:
     input:
         emb_files=RING_OF_CLIQUE_EMB_FILE,
     params:
-        K = lambda wildcards :wildcards.K
+        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
     output:
         output_sim_file=RING_OF_CLIQUE_KMEANS_FILE,
     script:
