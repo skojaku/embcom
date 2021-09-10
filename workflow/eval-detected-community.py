@@ -21,11 +21,12 @@ def calc_nmi(y, ypred):
     _, y = np.unique(y, return_inverse=True)
     _, ypred = np.unique(ypred, return_inverse=True)
 
-    K = int(np.max(ypred) + 1)
+    Kpred = int(np.max(ypred) + 1)
+    K = int(np.max(y) + 1)
     N = len(y)
     U = sparse.csr_matrix((np.ones_like(y), (np.arange(y.size), y)), shape=(N, K))
     Upred = sparse.csr_matrix(
-        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(N, K)
+        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(N, Kpred)
     )
     prc = np.array((U.T @ Upred).toarray())
     prc = prc / np.sum(prc)
@@ -44,11 +45,12 @@ def calc_esim(y, ypred):
     _, y = np.unique(y, return_inverse=True)
     _, ypred = np.unique(ypred, return_inverse=True)
 
-    K = int(np.max(ypred) + 1)
+    Kpred = int(np.max(ypred) + 1)
+    K = int(np.max(y) + 1)
     M = len(y)
     UA = sparse.csr_matrix((np.ones_like(y), (np.arange(y.size), y)), shape=(M, K))
     UB = sparse.csr_matrix(
-        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(M, K)
+        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(M, Kpred)
     )
 
     fA = np.array(UA.sum(axis=0)).reshape(-1)
