@@ -21,7 +21,7 @@ def calc_nmi(y, ypred):
     _, y = np.unique(y, return_inverse=True)
     _, ypred = np.unique(ypred, return_inverse=True)
 
-    K = len(set(y))
+    K = int(np.max(ypred) + 1)
     N = len(y)
     U = sparse.csr_matrix((np.ones_like(y), (np.arange(y.size), y)), shape=(N, K))
     Upred = sparse.csr_matrix(
@@ -44,7 +44,7 @@ def calc_esim(y, ypred):
     _, y = np.unique(y, return_inverse=True)
     _, ypred = np.unique(ypred, return_inverse=True)
 
-    K = len(set(y))
+    K = int(np.max(ypred) + 1)
     M = len(y)
     UA = sparse.csr_matrix((np.ones_like(y), (np.arange(y.size), y)), shape=(M, K))
     UB = sparse.csr_matrix(
