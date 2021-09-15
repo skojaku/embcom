@@ -10,8 +10,8 @@ if "snakemake" in sys.modules:
     K = int(snakemake.params["K"])
     output_file = snakemake.output["output_file"]
 else:
-    com_file = "../data/communities/multi_coms/community_n=2500_K=2_cave=50_cdiff=40_sample=4_model=infomap.npz   "
-    K = 2
+    com_file = "../data/communities/ring_of_cliques/community_n=10000_nc=50_cave=50_cdiff=160_sample=1_model=infomap.npz"
+    K = int(10000 / 50)
     output_sim_file = ""
 
 # %%
@@ -21,11 +21,12 @@ def calc_nmi(y, ypred):
     _, y = np.unique(y, return_inverse=True)
     _, ypred = np.unique(ypred, return_inverse=True)
 
-    K = len(set(y))
+    Kpred = int(np.max(ypred) + 1)
+    K = int(np.max(y) + 1)
     N = len(y)
     U = sparse.csr_matrix((np.ones_like(y), (np.arange(y.size), y)), shape=(N, K))
     Upred = sparse.csr_matrix(
-        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(N, K)
+        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(N, Kpred)
     )
     prc = np.array((U.T @ Upred).toarray())
     prc = prc / np.sum(prc)
@@ -44,11 +45,12 @@ def calc_esim(y, ypred):
     _, y = np.unique(y, return_inverse=True)
     _, ypred = np.unique(ypred, return_inverse=True)
 
-    K = len(set(y))
+    Kpred = int(np.max(ypred) + 1)
+    K = int(np.max(y) + 1)
     M = len(y)
     UA = sparse.csr_matrix((np.ones_like(y), (np.arange(y.size), y)), shape=(M, K))
     UB = sparse.csr_matrix(
-        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(M, K)
+        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(M, Kpred)
     )
 
     fA = np.array(UA.sum(axis=0)).reshape(-1)
@@ -64,10 +66,12 @@ def calc_esim(y, ypred):
     return S
 
 
+# %%
 # Load community assignment
 cids = np.unique(np.load(com_file)["group_ids"], return_inverse=True)[1]
 n = int(np.round(len(cids) / K))
 group_ids = np.kron(np.arange(K), np.ones(n)).astype(int)
+# %%
 
 # Evaluate
 dflist = []

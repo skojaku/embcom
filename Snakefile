@@ -110,6 +110,7 @@ MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL = expand(MULTI_FIXED_SZ_COM_COM_DETECT_FI
 
 MULTI_FIXED_SZ_COM_AUC_RES_FILE  = j(RES_DIR, "multi_fixed_size_coms", "results", "auc.csv")
 MULTI_FIXED_SZ_COM_KMEANS_RES_FILE = j(RES_DIR, "multi_fixed_size_coms", "results", "kmeans.csv")
+MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE = j(RES_DIR, "multi_fixed_size_coms", "results", "community_detection.csv")
 
 rule generate_fixed_size_multi_com_net:
     params:
@@ -174,6 +175,14 @@ rule concat_kmeans_result_fixed_size_file:
     script:
         "workflow/concat-files.py"
 
+rule concat_community_detection_result_fixed_size_file:
+    input:
+        input_files = MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL
+    output:
+        output_file = MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE
+    script:
+        "workflow/concat-files.py"
+
 rule detect_fixed_size_community_by_infomap:
     input:
         netfile=SIM_MULTI_FIXED_SZ_COM_NET
@@ -203,7 +212,7 @@ sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000, 100000],
     "cave": [50],
     "cdiff": [20, 30, 40, 80, 160, 320, 640], # cin - cout
-    "K": [2, 50],
+    "K": [2, 25, 50],
     "sample": np.arange(10),
 }
 SIM_MULTI_COM_NET = j(
@@ -214,7 +223,7 @@ SIM_MULTI_COM_NET_ALL = expand(SIM_MULTI_COM_NET, **sim_net_params)
 emb_params_rw = {  # parameter for methods baesd on random walks
     "model_name": ["node2vec", "glove"],
     "window_length": [10],
-    "dim": [1, 64] + sim_net_params["K"],
+    "dim": [1, 64] + [ k-1 for k in sim_net_params["K"]],
 }
 emb_params = {
     "model_name": ["leigenmap", "modspec"],
@@ -255,6 +264,7 @@ MULTI_COM_COM_DETECT_FILE_ALL = expand(MULTI_COM_COM_DETECT_FILE, **sim_net_para
 
 MULTI_COM_AUC_RES_FILE  = j(RES_DIR, "multi_coms", "results", "auc.csv")
 MULTI_COM_KMEANS_RES_FILE = j(RES_DIR, "multi_coms", "results", "kmeans.csv")
+MULTI_COM_COM_DETECT_RES_FILE = j(RES_DIR, "multi_coms", "results", "community_detection.csv")
 
 rule generate_multi_com_net:
     params:
@@ -319,6 +329,14 @@ rule concat_kmeans_result_multi_com_file:
     script:
         "workflow/concat-files.py"
 
+rule concat_community_detection_result_multi_com_file:
+    input:
+        input_files = MULTI_COM_COM_DETECT_FILE_ALL
+    output:
+        output_file = MULTI_COM_COM_DETECT_RES_FILE
+    script:
+        "workflow/concat-files.py"
+
 rule detect_community_by_infomap:
     input:
         netfile=SIM_MULTI_COM_NET
@@ -347,7 +365,7 @@ RING_OF_CLIQUE_DIR = j(DATA_DIR, "communities", "ring_of_cliques")
 sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000, 100000],
     "cave": [50],
-    "cdiff": [20, 30, 40, 80, 160, 320, 640], # cin - cout
+    "cdiff": [20], # cin - cout
     "nc": [10, 50, 100],
     "sample": np.arange(10),
 }
@@ -397,9 +415,9 @@ RING_OF_CLIQUE_SIM_FILE_ALL = expand(RING_OF_CLIQUE_SIM_FILE, **sim_net_params, 
 RING_OF_CLIQUE_KMEANS_FILE_ALL = expand(RING_OF_CLIQUE_KMEANS_FILE, **sim_net_params, **emb_params) + expand(RING_OF_CLIQUE_KMEANS_FILE, **sim_net_params, **emb_params_rw)
 RING_OF_CLIQUE_COM_DETECT_FILE_ALL = expand(RING_OF_CLIQUE_COM_DETECT_FILE, **sim_net_params, **com_detect_params)
 
-
 RING_OF_CLIQUE_AUC_RES_FILE  = j(RES_DIR, "ring_of_cliques", "results", "auc.csv")
 RING_OF_CLIQUE_KMEANS_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "kmeans.csv")
+RING_OF_CLIQUE_COM_DETECT_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "community_detection.csv")
 
 rule generate_ring_of_clique_net:
     params:
@@ -440,7 +458,7 @@ rule eval_ring_of_clique_embedding_kmeans:
     input:
         emb_files=RING_OF_CLIQUE_EMB_FILE,
     params:
-        K = lambda wildcards :wildcards.K
+        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
     output:
         output_sim_file=RING_OF_CLIQUE_KMEANS_FILE,
     script:
@@ -459,6 +477,14 @@ rule concat_kmeans_result_ring_of_clique_file:
         input_files = RING_OF_CLIQUE_KMEANS_FILE_ALL
     output:
         output_file = RING_OF_CLIQUE_KMEANS_RES_FILE
+    script:
+        "workflow/concat-files.py"
+
+rule concat_community_detection_result_ring_of_clique_file:
+    input:
+        input_files = RING_OF_CLIQUE_COM_DETECT_FILE_ALL
+    output:
+        output_file = RING_OF_CLIQUE_COM_DETECT_RES_FILE
     script:
         "workflow/concat-files.py"
 
@@ -487,11 +513,15 @@ rule _all:
     input:
         #MULTI_COM_AUC_RES_FILE,
         #MULTI_COM_KMEANS_RES_FILE,
-#        MULTI_FIXED_SZ_COM_AUC_RES_FILE,
-#        MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
-#        MULTI_COM_AUC_RES_FILE,
-#        MULTI_COM_KMEANS_RES_FILE,
-        RING_OF_CLIQUE_COM_DETECT_FILE_ALL
+        MULTI_FIXED_SZ_COM_AUC_RES_FILE,
+        MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
+        MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
+        MULTI_COM_AUC_RES_FILE,
+        MULTI_COM_KMEANS_RES_FILE,
+        MULTI_COM_COM_DETECT_RES_FILE,
+        RING_OF_CLIQUE_AUC_RES_FILE,
+        RING_OF_CLIQUE_KMEANS_RES_FILE,
+        RING_OF_CLIQUE_COM_DETECT_RES_FILE,
 
         #TWO_COM_AUC_RES_FILE, RES_TWO_COM_KMEANS_RES_FILE,
         #MULTI_FIXED_SZ_COM_AUC_RES_FILE, RES_MULTI_FIXED_SZ_COM_KMEANS_RES_FILE
@@ -509,8 +539,13 @@ rule _all:
 
 rule __all:
     input:
-        MULTI_FIXED_SZ_COM_FILE_ALL, MULTI_COM_FILE_ALL, MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL, MULTI_COM_COM_DETECT_FILE_ALL,
-        RING_OF_CLIQUE_COM_DETECT_FILE_ALL
+        MULTI_COM_COM_DETECT_RES_FILE,
+        MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
+        MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
+        MULTI_COM_KMEANS_RES_FILE,
+        RING_OF_CLIQUE_COM_DETECT_RES_FILE,
+        RING_OF_CLIQUE_KMEANS_RES_FILE
+        #MULTI_COM_KMEANS_FILE_ALL
         #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
          #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
          #TWO_COM_EMB_FILE_ALL
