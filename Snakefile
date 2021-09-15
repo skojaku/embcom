@@ -212,7 +212,7 @@ sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000, 100000],
     "cave": [50],
     "cdiff": [20, 30, 40, 80, 160, 320, 640], # cin - cout
-    "K": [2, 50],
+    "K": [2, 25, 50],
     "sample": np.arange(10),
 }
 SIM_MULTI_COM_NET = j(
@@ -223,7 +223,7 @@ SIM_MULTI_COM_NET_ALL = expand(SIM_MULTI_COM_NET, **sim_net_params)
 emb_params_rw = {  # parameter for methods baesd on random walks
     "model_name": ["node2vec", "glove"],
     "window_length": [10],
-    "dim": [1, 64] + sim_net_params["K"],
+    "dim": [1, 64] + [ k-1 for k in sim_net_params["K"]],
 }
 emb_params = {
     "model_name": ["leigenmap", "modspec"],
@@ -365,7 +365,7 @@ RING_OF_CLIQUE_DIR = j(DATA_DIR, "communities", "ring_of_cliques")
 sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000, 100000],
     "cave": [50],
-    "cdiff": [20, 30, 40, 80, 160, 320, 640], # cin - cout
+    "cdiff": [20], # cin - cout
     "nc": [10, 50, 100],
     "sample": np.arange(10),
 }
@@ -539,8 +539,13 @@ rule _all:
 
 rule __all:
     input:
+        MULTI_COM_COM_DETECT_RES_FILE,
+        MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
         MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
-        MULTI_COM_KMEANS_FILE_ALL
+        MULTI_COM_KMEANS_RES_FILE,
+        RING_OF_CLIQUE_COM_DETECT_RES_FILE,
+        RING_OF_CLIQUE_KMEANS_RES_FILE
+        #MULTI_COM_KMEANS_FILE_ALL
         #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
          #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
          #TWO_COM_EMB_FILE_ALL
