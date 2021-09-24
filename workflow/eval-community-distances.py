@@ -8,7 +8,7 @@ import pandas as pd
 from embcom.PairSampler import PairSampler
 
 if "snakemake" in sys.modules:
-    emb_file = snakemake.input["emb_files"]
+    emb_file = snakemake.input["emb_file"]
     K = int(snakemake.params["K"])
     num_samples = int(snakemake.params["num_samples"])
     output_file = snakemake.output["output_file"]
