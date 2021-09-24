@@ -17,6 +17,7 @@ DERIVED_DIR = j(DATA_DIR, "derived")
 SIM_R_DIR = j(DERIVED_DIR, "sim_R")
 SIM_R_RES = j(SIM_R_DIR, "rvals.csv")
 
+
 rule all:
     input:
         PAPER,
@@ -57,11 +58,12 @@ sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000],
     "nc": [100],
     "cave": [50],
-    "cdiff": [20, 30, 40, 80, 160, 320, 640], # cin - cout
+    "cdiff": [20, 30, 40, 80, 160, 320, 640],  # cin - cout
     "sample": np.arange(10),
 }
 SIM_MULTI_FIXED_SZ_COM_NET = j(
-    MULTI_FIXED_SZ_COM_NET_DIR, "net_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}.npz"
+    MULTI_FIXED_SZ_COM_NET_DIR,
+    "net_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}.npz",
 )
 SIM_MULTI_FIXED_SZ_COM_NET_ALL = expand(SIM_MULTI_FIXED_SZ_COM_NET, **sim_net_params)
 
@@ -72,7 +74,7 @@ emb_params_rw = {  # parameter for methods baesd on random walks
     "dim": [1, 64],
 }
 emb_params = {
-    #"model_name": [],
+    # "model_name": [],
     "model_name": ["leigenmap", "modspec", "nonbacktracking"],
     "window_length": [10],
     "dim": [1, 64],
@@ -98,22 +100,66 @@ MULTI_FIXED_SZ_COM_FILE_ALL = expand(
 )
 
 # Derived
-MULTI_FIXED_SZ_COM_AUC_FILE = j(RES_DIR, "multi_fixed_size_coms", "auc", "auc_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-MULTI_FIXED_SZ_COM_SIM_FILE = j(RES_DIR, "multi_fixed_size_coms", "similarity", "similarity_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-MULTI_FIXED_SZ_COM_KMEANS_FILE = j(RES_DIR, "multi_fixed_size_coms", "kmeans", "kmeans_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-MULTI_FIXED_SZ_COM_COM_DETECT_FILE = j(RES_DIR, "multi_fixed_size_coms", "community_detection", "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.csv")
-MULTI_FIXED_SZ_COM_DIST_FILE = j(RES_DIR, "multi_fixed_size_coms", "distances", "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
+MULTI_FIXED_SZ_COM_AUC_FILE = j(
+    RES_DIR,
+    "multi_fixed_size_coms",
+    "auc",
+    "auc_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+MULTI_FIXED_SZ_COM_SIM_FILE = j(
+    RES_DIR,
+    "multi_fixed_size_coms",
+    "similarity",
+    "similarity_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+MULTI_FIXED_SZ_COM_KMEANS_FILE = j(
+    RES_DIR,
+    "multi_fixed_size_coms",
+    "kmeans",
+    "kmeans_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+MULTI_FIXED_SZ_COM_COM_DETECT_FILE = j(
+    RES_DIR,
+    "multi_fixed_size_coms",
+    "community_detection",
+    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.csv",
+)
+MULTI_FIXED_SZ_COM_DIST_FILE = j(
+    RES_DIR,
+    "multi_fixed_size_coms",
+    "distances",
+    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
 
-MULTI_FIXED_SZ_COM_AUC_FILE_ALL = expand(MULTI_FIXED_SZ_COM_AUC_FILE, **sim_net_params, **emb_params) + expand(MULTI_FIXED_SZ_COM_AUC_FILE, **sim_net_params, **emb_params_rw)
-MULTI_FIXED_SZ_COM_SIM_FILE_ALL = expand(MULTI_FIXED_SZ_COM_SIM_FILE, **sim_net_params, **emb_params) + expand(MULTI_FIXED_SZ_COM_SIM_FILE, **sim_net_params, **emb_params_rw)
-MULTI_FIXED_SZ_COM_KMEANS_FILE_ALL = expand(MULTI_FIXED_SZ_COM_KMEANS_FILE, **sim_net_params, **emb_params) + expand(MULTI_FIXED_SZ_COM_KMEANS_FILE, **sim_net_params, **emb_params_rw)
-MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL = expand(MULTI_FIXED_SZ_COM_COM_DETECT_FILE, **sim_net_params, **com_detect_params)
-MULTI_FIXED_SZ_COM_DIST_FILE_ALL = expand(MULTI_FIXED_SZ_COM_DIST_FILE, **sim_net_params, **emb_params) + expand(MULTI_FIXED_SZ_COM_DIST_FILE, **sim_net_params, **emb_params_rw)
+MULTI_FIXED_SZ_COM_AUC_FILE_ALL = expand(
+    MULTI_FIXED_SZ_COM_AUC_FILE, **sim_net_params, **emb_params
+) + expand(MULTI_FIXED_SZ_COM_AUC_FILE, **sim_net_params, **emb_params_rw)
+MULTI_FIXED_SZ_COM_SIM_FILE_ALL = expand(
+    MULTI_FIXED_SZ_COM_SIM_FILE, **sim_net_params, **emb_params
+) + expand(MULTI_FIXED_SZ_COM_SIM_FILE, **sim_net_params, **emb_params_rw)
+MULTI_FIXED_SZ_COM_KMEANS_FILE_ALL = expand(
+    MULTI_FIXED_SZ_COM_KMEANS_FILE, **sim_net_params, **emb_params
+) + expand(MULTI_FIXED_SZ_COM_KMEANS_FILE, **sim_net_params, **emb_params_rw)
+MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL = expand(
+    MULTI_FIXED_SZ_COM_COM_DETECT_FILE, **sim_net_params, **com_detect_params
+)
+MULTI_FIXED_SZ_COM_DIST_FILE_ALL = expand(
+    MULTI_FIXED_SZ_COM_DIST_FILE, **sim_net_params, **emb_params
+) + expand(MULTI_FIXED_SZ_COM_DIST_FILE, **sim_net_params, **emb_params_rw)
 
-MULTI_FIXED_SZ_COM_AUC_RES_FILE  = j(RES_DIR, "multi_fixed_size_coms", "results", "auc.csv")
-MULTI_FIXED_SZ_COM_KMEANS_RES_FILE = j(RES_DIR, "multi_fixed_size_coms", "results", "kmeans.csv")
-MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE = j(RES_DIR, "multi_fixed_size_coms", "results", "community_detection.csv")
-MULTI_FIXED_SZ_COM_DIST_RES_FILE = j(RES_DIR, "multi_fixed_size_coms", "results", "distances.csv")
+MULTI_FIXED_SZ_COM_AUC_RES_FILE = j(
+    RES_DIR, "multi_fixed_size_coms", "results", "auc.csv"
+)
+MULTI_FIXED_SZ_COM_KMEANS_RES_FILE = j(
+    RES_DIR, "multi_fixed_size_coms", "results", "kmeans.csv"
+)
+MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE = j(
+    RES_DIR, "multi_fixed_size_coms", "results", "community_detection.csv"
+)
+MULTI_FIXED_SZ_COM_DIST_RES_FILE = j(
+    RES_DIR, "multi_fixed_size_coms", "results", "distances.csv"
+)
+
 
 rule generate_fixed_size_multi_com_net:
     params:
@@ -125,6 +171,7 @@ rule generate_fixed_size_multi_com_net:
         output_file=SIM_MULTI_FIXED_SZ_COM_NET,
     script:
         "workflow/generate-multi-fixed-size-com-net.py"
+
 
 rule multi_fixed_size_com_embedding:
     input:
@@ -140,11 +187,12 @@ rule multi_fixed_size_com_embedding:
     script:
         "workflow/embedding.py"
 
+
 rule eval_auc_fixed_size_com_embedding:
     input:
         emb_files=MULTI_FIXED_SZ_COM_EMB_FILE,
     params:
-        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
     output:
         output_file=MULTI_FIXED_SZ_COM_AUC_FILE,
         output_sim_file=MULTI_FIXED_SZ_COM_SIM_FILE,
@@ -156,75 +204,85 @@ rule eval_fixed_size_com_embedding_kmeans:
     input:
         emb_files=MULTI_FIXED_SZ_COM_EMB_FILE,
     params:
-        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
     output:
         output_sim_file=MULTI_FIXED_SZ_COM_KMEANS_FILE,
     script:
         "workflow/eval-community-kmeans.py"
 
+
 rule concat_auc_result_fixed_size_file:
     input:
-        input_files = MULTI_FIXED_SZ_COM_AUC_FILE_ALL
+        input_files=MULTI_FIXED_SZ_COM_AUC_FILE_ALL,
     output:
-        output_file = MULTI_FIXED_SZ_COM_AUC_RES_FILE
+        output_file=MULTI_FIXED_SZ_COM_AUC_RES_FILE,
     script:
         "workflow/concat-files.py"
+
 
 rule concat_kmeans_result_fixed_size_file:
     input:
-        input_files = MULTI_FIXED_SZ_COM_KMEANS_FILE_ALL
+        input_files=MULTI_FIXED_SZ_COM_KMEANS_FILE_ALL,
     output:
-        output_file = MULTI_FIXED_SZ_COM_KMEANS_RES_FILE
+        output_file=MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
     script:
         "workflow/concat-files.py"
+
 
 rule concat_community_detection_result_fixed_size_file:
     input:
-        input_files = MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL
+        input_files=MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL,
     output:
-        output_file = MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE
+        output_file=MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
     script:
         "workflow/concat-files.py"
+
 
 rule concat_dist_result_fixed_size_file:
     input:
-        input_files = MULTI_FIXED_SZ_COM_DIST_FILE_ALL
+        input_files=MULTI_FIXED_SZ_COM_DIST_FILE_ALL,
     output:
-        output_file = MULTI_FIXED_SZ_COM_DIST_RES_FILE
+        output_file=MULTI_FIXED_SZ_COM_DIST_RES_FILE,
     wildcard_constraints:
-        model_name="(" + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"]) + ")",
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
     script:
         "workflow/concat-files.py"
 
+
 rule detect_fixed_size_community_by_infomap:
     input:
-        netfile=SIM_MULTI_FIXED_SZ_COM_NET
+        netfile=SIM_MULTI_FIXED_SZ_COM_NET,
     output:
-        output_file = MULTI_FIXED_SZ_COM_FILE
+        output_file=MULTI_FIXED_SZ_COM_FILE,
     script:
         "workflow/detect-community-by-infomap.py"
 
+
 rule eval_fixed_size_detected_community:
     input:
-        com_file = MULTI_FIXED_SZ_COM_FILE
+        com_file=MULTI_FIXED_SZ_COM_FILE,
     output:
-        output_file = MULTI_FIXED_SZ_COM_COM_DETECT_FILE
+        output_file=MULTI_FIXED_SZ_COM_COM_DETECT_FILE,
     params:
-        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
     script:
         "workflow/eval-detected-community.py"
 
 
 rule eval_multi_fixed_sz_com_distances:
     input:
-        com_file = MULTI_FIXED_SZ_COM_EMB_FILE
+        com_file=MULTI_FIXED_SZ_COM_EMB_FILE,
     output:
-        output_file = MULTI_FIXED_SZ_COM_DIST_FILE
+        output_file=MULTI_FIXED_SZ_COM_DIST_FILE,
     params:
-        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc),
-        num_samples = 10000
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+        num_samples=10000,
     wildcard_constraints:
-        model_name="(" + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"]) + ")",
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
     script:
         "workflow/eval-community-distances.py"
 
@@ -238,7 +296,7 @@ MULTI_COM_DIR = j(DATA_DIR, "communities", "multi_coms")
 sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000, 100000],
     "cave": [50],
-    "cdiff": [20, 30, 40, 80, 160, 320, 640], # cin - cout
+    "cdiff": [20, 30, 40, 80, 160, 320, 640],  # cin - cout
     "K": [2, 25, 50],
     "sample": np.arange(10),
 }
@@ -250,12 +308,12 @@ SIM_MULTI_COM_NET_ALL = expand(SIM_MULTI_COM_NET, **sim_net_params)
 emb_params_rw = {  # parameter for methods baesd on random walks
     "model_name": ["node2vec", "glove"],
     "window_length": [10],
-    "dim": [1, 64] + [ k-1 for k in sim_net_params["K"]],
+    "dim": [1, 64] + [k - 1 for k in sim_net_params["K"]],
 }
 emb_params = {
     "model_name": ["leigenmap", "modspec", "nonbacktracking"],
     "window_length": [10],
-    "dim": [1, 64] + [ k-1 for k in sim_net_params["K"]],
+    "dim": [1, 64] + [k - 1 for k in sim_net_params["K"]],
 }
 MULTI_COM_EMB_FILE = j(
     MULTI_COM_EMB_DIR,
@@ -273,28 +331,64 @@ MULTI_COM_FILE = j(
 com_detect_params = {
     "model_name": ["infomap"],
 }
-MULTI_COM_FILE_ALL = expand(
-    MULTI_COM_FILE, **sim_net_params, **com_detect_params
-)
+MULTI_COM_FILE_ALL = expand(MULTI_COM_FILE, **sim_net_params, **com_detect_params)
 
 
 # Derived
-MULTI_COM_AUC_FILE = j(RES_DIR, "multi_coms", "auc", "auc_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-MULTI_COM_SIM_FILE = j(RES_DIR, "multi_coms", "similarity", "similarity_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-MULTI_COM_KMEANS_FILE =j(RES_DIR, "multi_coms", "kmeans", "kmeans_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-MULTI_COM_COM_DETECT_FILE = j(RES_DIR, "multi_coms", "community_detection", "result_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.csv")
-MULTI_COM_DIST_FILE = j(RES_DIR, "multi_coms", "distances", "result_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-MULTI_COM_AUC_FILE_ALL = expand(MULTI_COM_AUC_FILE, **sim_net_params, **emb_params) + expand(MULTI_COM_AUC_FILE, **sim_net_params, **emb_params_rw)
-MULTI_COM_SIM_FILE_ALL = expand(MULTI_COM_SIM_FILE, **sim_net_params, **emb_params) + expand(MULTI_COM_SIM_FILE, **sim_net_params, **emb_params_rw)
-MULTI_COM_KMEANS_FILE_ALL = expand(MULTI_COM_KMEANS_FILE, **sim_net_params, **emb_params) + expand(MULTI_COM_KMEANS_FILE, **sim_net_params, **emb_params_rw)
-MULTI_COM_COM_DETECT_FILE_ALL = expand(MULTI_COM_COM_DETECT_FILE, **sim_net_params, **com_detect_params)
-MULTI_COM_DIST_FILE_ALL = expand(MULTI_COM_DIST_FILE, **sim_net_params, **emb_params) + expand(MULTI_COM_DIST_FILE, **sim_net_params, **emb_params_rw)
+MULTI_COM_AUC_FILE = j(
+    RES_DIR,
+    "multi_coms",
+    "auc",
+    "auc_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+MULTI_COM_SIM_FILE = j(
+    RES_DIR,
+    "multi_coms",
+    "similarity",
+    "similarity_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+MULTI_COM_KMEANS_FILE = j(
+    RES_DIR,
+    "multi_coms",
+    "kmeans",
+    "kmeans_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+MULTI_COM_COM_DETECT_FILE = j(
+    RES_DIR,
+    "multi_coms",
+    "community_detection",
+    "result_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.csv",
+)
+MULTI_COM_DIST_FILE = j(
+    RES_DIR,
+    "multi_coms",
+    "distances",
+    "result_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+MULTI_COM_AUC_FILE_ALL = expand(
+    MULTI_COM_AUC_FILE, **sim_net_params, **emb_params
+) + expand(MULTI_COM_AUC_FILE, **sim_net_params, **emb_params_rw)
+MULTI_COM_SIM_FILE_ALL = expand(
+    MULTI_COM_SIM_FILE, **sim_net_params, **emb_params
+) + expand(MULTI_COM_SIM_FILE, **sim_net_params, **emb_params_rw)
+MULTI_COM_KMEANS_FILE_ALL = expand(
+    MULTI_COM_KMEANS_FILE, **sim_net_params, **emb_params
+) + expand(MULTI_COM_KMEANS_FILE, **sim_net_params, **emb_params_rw)
+MULTI_COM_COM_DETECT_FILE_ALL = expand(
+    MULTI_COM_COM_DETECT_FILE, **sim_net_params, **com_detect_params
+)
+MULTI_COM_DIST_FILE_ALL = expand(
+    MULTI_COM_DIST_FILE, **sim_net_params, **emb_params
+) + expand(MULTI_COM_DIST_FILE, **sim_net_params, **emb_params_rw)
 
 
-MULTI_COM_AUC_RES_FILE  = j(RES_DIR, "multi_coms", "results", "auc.csv")
+MULTI_COM_AUC_RES_FILE = j(RES_DIR, "multi_coms", "results", "auc.csv")
 MULTI_COM_KMEANS_RES_FILE = j(RES_DIR, "multi_coms", "results", "kmeans.csv")
-MULTI_COM_COM_DETECT_RES_FILE = j(RES_DIR, "multi_coms", "results", "community_detection.csv")
+MULTI_COM_COM_DETECT_RES_FILE = j(
+    RES_DIR, "multi_coms", "results", "community_detection.csv"
+)
 MULTI_COM_DIST_RES_FILE = j(RES_DIR, "multi_coms", "results", "distances.csv")
+
 
 rule generate_multi_com_net:
     params:
@@ -306,6 +400,7 @@ rule generate_multi_com_net:
         output_file=SIM_MULTI_COM_NET,
     script:
         "workflow/generate-multi-com-net.py"
+
 
 rule multi_com_embedding:
     input:
@@ -321,11 +416,12 @@ rule multi_com_embedding:
     script:
         "workflow/embedding.py"
 
+
 rule eval_auc_multi_com_embedding:
     input:
         emb_files=MULTI_COM_EMB_FILE,
     params:
-        K = lambda wildcards :wildcards.K
+        K=lambda wildcards: wildcards.K,
     output:
         output_file=MULTI_COM_AUC_FILE,
         output_sim_file=MULTI_COM_SIM_FILE,
@@ -337,75 +433,84 @@ rule eval_multi_com_embedding_kmeans:
     input:
         emb_files=MULTI_COM_EMB_FILE,
     params:
-        K = lambda wildcards :wildcards.K
+        K=lambda wildcards: wildcards.K,
     output:
         output_sim_file=MULTI_COM_KMEANS_FILE,
     script:
         "workflow/eval-community-kmeans.py"
 
+
 rule concat_auc_result_multi_com_file:
     input:
-        input_files = MULTI_COM_AUC_FILE_ALL
+        input_files=MULTI_COM_AUC_FILE_ALL,
     output:
-        output_file = MULTI_COM_AUC_RES_FILE
+        output_file=MULTI_COM_AUC_RES_FILE,
     script:
         "workflow/concat-files.py"
+
 
 rule concat_kmeans_result_multi_com_file:
     input:
-        input_files = MULTI_COM_KMEANS_FILE_ALL
+        input_files=MULTI_COM_KMEANS_FILE_ALL,
     output:
-        output_file = MULTI_COM_KMEANS_RES_FILE
+        output_file=MULTI_COM_KMEANS_RES_FILE,
     script:
         "workflow/concat-files.py"
+
 
 rule concat_community_detection_result_multi_com_file:
     input:
-        input_files = MULTI_COM_COM_DETECT_FILE_ALL
+        input_files=MULTI_COM_COM_DETECT_FILE_ALL,
     output:
-        output_file = MULTI_COM_COM_DETECT_RES_FILE
+        output_file=MULTI_COM_COM_DETECT_RES_FILE,
     script:
         "workflow/concat-files.py"
+
 
 rule concat_dist_result_multi_com_file:
     input:
-        input_files = MULTI_COM_DIST_FILE_ALL
+        input_files=MULTI_COM_DIST_FILE_ALL,
     output:
-        output_file = MULTI_COM_DIST_RES_FILE
+        output_file=MULTI_COM_DIST_RES_FILE,
     wildcard_constraints:
-        model_name="(" + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"]) + ")",
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
     script:
         "workflow/concat-files.py"
 
+
 rule detect_community_by_infomap:
     input:
-        netfile=SIM_MULTI_COM_NET
+        netfile=SIM_MULTI_COM_NET,
     output:
-        output_file = MULTI_COM_FILE
+        output_file=MULTI_COM_FILE,
     script:
         "workflow/detect-community-by-infomap.py"
 
+
 rule eval_detected_community:
     input:
-        com_file = MULTI_COM_FILE
+        com_file=MULTI_COM_FILE,
     output:
-        output_file = MULTI_COM_COM_DETECT_FILE
+        output_file=MULTI_COM_COM_DETECT_FILE,
     params:
-        K = lambda wildcards :wildcards.K
+        K=lambda wildcards: wildcards.K,
     script:
         "workflow/eval-detected-community.py"
 
 
 rule eval_multi_com_distances:
     input:
-        com_file = MULTI_COM_EMB_FILE
+        com_file=MULTI_COM_EMB_FILE,
     output:
-        output_file = MULTI_COM_DIST_FILE
+        output_file=MULTI_COM_DIST_FILE,
     params:
-        K = lambda wildcards : wildcards.K,
-        num_samples = 10000 
+        K=lambda wildcards: wildcards.K,
+        num_samples=10000,
     script:
         "workflow/eval-community-distances.py"
+
 
 # ==================================
 # Ring of Cliques
@@ -416,12 +521,13 @@ RING_OF_CLIQUE_DIR = j(DATA_DIR, "communities", "ring_of_cliques")
 sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000, 100000],
     "cave": [50],
-    "cdiff": [20], # cin - cout
+    "cdiff": [20],  # cin - cout
     "nc": [10, 50, 100],
     "sample": np.arange(10),
 }
 SIM_RING_OF_CLIQUE_NET = j(
-    RING_OF_CLIQUE_NET_DIR, "net_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}.npz"
+    RING_OF_CLIQUE_NET_DIR,
+    "net_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}.npz",
 )
 SIM_RING_OF_CLIQUE_NET_ALL = expand(SIM_RING_OF_CLIQUE_NET, **sim_net_params)
 
@@ -457,21 +563,59 @@ RING_OF_CLIQUE_FILE_ALL = expand(
 
 
 # Derived
-RING_OF_CLIQUE_AUC_FILE = j(RES_DIR, "ring_of_cliques", "auc", "auc_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-RING_OF_CLIQUE_SIM_FILE = j(RES_DIR, "ring_of_cliques", "similarity", "similarity_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-RING_OF_CLIQUE_KMEANS_FILE =j(RES_DIR, "ring_of_cliques", "kmeans", "kmeans_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-RING_OF_CLIQUE_COM_DETECT_FILE = j(RES_DIR, "ring_of_cliques", "community_detection", "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.csv")
-RING_OF_CLIQUE_DIST_FILE = j(RES_DIR, "ring_of_cliques", "distances", "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv")
-RING_OF_CLIQUE_AUC_FILE_ALL = expand(RING_OF_CLIQUE_AUC_FILE, **sim_net_params, **emb_params) + expand(RING_OF_CLIQUE_AUC_FILE, **sim_net_params, **emb_params_rw)
-RING_OF_CLIQUE_SIM_FILE_ALL = expand(RING_OF_CLIQUE_SIM_FILE, **sim_net_params, **emb_params) + expand(RING_OF_CLIQUE_SIM_FILE, **sim_net_params, **emb_params_rw)
-RING_OF_CLIQUE_KMEANS_FILE_ALL = expand(RING_OF_CLIQUE_KMEANS_FILE, **sim_net_params, **emb_params) + expand(RING_OF_CLIQUE_KMEANS_FILE, **sim_net_params, **emb_params_rw)
-RING_OF_CLIQUE_COM_DETECT_FILE_ALL = expand(RING_OF_CLIQUE_COM_DETECT_FILE, **sim_net_params, **com_detect_params)
-RING_OF_CLIQUE_DIST_FILE_ALL = expand(RING_OF_CLIQUE_DIST_FILE, **sim_net_params, **emb_params) + expand(RING_OF_CLIQUE_DIST_FILE, **sim_net_params, **emb_params_rw)
+RING_OF_CLIQUE_AUC_FILE = j(
+    RES_DIR,
+    "ring_of_cliques",
+    "auc",
+    "auc_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+RING_OF_CLIQUE_SIM_FILE = j(
+    RES_DIR,
+    "ring_of_cliques",
+    "similarity",
+    "similarity_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+RING_OF_CLIQUE_KMEANS_FILE = j(
+    RES_DIR,
+    "ring_of_cliques",
+    "kmeans",
+    "kmeans_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+RING_OF_CLIQUE_COM_DETECT_FILE = j(
+    RES_DIR,
+    "ring_of_cliques",
+    "community_detection",
+    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.csv",
+)
+RING_OF_CLIQUE_DIST_FILE = j(
+    RES_DIR,
+    "ring_of_cliques",
+    "distances",
+    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+RING_OF_CLIQUE_AUC_FILE_ALL = expand(
+    RING_OF_CLIQUE_AUC_FILE, **sim_net_params, **emb_params
+) + expand(RING_OF_CLIQUE_AUC_FILE, **sim_net_params, **emb_params_rw)
+RING_OF_CLIQUE_SIM_FILE_ALL = expand(
+    RING_OF_CLIQUE_SIM_FILE, **sim_net_params, **emb_params
+) + expand(RING_OF_CLIQUE_SIM_FILE, **sim_net_params, **emb_params_rw)
+RING_OF_CLIQUE_KMEANS_FILE_ALL = expand(
+    RING_OF_CLIQUE_KMEANS_FILE, **sim_net_params, **emb_params
+) + expand(RING_OF_CLIQUE_KMEANS_FILE, **sim_net_params, **emb_params_rw)
+RING_OF_CLIQUE_COM_DETECT_FILE_ALL = expand(
+    RING_OF_CLIQUE_COM_DETECT_FILE, **sim_net_params, **com_detect_params
+)
+RING_OF_CLIQUE_DIST_FILE_ALL = expand(
+    RING_OF_CLIQUE_DIST_FILE, **sim_net_params, **emb_params
+) + expand(RING_OF_CLIQUE_DIST_FILE, **sim_net_params, **emb_params_rw)
 
-RING_OF_CLIQUE_AUC_RES_FILE  = j(RES_DIR, "ring_of_cliques", "results", "auc.csv")
+RING_OF_CLIQUE_AUC_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "auc.csv")
 RING_OF_CLIQUE_KMEANS_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "kmeans.csv")
-RING_OF_CLIQUE_COM_DETECT_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "community_detection.csv")
+RING_OF_CLIQUE_COM_DETECT_RES_FILE = j(
+    RES_DIR, "ring_of_cliques", "results", "community_detection.csv"
+)
 RING_OF_CLIQUE_DIST_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "distances.csv")
+
 
 rule generate_ring_of_clique_net:
     params:
@@ -481,6 +625,7 @@ rule generate_ring_of_clique_net:
         output_file=SIM_RING_OF_CLIQUE_NET,
     script:
         "workflow/generate-ring-of-cliques.py"
+
 
 rule ring_of_clique_embedding:
     input:
@@ -496,11 +641,12 @@ rule ring_of_clique_embedding:
     script:
         "workflow/embedding.py"
 
+
 rule eval_auc_ring_of_clique_embedding:
     input:
         emb_files=RING_OF_CLIQUE_EMB_FILE,
     params:
-        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
     output:
         output_file=RING_OF_CLIQUE_AUC_FILE,
         output_sim_file=RING_OF_CLIQUE_SIM_FILE,
@@ -512,77 +658,88 @@ rule eval_ring_of_clique_embedding_kmeans:
     input:
         emb_files=RING_OF_CLIQUE_EMB_FILE,
     params:
-        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
     output:
         output_sim_file=RING_OF_CLIQUE_KMEANS_FILE,
     script:
         "workflow/eval-community-kmeans.py"
 
+
 rule concat_auc_result_ring_of_clique_file:
     input:
-        input_files = RING_OF_CLIQUE_AUC_FILE_ALL
+        input_files=RING_OF_CLIQUE_AUC_FILE_ALL,
     output:
-        output_file = RING_OF_CLIQUE_AUC_RES_FILE
+        output_file=RING_OF_CLIQUE_AUC_RES_FILE,
     script:
         "workflow/concat-files.py"
+
 
 rule concat_kmeans_result_ring_of_clique_file:
     input:
-        input_files = RING_OF_CLIQUE_KMEANS_FILE_ALL
+        input_files=RING_OF_CLIQUE_KMEANS_FILE_ALL,
     output:
-        output_file = RING_OF_CLIQUE_KMEANS_RES_FILE
+        output_file=RING_OF_CLIQUE_KMEANS_RES_FILE,
     script:
         "workflow/concat-files.py"
 
+
 rule concat_community_detection_result_ring_of_clique_file:
     input:
-        input_files = RING_OF_CLIQUE_COM_DETECT_FILE_ALL
+        input_files=RING_OF_CLIQUE_COM_DETECT_FILE_ALL,
     output:
-        output_file = RING_OF_CLIQUE_COM_DETECT_RES_FILE
+        output_file=RING_OF_CLIQUE_COM_DETECT_RES_FILE,
     script:
         "workflow/concat-files.py"
 
 
 rule concat_dist_result_ring_of_clique_file:
     input:
-        input_files = RING_OF_CLIQUE_DIST_FILE_ALL
+        input_files=RING_OF_CLIQUE_DIST_FILE_ALL,
     output:
-        output_file = RING_OF_CLIQUE_DIST_RES_FILE
+        output_file=RING_OF_CLIQUE_DIST_RES_FILE,
     wildcard_constraints:
-        model_name="(" + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"]) + ")",
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
     script:
         "workflow/concat-files.py"
 
+
 rule detect_ring_of_clique_community_by_infomap:
     input:
-        netfile=SIM_RING_OF_CLIQUE_NET
+        netfile=SIM_RING_OF_CLIQUE_NET,
     output:
-        output_file = RING_OF_CLIQUE_FILE
+        output_file=RING_OF_CLIQUE_FILE,
     script:
         "workflow/detect-community-by-infomap.py"
 
+
 rule eval_ring_of_clique_detected_community:
     input:
-        com_file = RING_OF_CLIQUE_FILE
+        com_file=RING_OF_CLIQUE_FILE,
     output:
-        output_file = RING_OF_CLIQUE_COM_DETECT_FILE
+        output_file=RING_OF_CLIQUE_COM_DETECT_FILE,
     params:
-        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc)
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
     script:
         "workflow/eval-detected-community.py"
 
+
 rule eval_ring_of_clique_distances:
     input:
-        emb_file = RING_OF_CLIQUE_EMB_FILE
+        emb_file=RING_OF_CLIQUE_EMB_FILE,
     output:
-        output_file = RING_OF_CLIQUE_DIST_FILE
+        output_file=RING_OF_CLIQUE_DIST_FILE,
     params:
-        K = lambda wildcards : int(wildcards.n) / int(wildcards.nc),
-        num_samples = 10000 
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+        num_samples=10000,
     wildcard_constraints:
-        model_name="(" + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"]) + ")",
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
     script:
         "workflow/eval-community-distances.py"
+
 
 #
 # Misc
@@ -600,7 +757,6 @@ rule _all:
         RING_OF_CLIQUE_AUC_RES_FILE,
         RING_OF_CLIQUE_KMEANS_RES_FILE,
         RING_OF_CLIQUE_COM_DETECT_RES_FILE,
-
         #TWO_COM_AUC_RES_FILE, RES_TWO_COM_KMEANS_RES_FILE,
         #MULTI_FIXED_SZ_COM_AUC_RES_FILE, RES_MULTI_FIXED_SZ_COM_KMEANS_RES_FILE
         #RES_TWO_COM_KMEANS_FILE_ALL,TWO_COM_SIM_FILE_ALL,TWO_COM_AUC_FILE_ALL,
@@ -612,8 +768,9 @@ rule _all:
         #"MULTI_COM_SIM_FILE,
         #RES_MULTI_COM_KMEANS_FILE
         #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
-         #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
-         #TWO_COM_EMB_FILE_ALL
+        #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
+        #TWO_COM_EMB_FILE_ALL
+
 
 rule __all:
     input:
@@ -628,8 +785,10 @@ rule __all:
         #RING_OF_CLIQUE_KMEANS_RES_FILE
         #MULTI_COM_KMEANS_FILE_ALL
         #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
-         #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
-         #TWO_COM_EMB_FILE_ALL
+        #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
+        #TWO_COM_EMB_FILE_ALL
+
+
 # rule some_data_processing:
 # input:
 # "data/some_data.csv"
