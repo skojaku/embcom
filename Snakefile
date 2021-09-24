@@ -73,7 +73,7 @@ emb_params_rw = {  # parameter for methods baesd on random walks
 }
 emb_params = {
     #"model_name": [],
-    "model_name": ["leigenmap", "modspec"],
+    "model_name": ["leigenmap", "modspec", "nonbacktracking"],
     "window_length": [10],
     "dim": [1, 64],
 }
@@ -226,7 +226,7 @@ emb_params_rw = {  # parameter for methods baesd on random walks
     "dim": [1, 64] + [ k-1 for k in sim_net_params["K"]],
 }
 emb_params = {
-    "model_name": ["leigenmap", "modspec"],
+    "model_name": ["leigenmap", "modspec", "nonbacktracking"],
     "window_length": [10],
     "dim": [1, 64] + [ k-1 for k in sim_net_params["K"]],
 }
@@ -380,7 +380,7 @@ emb_params_rw = {  # parameter for methods baesd on random walks
     "dim": [1, 64],
 }
 emb_params = {
-    "model_name": ["leigenmap", "modspec"],
+    "model_name": ["leigenmap", "modspec", "nonbacktracking"],
     "window_length": [10],
     "dim": [1, 64],
 }

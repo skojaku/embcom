@@ -47,6 +47,11 @@ class TestCalc(unittest.TestCase):
         model.fit(self.A)
         vec = model.transform(dim=32)
 
+    def test_nonbacktracking(self):
+        model = embcom.embeddings.NonBacktrackingSpectralEmbedding()
+        model.fit(self.A)
+        vec = model.transform(dim=32)
+
 
 if __name__ == "__main__":
     unittest.main()
