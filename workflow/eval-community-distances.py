@@ -1,7 +1,10 @@
-""""Calculate the distance between nodes between and within the ground-truth communities"""
+""""Calculate the distance between nodes between and within the ground-truth
+communities."""
 import sys
+
 import numpy as np
 import pandas as pd
+
 from embcom.PairSampler import PairSampler
 
 if "snakemake" in sys.modules:
