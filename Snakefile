@@ -130,6 +130,12 @@ MULTI_FIXED_SZ_COM_DIST_FILE = j(
     "distances",
     "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
 )
+MULTI_FIXED_SZ_COM_SEPARATABILITY_FILE = j(
+    RES_DIR,
+    "multi_fixed_size_coms",
+    "separatability",
+    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
 
 MULTI_FIXED_SZ_COM_AUC_FILE_ALL = expand(
     MULTI_FIXED_SZ_COM_AUC_FILE, **sim_net_params, **emb_params
@@ -146,6 +152,9 @@ MULTI_FIXED_SZ_COM_COM_DETECT_FILE_ALL = expand(
 MULTI_FIXED_SZ_COM_DIST_FILE_ALL = expand(
     MULTI_FIXED_SZ_COM_DIST_FILE, **sim_net_params, **emb_params
 ) + expand(MULTI_FIXED_SZ_COM_DIST_FILE, **sim_net_params, **emb_params_rw)
+MULTI_FIXED_SZ_COM_SEPARATABILITY_FILE_ALL = expand(
+    MULTI_FIXED_SZ_COM_SEPARATABILITY_FILE, **sim_net_params, **emb_params
+) + expand(MULTI_FIXED_SZ_COM_SEPARATABILITY_FILE, **sim_net_params, **emb_params_rw)
 
 MULTI_FIXED_SZ_COM_AUC_RES_FILE = j(
     RES_DIR, "multi_fixed_size_coms", "results", "auc.csv"
@@ -158,6 +167,9 @@ MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE = j(
 )
 MULTI_FIXED_SZ_COM_DIST_RES_FILE = j(
     RES_DIR, "multi_fixed_size_coms", "results", "distances.csv"
+)
+MULTI_FIXED_SZ_COM_SEPARATABILITY_RES_FILE = j(
+    RES_DIR, "multi_fixed_size_coms", "results", "separatability.csv"
 )
 
 
@@ -250,6 +262,18 @@ rule concat_dist_result_fixed_size_file:
     script:
         "workflow/concat-files.py"
 
+rule concat_separatability_result_fixed_size_file:
+    input:
+        input_files=MULTI_FIXED_SZ_COM_SEPARATABILITY_FILE_ALL,
+    output:
+        output_file=MULTI_FIXED_SZ_COM_SEPARATABILITY_RES_FILE,
+    wildcard_constraints:
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
+    script:
+        "workflow/concat-files.py"
+
 
 rule detect_fixed_size_community_by_infomap:
     input:
@@ -273,7 +297,7 @@ rule eval_fixed_size_detected_community:
 
 rule eval_multi_fixed_sz_com_distances:
     input:
-        com_file=MULTI_FIXED_SZ_COM_EMB_FILE,
+        emb_file=MULTI_FIXED_SZ_COM_EMB_FILE,
     output:
         output_file=MULTI_FIXED_SZ_COM_DIST_FILE,
     params:
@@ -285,6 +309,21 @@ rule eval_multi_fixed_sz_com_distances:
         + ")",
     script:
         "workflow/eval-community-distances.py"
+
+
+rule eval_multi_fixed_sz_com_separatability:
+    input:
+        emb_file=MULTI_FIXED_SZ_COM_EMB_FILE,
+    output:
+        output_file=MULTI_FIXED_SZ_COM_SEPARATABILITY_FILE,
+    params:
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+    wildcard_constraints:
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
+    script:
+        "workflow/eval-community-separatability.py"
 
 
 # ==================================
@@ -365,6 +404,12 @@ MULTI_COM_DIST_FILE = j(
     "distances",
     "result_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
 )
+MULTI_COM_SEPARATABILITY_FILE = j(
+    RES_DIR,
+    "multi_coms",
+    "separatability",
+    "result_n={n}_K={K}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
 MULTI_COM_AUC_FILE_ALL = expand(
     MULTI_COM_AUC_FILE, **sim_net_params, **emb_params
 ) + expand(MULTI_COM_AUC_FILE, **sim_net_params, **emb_params_rw)
@@ -380,6 +425,9 @@ MULTI_COM_COM_DETECT_FILE_ALL = expand(
 MULTI_COM_DIST_FILE_ALL = expand(
     MULTI_COM_DIST_FILE, **sim_net_params, **emb_params
 ) + expand(MULTI_COM_DIST_FILE, **sim_net_params, **emb_params_rw)
+MULTI_COM_SEPARATABILITY_FILE_ALL = expand(
+    MULTI_COM_SEPARATABILITY_FILE, **sim_net_params, **emb_params
+) + expand(MULTI_COM_SEPARATABILITY_FILE, **sim_net_params, **emb_params_rw)
 
 
 MULTI_COM_AUC_RES_FILE = j(RES_DIR, "multi_coms", "results", "auc.csv")
@@ -388,6 +436,7 @@ MULTI_COM_COM_DETECT_RES_FILE = j(
     RES_DIR, "multi_coms", "results", "community_detection.csv"
 )
 MULTI_COM_DIST_RES_FILE = j(RES_DIR, "multi_coms", "results", "distances.csv")
+MULTI_COM_SEPARATABILITY_RES_FILE = j(RES_DIR, "multi_coms", "results", "separatability.csv")
 
 
 rule generate_multi_com_net:
@@ -480,6 +529,19 @@ rule concat_dist_result_multi_com_file:
         "workflow/concat-files.py"
 
 
+rule concat_separatability_result_multi_com_file:
+    input:
+        input_files=MULTI_COM_SEPARATABILITY_FILE_ALL,
+    output:
+        output_file=MULTI_COM_SEPARATABILITY_RES_FILE,
+    wildcard_constraints:
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
+    script:
+        "workflow/concat-files.py"
+
+
 rule detect_community_by_infomap:
     input:
         netfile=SIM_MULTI_COM_NET,
@@ -502,7 +564,7 @@ rule eval_detected_community:
 
 rule eval_multi_com_distances:
     input:
-        com_file=MULTI_COM_EMB_FILE,
+        emb_file=MULTI_COM_EMB_FILE,
     output:
         output_file=MULTI_COM_DIST_FILE,
     params:
@@ -510,6 +572,17 @@ rule eval_multi_com_distances:
         num_samples=10000,
     script:
         "workflow/eval-community-distances.py"
+
+
+rule eval_multi_com_separatability:
+    input:
+        emb_file=MULTI_COM_EMB_FILE,
+    output:
+        output_file=MULTI_COM_SEPARATABILITY_FILE,
+    params:
+        K=lambda wildcards: wildcards.K,
+    script:
+        "workflow/eval-community-separatability.py"
 
 
 # ==================================
@@ -593,6 +666,12 @@ RING_OF_CLIQUE_DIST_FILE = j(
     "distances",
     "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
 )
+RING_OF_CLIQUE_SEPARATABILITY_FILE = j(
+    RES_DIR,
+    "ring_of_cliques",
+    "separatability",
+    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
 RING_OF_CLIQUE_AUC_FILE_ALL = expand(
     RING_OF_CLIQUE_AUC_FILE, **sim_net_params, **emb_params
 ) + expand(RING_OF_CLIQUE_AUC_FILE, **sim_net_params, **emb_params_rw)
@@ -608,6 +687,9 @@ RING_OF_CLIQUE_COM_DETECT_FILE_ALL = expand(
 RING_OF_CLIQUE_DIST_FILE_ALL = expand(
     RING_OF_CLIQUE_DIST_FILE, **sim_net_params, **emb_params
 ) + expand(RING_OF_CLIQUE_DIST_FILE, **sim_net_params, **emb_params_rw)
+RING_OF_CLIQUE_SEPARATABILITY_FILE_ALL = expand(
+    RING_OF_CLIQUE_SEPARATABILITY_FILE, **sim_net_params, **emb_params
+) + expand(RING_OF_CLIQUE_SEPARATABILITY_FILE, **sim_net_params, **emb_params_rw)
 
 RING_OF_CLIQUE_AUC_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "auc.csv")
 RING_OF_CLIQUE_KMEANS_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "kmeans.csv")
@@ -615,6 +697,7 @@ RING_OF_CLIQUE_COM_DETECT_RES_FILE = j(
     RES_DIR, "ring_of_cliques", "results", "community_detection.csv"
 )
 RING_OF_CLIQUE_DIST_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "distances.csv")
+RING_OF_CLIQUE_SEPARATABILITY_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "separatability.csv")
 
 
 rule generate_ring_of_clique_net:
@@ -705,6 +788,19 @@ rule concat_dist_result_ring_of_clique_file:
         "workflow/concat-files.py"
 
 
+rule concat_separatability_result_ring_of_clique_file:
+    input:
+        input_files=RING_OF_CLIQUE_SEPARATABILITY_FILE_ALL,
+    output:
+        output_file=RING_OF_CLIQUE_SEPARATABILITY_RES_FILE,
+    wildcard_constraints:
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
+    script:
+        "workflow/concat-files.py"
+
+
 rule detect_ring_of_clique_community_by_infomap:
     input:
         netfile=SIM_RING_OF_CLIQUE_NET,
@@ -741,6 +837,21 @@ rule eval_ring_of_clique_distances:
         "workflow/eval-community-distances.py"
 
 
+rule eval_ring_of_clique_separatability:
+    input:
+        emb_file=RING_OF_CLIQUE_EMB_FILE,
+    output:
+        output_file=RING_OF_CLIQUE_SEPARATABILITY_FILE,
+    params:
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+    wildcard_constraints:
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
+    script:
+        "workflow/eval-community-separatability.py"
+
+
 #
 # Misc
 #
@@ -774,7 +885,10 @@ rule _all:
 
 rule __all:
     input:
-        RING_OF_CLIQUE_DIST_RES_FILE,
+        RING_OF_CLIQUE_SEPARATABILITY_RES_FILE,
+        MULTI_FIXED_SZ_COM_SEPARATABILITY_RES_FILE,
+        MULTI_COM_SEPARATABILITY_RES_FILE
+        #RING_OF_CLIQUE_DIST_RES_FILE,
         #MULTI_FIXED_SZ_COM_DIST_RES_FILE,
         #MULTI_COM_DIST_RES_FILE
         #MULTI_COM_COM_DETECT_RES_FILE,
