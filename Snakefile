@@ -1003,7 +1003,7 @@ rule eval_auc_lfr_embedding:
         emb_files=LFR_EMB_FILE,
         com_files=SIM_LFR_COM,
     params:
-        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+        K=1,
     output:
         output_file=LFR_AUC_FILE,
         output_sim_file=LFR_SIM_FILE,
@@ -1016,7 +1016,7 @@ rule eval_lfr_embedding_kmeans:
         emb_files=LFR_EMB_FILE,
         com_files=SIM_LFR_COM,
     params:
-        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+        K=1,
     output:
         output_sim_file=LFR_KMEANS_FILE,
     script:
@@ -1103,7 +1103,7 @@ rule eval_lfr_distances:
     output:
         output_file=LFR_DIST_FILE,
     params:
-        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+        K=1,
         num_samples=10000,
     wildcard_constraints:
         model_name="("
@@ -1120,7 +1120,8 @@ rule eval_lfr_separatability:
     output:
         output_file=LFR_SEPARATABILITY_FILE,
     params:
-        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+        K=1,
+        #K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
 #    wildcard_constraints:
 #        model_name="("
 #        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
