@@ -57,7 +57,7 @@ MULTI_FIXED_SZ_COM_DIR = j(DATA_DIR, "communities", "multi_fixed_sz_coms")
 sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000],
     "nc": [100],
-    "cave": [50],
+    "cave": [10, 50],
     "cdiff": [20, 30, 40, 80, 160, 320, 640],  # cin - cout
     "sample": np.arange(10),
 }
@@ -334,7 +334,7 @@ MULTI_COM_EMB_DIR = j(DATA_DIR, "embeddings", "multi_coms")
 MULTI_COM_DIR = j(DATA_DIR, "communities", "multi_coms")
 sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000, 100000],
-    "cave": [50],
+    "cave": [10, 50],
     "cdiff": [20, 30, 40, 80, 160, 320, 640],  # cin - cout
     "K": [2, 25, 50],
     "sample": np.arange(10),
@@ -593,7 +593,7 @@ RING_OF_CLIQUE_EMB_DIR = j(DATA_DIR, "embeddings", "ring_of_cliques")
 RING_OF_CLIQUE_DIR = j(DATA_DIR, "communities", "ring_of_cliques")
 sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000, 100000],
-    "cave": [50],
+    "cave": [10, 50],
     "cdiff": [20],  # cin - cout
     "nc": [10, 50, 100],
     "sample": np.arange(10),
@@ -851,6 +851,271 @@ rule eval_ring_of_clique_separatability:
     script:
         "workflow/eval-community-separatability.py"
 
+# ==================================
+# LFR 
+# ==================================
+LFR_NET_DIR = j(DATA_DIR, "networks", "lfr")
+LFR_EMB_DIR = j(DATA_DIR, "embeddings", "lfr")
+LFR_DIR = j(DATA_DIR, "communities", "lfr")
+sim_net_params = {
+    "n": [1000, 2500, 5000, 7500, 10000, 100000],
+    "cave": [10, 50],
+    "cdiff": [20],  # cin - cout
+    "nc": [10, 50, 100],
+    "sample": np.arange(10),
+}
+SIM_LFR_NET = j(
+    LFR_NET_DIR,
+    "net_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}.npz",
+)
+SIM_LFR_NET_ALL = expand(SIM_LFR_NET, **sim_net_params)
+
+emb_params_rw = {  # parameter for methods baesd on random walks
+    "model_name": ["node2vec", "glove"],
+    "window_length": [10],
+    "dim": [1, 64],
+}
+emb_params = {
+    "model_name": ["leigenmap", "modspec", "nonbacktracking"],
+    "window_length": [10],
+    "dim": [1, 64],
+}
+LFR_EMB_FILE = j(
+    LFR_EMB_DIR,
+    "embnet_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
+)
+LFR_EMB_FILE_ALL = expand(
+    LFR_EMB_FILE, **sim_net_params, **emb_params
+) + expand(LFR_EMB_FILE, **sim_net_params, **emb_params_rw)
+
+# Community detection
+LFR_FILE = j(
+    LFR_DIR,
+    "community_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.npz",
+)
+com_detect_params = {
+    "model_name": ["infomap"],
+}
+LFR_FILE_ALL = expand(
+    LFR_FILE, **sim_net_params, **com_detect_params
+)
+
+
+# Derived
+LFR_AUC_FILE = j(
+    RES_DIR,
+    "lfr",
+    "auc",
+    "auc_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+LFR_SIM_FILE = j(
+    RES_DIR,
+    "lfr",
+    "similarity",
+    "similarity_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+LFR_KMEANS_FILE = j(
+    RES_DIR,
+    "lfr",
+    "kmeans",
+    "kmeans_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+LFR_COM_DETECT_FILE = j(
+    RES_DIR,
+    "lfr",
+    "community_detection",
+    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.csv",
+)
+LFR_DIST_FILE = j(
+    RES_DIR,
+    "lfr",
+    "distances",
+    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+LFR_SEPARATABILITY_FILE = j(
+    RES_DIR,
+    "lfr",
+    "separatability",
+    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+)
+LFR_AUC_FILE_ALL = expand(
+    LFR_AUC_FILE, **sim_net_params, **emb_params
+) + expand(LFR_AUC_FILE, **sim_net_params, **emb_params_rw)
+LFR_SIM_FILE_ALL = expand(
+    LFR_SIM_FILE, **sim_net_params, **emb_params
+) + expand(LFR_SIM_FILE, **sim_net_params, **emb_params_rw)
+LFR_KMEANS_FILE_ALL = expand(
+    LFR_KMEANS_FILE, **sim_net_params, **emb_params
+) + expand(LFR_KMEANS_FILE, **sim_net_params, **emb_params_rw)
+LFR_COM_DETECT_FILE_ALL = expand(
+    LFR_COM_DETECT_FILE, **sim_net_params, **com_detect_params
+)
+LFR_DIST_FILE_ALL = expand(
+    LFR_DIST_FILE, **sim_net_params, **emb_params
+) + expand(LFR_DIST_FILE, **sim_net_params, **emb_params_rw)
+LFR_SEPARATABILITY_FILE_ALL = expand(
+    LFR_SEPARATABILITY_FILE, **sim_net_params, **emb_params
+) + expand(LFR_SEPARATABILITY_FILE, **sim_net_params, **emb_params_rw)
+
+LFR_AUC_RES_FILE = j(RES_DIR, "lfr", "results", "auc.csv")
+LFR_KMEANS_RES_FILE = j(RES_DIR, "lfr", "results", "kmeans.csv")
+LFR_COM_DETECT_RES_FILE = j(
+    RES_DIR, "lfr", "results", "community_detection.csv"
+)
+LFR_DIST_RES_FILE = j(RES_DIR, "lfr", "results", "distances.csv")
+LFR_SEPARATABILITY_RES_FILE = j(RES_DIR, "lfr", "results", "separatability.csv")
+
+
+rule generate_lfr_net:
+    params:
+        n=lambda wildcards: int(wildcards.n),
+        nc=lambda wildcards: int(wildcards.nc),
+    output:
+        output_file=SIM_LFR_NET,
+    script:
+        "workflow/generate-ring-of-cliques.py"
+
+
+rule lfr_embedding:
+    input:
+        netfile=SIM_LFR_NET,
+    output:
+        embfile=LFR_EMB_FILE,
+    params:
+        model_name=lambda wildcards: wildcards.model_name,
+        dim=lambda wildcards: wildcards.dim,
+        window_length=lambda wildcards: wildcards.window_length,
+        directed="undirected",
+        num_walks=5,
+    script:
+        "workflow/embedding.py"
+
+
+rule eval_auc_lfr_embedding:
+    input:
+        emb_files=LFR_EMB_FILE,
+    params:
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+    output:
+        output_file=LFR_AUC_FILE,
+        output_sim_file=LFR_SIM_FILE,
+    script:
+        "workflow/eval-community.py"
+
+
+rule eval_lfr_embedding_kmeans:
+    input:
+        emb_files=LFR_EMB_FILE,
+    params:
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+    output:
+        output_sim_file=LFR_KMEANS_FILE,
+    script:
+        "workflow/eval-community-kmeans.py"
+
+
+rule concat_auc_result_lfr_file:
+    input:
+        input_files=LFR_AUC_FILE_ALL,
+    output:
+        output_file=LFR_AUC_RES_FILE,
+    script:
+        "workflow/concat-files.py"
+
+
+rule concat_kmeans_result_lfr_file:
+    input:
+        input_files=LFR_KMEANS_FILE_ALL,
+    output:
+        output_file=LFR_KMEANS_RES_FILE,
+    script:
+        "workflow/concat-files.py"
+
+
+rule concat_community_detection_result_lfr_file:
+    input:
+        input_files=LFR_COM_DETECT_FILE_ALL,
+    output:
+        output_file=LFR_COM_DETECT_RES_FILE,
+    script:
+        "workflow/concat-files.py"
+
+
+rule concat_dist_result_lfr_file:
+    input:
+        input_files=LFR_DIST_FILE_ALL,
+    output:
+        output_file=LFR_DIST_RES_FILE,
+    wildcard_constraints:
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
+    script:
+        "workflow/concat-files.py"
+
+
+rule concat_separatability_result_lfr_file:
+    input:
+        input_files=LFR_SEPARATABILITY_FILE_ALL,
+    output:
+        output_file=LFR_SEPARATABILITY_RES_FILE,
+    wildcard_constraints:
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
+    script:
+        "workflow/concat-files.py"
+
+
+rule detect_lfr_community_by_infomap:
+    input:
+        netfile=SIM_LFR_NET,
+    output:
+        output_file=LFR_FILE,
+    script:
+        "workflow/detect-community-by-infomap.py"
+
+
+rule eval_lfr_detected_community:
+    input:
+        com_file=LFR_FILE,
+    output:
+        output_file=LFR_COM_DETECT_FILE,
+    params:
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+    script:
+        "workflow/eval-detected-community.py"
+
+
+rule eval_lfr_distances:
+    input:
+        emb_file=LFR_EMB_FILE,
+    output:
+        output_file=LFR_DIST_FILE,
+    params:
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+        num_samples=10000,
+    wildcard_constraints:
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
+    script:
+        "workflow/eval-community-distances.py"
+
+
+rule eval_lfr_separatability:
+    input:
+        emb_file=LFR_EMB_FILE,
+    output:
+        output_file=LFR_SEPARATABILITY_FILE,
+    params:
+        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+    wildcard_constraints:
+        model_name="("
+        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+        + ")",
+    script:
+        "workflow/eval-community-separatability.py"
 
 #
 # Misc
@@ -885,12 +1150,12 @@ rule _all:
 
 rule __all:
     input:
-        RING_OF_CLIQUE_SEPARATABILITY_RES_FILE,
-        MULTI_FIXED_SZ_COM_SEPARATABILITY_RES_FILE,
-        MULTI_COM_SEPARATABILITY_RES_FILE
-        #RING_OF_CLIQUE_DIST_RES_FILE,
-        #MULTI_FIXED_SZ_COM_DIST_RES_FILE,
-        #MULTI_COM_DIST_RES_FILE
+        #RING_OF_CLIQUE_SEPARATABILITY_RES_FILE,
+        #MULTI_FIXED_SZ_COM_SEPARATABILITY_RES_FILE,
+        #MULTI_COM_SEPARATABILITY_RES_FILE
+        RING_OF_CLIQUE_DIST_RES_FILE,
+        MULTI_FIXED_SZ_COM_DIST_RES_FILE,
+        MULTI_COM_DIST_RES_FILE
         #MULTI_COM_COM_DETECT_RES_FILE,
         #MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
         #MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
