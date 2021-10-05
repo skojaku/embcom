@@ -262,6 +262,7 @@ rule concat_dist_result_fixed_size_file:
     script:
         "workflow/concat-files.py"
 
+
 rule concat_separatability_result_fixed_size_file:
     input:
         input_files=MULTI_FIXED_SZ_COM_SEPARATABILITY_FILE_ALL,
@@ -436,7 +437,9 @@ MULTI_COM_COM_DETECT_RES_FILE = j(
     RES_DIR, "multi_coms", "results", "community_detection.csv"
 )
 MULTI_COM_DIST_RES_FILE = j(RES_DIR, "multi_coms", "results", "distances.csv")
-MULTI_COM_SEPARATABILITY_RES_FILE = j(RES_DIR, "multi_coms", "results", "separatability.csv")
+MULTI_COM_SEPARATABILITY_RES_FILE = j(
+    RES_DIR, "multi_coms", "results", "separatability.csv"
+)
 
 
 rule generate_multi_com_net:
@@ -697,7 +700,9 @@ RING_OF_CLIQUE_COM_DETECT_RES_FILE = j(
     RES_DIR, "ring_of_cliques", "results", "community_detection.csv"
 )
 RING_OF_CLIQUE_DIST_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "distances.csv")
-RING_OF_CLIQUE_SEPARATABILITY_RES_FILE = j(RES_DIR, "ring_of_cliques", "results", "separatability.csv")
+RING_OF_CLIQUE_SEPARATABILITY_RES_FILE = j(
+    RES_DIR, "ring_of_cliques", "results", "separatability.csv"
+)
 
 
 rule generate_ring_of_clique_net:
@@ -851,8 +856,9 @@ rule eval_ring_of_clique_separatability:
     script:
         "workflow/eval-community-separatability.py"
 
+
 # ==================================
-# LFR 
+# LFR
 # ==================================
 LFR_NET_DIR = j(DATA_DIR, "networks", "lfr")
 LFR_EMB_DIR = j(DATA_DIR, "embeddings", "lfr")
@@ -884,9 +890,9 @@ LFR_EMB_FILE = j(
     LFR_EMB_DIR,
     "embnet_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
 )
-LFR_EMB_FILE_ALL = expand(
-    LFR_EMB_FILE, **sim_net_params, **emb_params
-) + expand(LFR_EMB_FILE, **sim_net_params, **emb_params_rw)
+LFR_EMB_FILE_ALL = expand(LFR_EMB_FILE, **sim_net_params, **emb_params) + expand(
+    LFR_EMB_FILE, **sim_net_params, **emb_params_rw
+)
 
 # Community detection
 LFR_FILE = j(
@@ -896,9 +902,7 @@ LFR_FILE = j(
 com_detect_params = {
     "model_name": ["infomap"],
 }
-LFR_FILE_ALL = expand(
-    LFR_FILE, **sim_net_params, **com_detect_params
-)
+LFR_FILE_ALL = expand(LFR_FILE, **sim_net_params, **com_detect_params)
 
 
 # Derived
@@ -938,30 +942,28 @@ LFR_SEPARATABILITY_FILE = j(
     "separatability",
     "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
 )
-LFR_AUC_FILE_ALL = expand(
-    LFR_AUC_FILE, **sim_net_params, **emb_params
-) + expand(LFR_AUC_FILE, **sim_net_params, **emb_params_rw)
-LFR_SIM_FILE_ALL = expand(
-    LFR_SIM_FILE, **sim_net_params, **emb_params
-) + expand(LFR_SIM_FILE, **sim_net_params, **emb_params_rw)
-LFR_KMEANS_FILE_ALL = expand(
-    LFR_KMEANS_FILE, **sim_net_params, **emb_params
-) + expand(LFR_KMEANS_FILE, **sim_net_params, **emb_params_rw)
+LFR_AUC_FILE_ALL = expand(LFR_AUC_FILE, **sim_net_params, **emb_params) + expand(
+    LFR_AUC_FILE, **sim_net_params, **emb_params_rw
+)
+LFR_SIM_FILE_ALL = expand(LFR_SIM_FILE, **sim_net_params, **emb_params) + expand(
+    LFR_SIM_FILE, **sim_net_params, **emb_params_rw
+)
+LFR_KMEANS_FILE_ALL = expand(LFR_KMEANS_FILE, **sim_net_params, **emb_params) + expand(
+    LFR_KMEANS_FILE, **sim_net_params, **emb_params_rw
+)
 LFR_COM_DETECT_FILE_ALL = expand(
     LFR_COM_DETECT_FILE, **sim_net_params, **com_detect_params
 )
-LFR_DIST_FILE_ALL = expand(
-    LFR_DIST_FILE, **sim_net_params, **emb_params
-) + expand(LFR_DIST_FILE, **sim_net_params, **emb_params_rw)
+LFR_DIST_FILE_ALL = expand(LFR_DIST_FILE, **sim_net_params, **emb_params) + expand(
+    LFR_DIST_FILE, **sim_net_params, **emb_params_rw
+)
 LFR_SEPARATABILITY_FILE_ALL = expand(
     LFR_SEPARATABILITY_FILE, **sim_net_params, **emb_params
 ) + expand(LFR_SEPARATABILITY_FILE, **sim_net_params, **emb_params_rw)
 
 LFR_AUC_RES_FILE = j(RES_DIR, "lfr", "results", "auc.csv")
 LFR_KMEANS_RES_FILE = j(RES_DIR, "lfr", "results", "kmeans.csv")
-LFR_COM_DETECT_RES_FILE = j(
-    RES_DIR, "lfr", "results", "community_detection.csv"
-)
+LFR_COM_DETECT_RES_FILE = j(RES_DIR, "lfr", "results", "community_detection.csv")
 LFR_DIST_RES_FILE = j(RES_DIR, "lfr", "results", "distances.csv")
 LFR_SEPARATABILITY_RES_FILE = j(RES_DIR, "lfr", "results", "separatability.csv")
 
@@ -1117,6 +1119,7 @@ rule eval_lfr_separatability:
     script:
         "workflow/eval-community-separatability.py"
 
+
 #
 # Misc
 #
@@ -1155,7 +1158,7 @@ rule __all:
         #MULTI_COM_SEPARATABILITY_RES_FILE
         RING_OF_CLIQUE_DIST_RES_FILE,
         MULTI_FIXED_SZ_COM_DIST_RES_FILE,
-        MULTI_COM_DIST_RES_FILE
+        MULTI_COM_DIST_RES_FILE,
         #MULTI_COM_COM_DETECT_RES_FILE,
         #MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
         #MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
