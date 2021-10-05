@@ -9,6 +9,9 @@ from embcom.PairSampler import PairSampler
 
 if "snakemake" in sys.modules:
     emb_file = snakemake.input["emb_file"]
+    com_file = (
+        snakemake.input["com_file"] if "com_file" in snakemake.input.keys() else None
+    )
     K = int(snakemake.params["K"])
     num_samples = int(snakemake.params["num_samples"])
     output_file = snakemake.output["output_file"]
@@ -24,8 +27,12 @@ emb = np.load(emb_file)["emb"]
 emb = emb.copy(order="C").astype(np.float32)
 emb[np.isnan(emb)] = 0
 emb[np.isinf(emb)] = 0
-n = int(np.round(emb.shape[0] / K))
-group_ids = np.kron(np.arange(K), np.ones(n)).astype(int)
+
+if com_file is None:
+    n = int(np.round(emb.shape[0] / K))
+    group_ids = np.kron(np.arange(K), np.ones(n)).astype(int)
+else:
+    group_ids = np.load(com_file)["group_ids"]
 
 # %%
 # Evaluate

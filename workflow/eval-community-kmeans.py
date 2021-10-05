@@ -8,8 +8,12 @@ from scipy import sparse, stats
 
 if "snakemake" in sys.modules:
     emb_file = snakemake.input["emb_files"]
+    com_file = (
+        snakemake.input["com_file"] if "com_file" in snakemake.input.keys() else None
+    )
     K = int(snakemake.params["K"])
     output_sim_file = snakemake.output["output_sim_file"]
+
 else:
     emb_file = "../data/embeddings/two_coms/embeddings/xxx"
     K = 2
@@ -81,8 +85,12 @@ emb = np.load(emb_file)["emb"]
 emb = emb.copy(order="C").astype(np.float32)
 emb[np.isnan(emb)] = 0
 emb[np.isinf(emb)] = 0
-n = int(np.round(emb.shape[0] / K))
-group_ids = np.kron(np.arange(K), np.ones(n)).astype(int)
+
+if com_file is None:
+    n = int(np.round(emb.shape[0] / K))
+    group_ids = np.kron(np.arange(K), np.ones(n)).astype(int)
+else:
+    group_ids = np.load(com_file)["group_ids"]
 
 # Evaluate
 dflist = []

@@ -862,19 +862,28 @@ rule eval_ring_of_clique_separatability:
 # ==================================
 LFR_NET_DIR = j(DATA_DIR, "networks", "lfr")
 LFR_EMB_DIR = j(DATA_DIR, "embeddings", "lfr")
-LFR_DIR = j(DATA_DIR, "communities", "lfr")
+LFR_COM_DIR = j(DATA_DIR, "communities", "lfr")
 sim_net_params = {
-    "n": [1000, 2500, 5000, 7500, 10000, 100000],
-    "cave": [10, 50],
-    "cdiff": [20],  # cin - cout
-    "nc": [10, 50, 100],
+    "n": [1000, 5000, 10000, 50000,100000],
+    "k": [10, 50],
+    "maxk": [100],  # cin - cout
+    "minc": 20,
+    "maxc": 100,
+    "tau": [2,6],
+    "tau2":1,
+    "mu": np.linspace(0.05, 1, 20),
     "sample": np.arange(10),
 }
 SIM_LFR_NET = j(
     LFR_NET_DIR,
-    "net_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}.npz",
+    "net_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}.npz",
+)
+SIM_LFR_COM = j(
+    LFR_COM_DIR,
+    "community_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}.npz",
 )
 SIM_LFR_NET_ALL = expand(SIM_LFR_NET, **sim_net_params)
+SIM_LFR_COM_ALL = expand(SIM_LFR_COM, **sim_net_params)
 
 emb_params_rw = {  # parameter for methods baesd on random walks
     "model_name": ["node2vec", "glove"],
@@ -888,59 +897,48 @@ emb_params = {
 }
 LFR_EMB_FILE = j(
     LFR_EMB_DIR,
-    "embnet_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
+    "embnet_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.npz",
 )
 LFR_EMB_FILE_ALL = expand(LFR_EMB_FILE, **sim_net_params, **emb_params) + expand(
     LFR_EMB_FILE, **sim_net_params, **emb_params_rw
 )
-
-# Community detection
-LFR_FILE = j(
-    LFR_DIR,
-    "community_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.npz",
-)
-com_detect_params = {
-    "model_name": ["infomap"],
-}
-LFR_FILE_ALL = expand(LFR_FILE, **sim_net_params, **com_detect_params)
-
 
 # Derived
 LFR_AUC_FILE = j(
     RES_DIR,
     "lfr",
     "auc",
-    "auc_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+    "auc_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
 )
 LFR_SIM_FILE = j(
     RES_DIR,
     "lfr",
     "similarity",
-    "similarity_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+    "similarity_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
 )
 LFR_KMEANS_FILE = j(
     RES_DIR,
     "lfr",
     "kmeans",
-    "kmeans_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+    "kmeans_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
 )
 LFR_COM_DETECT_FILE = j(
     RES_DIR,
     "lfr",
     "community_detection",
-    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}.csv",
+    "result_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}_model={model_name}.csv",
 )
 LFR_DIST_FILE = j(
     RES_DIR,
     "lfr",
     "distances",
-    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+    "result_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
 )
 LFR_SEPARATABILITY_FILE = j(
     RES_DIR,
     "lfr",
     "separatability",
-    "result_n={n}_nc={nc}_cave={cave}_cdiff={cdiff}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
+    "result_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}_model={model_name}_wl={window_length}_dim={dim}.csv",
 )
 LFR_AUC_FILE_ALL = expand(LFR_AUC_FILE, **sim_net_params, **emb_params) + expand(
     LFR_AUC_FILE, **sim_net_params, **emb_params_rw
@@ -971,11 +969,18 @@ LFR_SEPARATABILITY_RES_FILE = j(RES_DIR, "lfr", "results", "separatability.csv")
 rule generate_lfr_net:
     params:
         n=lambda wildcards: int(wildcards.n),
-        nc=lambda wildcards: int(wildcards.nc),
+        k=lambda wildcards: int(wildcards.k),
+        maxk=lambda wildcards: int(wildcards.maxk),
+        minc=lambda wildcards: int(wildcards.minc),
+        maxc=lambda wildcards: int(wildcards.maxc),
+        tau=lambda wildcards: float(wildcards.tau),
+        tau2=lambda wildcards: float(wildcards.tau2),
+        mu=lambda wildcards: float(wildcards.mu),
     output:
-        output_file=SIM_LFR_NET,
+        output_net=SIM_LFR_NET,
+        output_community_file=SIM_LFR_COM
     script:
-        "workflow/generate-ring-of-cliques.py"
+        "workflow/generate-lfr-net.py"
 
 
 rule lfr_embedding:
@@ -996,6 +1001,7 @@ rule lfr_embedding:
 rule eval_auc_lfr_embedding:
     input:
         emb_files=LFR_EMB_FILE,
+        com_files=SIM_LFR_COM,
     params:
         K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
     output:
@@ -1008,6 +1014,7 @@ rule eval_auc_lfr_embedding:
 rule eval_lfr_embedding_kmeans:
     input:
         emb_files=LFR_EMB_FILE,
+        com_files=SIM_LFR_COM,
     params:
         K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
     output:
@@ -1069,29 +1076,30 @@ rule concat_separatability_result_lfr_file:
         "workflow/concat-files.py"
 
 
-rule detect_lfr_community_by_infomap:
-    input:
-        netfile=SIM_LFR_NET,
-    output:
-        output_file=LFR_FILE,
-    script:
-        "workflow/detect-community-by-infomap.py"
+#rule detect_lfr_community_by_infomap:
+#    input:
+#        netfile=SIM_LFR_NET,
+#    output:
+#        output_file=LFR_FILE,
+#    script:
+#        "workflow/detect-community-by-infomap.py"
 
 
-rule eval_lfr_detected_community:
-    input:
-        com_file=LFR_FILE,
-    output:
-        output_file=LFR_COM_DETECT_FILE,
-    params:
-        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
-    script:
-        "workflow/eval-detected-community.py"
+#rule eval_lfr_detected_community:
+#    input:
+#        com_file=LFR_FILE,
+#    output:
+#        output_file=LFR_COM_DETECT_FILE,
+#    params:
+#        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
+#    script:
+#        "workflow/eval-detected-community.py"
 
 
 rule eval_lfr_distances:
     input:
         emb_file=LFR_EMB_FILE,
+        com_files=SIM_LFR_COM,
     output:
         output_file=LFR_DIST_FILE,
     params:
@@ -1108,14 +1116,15 @@ rule eval_lfr_distances:
 rule eval_lfr_separatability:
     input:
         emb_file=LFR_EMB_FILE,
+        com_files=SIM_LFR_COM,
     output:
         output_file=LFR_SEPARATABILITY_FILE,
     params:
         K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
-    wildcard_constraints:
-        model_name="("
-        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
-        + ")",
+#    wildcard_constraints:
+#        model_name="("
+#        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
+#        + ")",
     script:
         "workflow/eval-community-separatability.py"
 
@@ -1153,12 +1162,14 @@ rule _all:
 
 rule __all:
     input:
+        LFR_SEPARATABILITY_RES_FILE,
         #RING_OF_CLIQUE_SEPARATABILITY_RES_FILE,
         #MULTI_FIXED_SZ_COM_SEPARATABILITY_RES_FILE,
-        #MULTI_COM_SEPARATABILITY_RES_FILE
-        RING_OF_CLIQUE_DIST_RES_FILE,
-        MULTI_FIXED_SZ_COM_DIST_RES_FILE,
-        MULTI_COM_DIST_RES_FILE,
+        #MULTI_COM_SEPARATABILITY_RES_FILE,
+        LFR_DIST_RES_FILE,
+        #RING_OF_CLIQUE_DIST_RES_FILE,
+        #MULTI_FIXED_SZ_COM_DIST_RES_FILE,
+        #MULTI_COM_DIST_RES_FILE,
         #MULTI_COM_COM_DETECT_RES_FILE,
         #MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
         #MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
