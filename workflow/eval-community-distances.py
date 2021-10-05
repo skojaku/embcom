@@ -59,6 +59,7 @@ for metric in ["cosine", "euclidean"]:
     dh = pd.DataFrame({"distance": d, "inCommunity": isPositive, "metric": metric})
     dflist += [dh]
 sim_table = pd.concat(dflist)
+sim_table = sim_table.groupby(["inCommunity", "metric"]).mean().reset_index()
 
 # %%
 # Save
