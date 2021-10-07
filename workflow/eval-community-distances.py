@@ -1,5 +1,6 @@
 """"Calculate the distance between nodes between and within the ground-truth
 communities."""
+# %%
 import sys
 
 import numpy as np
@@ -16,7 +17,8 @@ if "snakemake" in sys.modules:
     num_samples = int(snakemake.params["num_samples"])
     output_file = snakemake.output["output_file"]
 else:
-    emb_file = "../data/embeddings/multi_coms/embnet_n=1000_K=50_cave=50_cdiff=20_sample=8_model=node2vec_wl=10_dim=50.npz"
+    emb_file = "../data/embeddings/lfr/embnet_n=10000_k=10_maxk=100_minc=20_maxc=100_tau=2_tau2=1_mu=0.7_sample=1_model=leigenmap_wl=10_dim=64.npz"
+    com_file = "../data/communities/lfr/community_n=10000_k=10_maxk=100_minc=20_maxc=100_tau=2_tau2=1_mu=0.7_sample=1.npz"
     K = 50
     output_file = "tmp.csv"
     num_samples = 10000
@@ -46,6 +48,7 @@ pairs = np.vstack(
 ).T
 isPositive = np.concatenate([np.ones_like(pos_pairs[0]), np.zeros_like(neg_pairs[1])])
 
+# %%
 # Evaluate the distances
 def eval_distance(a, b, metric):
     if metric == "euclidean":
@@ -67,7 +70,6 @@ for metric in ["cosine", "euclidean"]:
     dflist += [dh]
 sim_table = pd.concat(dflist)
 sim_table = sim_table.groupby(["inCommunity", "metric"]).mean().reset_index()
-
 # %%
 # Save
 #

@@ -31,12 +31,13 @@ if com_file is None:
     group_ids = np.kron(np.arange(K), np.ones(n)).astype(int)
 else:
     group_ids = np.load(com_file)["group_ids"]
+    K = len(np.unique(group_ids))
 
 # %%
 clf = LinearDiscriminantAnalysis()
 
 scores = np.zeros(K)
-for k in range(K):
+for i, k in enumerate(np.unique(group_ids)):
     y = (group_ids == k).astype(int)
 
     if emb.shape[1] >= 2:
@@ -45,7 +46,11 @@ for k in range(K):
         x = np.array(x).reshape(-1)
     else:
         x = np.array(emb.copy()).reshape(-1)
-    scores[k] = roc_auc_score(y, x)
+    try:
+        scores[i] = roc_auc_score(y, x)
+    except ValueError:
+        scores[i] = np.nan
+
 score = np.mean(scores)
 
 pd.DataFrame([{"score": score}]).to_csv(output_file, index=False)
