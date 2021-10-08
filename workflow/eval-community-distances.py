@@ -23,7 +23,6 @@ else:
     output_file = "tmp.csv"
     num_samples = 10000
 
-
 # Load emebdding
 emb = np.load(emb_file)["emb"]
 emb = emb.copy(order="C").astype(np.float32)
@@ -40,13 +39,7 @@ else:
 # Evaluate
 sampler = PairSampler(group_ids)
 
-pos_pairs = sampler.sample_positive_pairs(num_samples)
-neg_pairs = sampler.sample_negative_pairs(num_samples)
-
-pairs = np.vstack(
-    [np.hstack([pos_pairs[0], neg_pairs[0]]), np.hstack([pos_pairs[1], neg_pairs[1]])]
-).T
-isPositive = np.concatenate([np.ones_like(pos_pairs[0]), np.zeros_like(neg_pairs[1])])
+anc, pos, neg = sampler.sample_anchor_positive_negative_triplet(num_samples)
 
 # %%
 # Evaluate the distances
@@ -59,17 +52,19 @@ def eval_distance(a, b, metric):
         return 1 - np.array(np.sum(a * b, axis=1)).reshape(-1)
 
 
-# %%
 results = []
 dflist = []
 for metric in ["cosine", "euclidean"]:
     X = emb.copy()
     X[np.isnan(X)] = 0
-    d = eval_distance(emb[pairs[:, 0], :], emb[pairs[:, 1], :], metric=metric)
-    dh = pd.DataFrame({"distance": d, "inCommunity": isPositive, "metric": metric})
+    dpos = eval_distance(emb[anc, :], emb[pos, :], metric=metric)
+    dneg = eval_distance(emb[anc, :], emb[neg, :], metric=metric)
+    score = np.log(np.maximum(1e-12, dneg)) - np.log(np.maximum(1e-12, dpos))
+    dh = pd.DataFrame({"score": score, "metric": metric})
     dflist += [dh]
 sim_table = pd.concat(dflist)
-sim_table = sim_table.groupby(["inCommunity", "metric"]).mean().reset_index()
+sim_table = sim_table.groupby(["metric"]).mean().reset_index()
+
 # %%
 # Save
 #

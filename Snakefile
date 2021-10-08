@@ -4,6 +4,9 @@ from os.path import join as j
 
 configfile: "workflow/config.yaml"
 
+# =========
+# Directory
+# =========
 
 DATA_DIR = config["data_dir"]
 FIG_DIR = "figs"
@@ -13,41 +16,38 @@ PAPER_DIR = config["paper_dir"]
 PAPER_SRC, SUPP_SRC = [j(PAPER_DIR, f) for f in ("main.tex", "supp.tex")]
 PAPER, SUPP = [j(PAPER_DIR, f) for f in ("main.pdf", "supp.pdf")]
 
-DERIVED_DIR = j(DATA_DIR, "derived")
-SIM_R_DIR = j(DERIVED_DIR, "sim_R")
-SIM_R_RES = j(SIM_R_DIR, "rvals.csv")
+# =========
+# Plot data
+# =========
+DATA_LIST = ["multi_fixed_size_coms", "multi_coms", "ring_of_cliques"]
 
+AUC_RES_FILE = j(
+    RES_DIR, "{data}", "results", "auc.csv"
+)
+KMEANS_RES_FILE = j(
+    RES_DIR, "{data}", "results", "kmeans.csv"
+)
+COM_DETECT_RES_FILE = j(
+    RES_DIR, "{data}", "results", "community_detection.csv"
+)
+DIST_RES_FILE = j(
+    RES_DIR, "{data}", "results", "istances.csv"
+)
+SEPARATABILITY_RES_FILE = j(
+    RES_DIR, "{data}", "results", "separatability.csv"
+)
 
-rule all:
-    input:
-        PAPER,
-        SUPP,
+# =========
+# FIGURES
+# =========
 
-
-rule paper:
-    input:
-        PAPER_SRC,
-        SUPP_SRC,
-    params:
-        paper_dir=PAPER_DIR,
-    output:
-        PAPER,
-        SUPP,
-    shell:
-        "cd {params.paper_dir}; make"
-
-
-rule sample_Wij_entry:
-    params:
-        cin=30,
-        cout=5,
-        num_sample=100,
-    output:
-        output_file=SIM_R_RES,
-    script:
-        "workflow/simulate-R-matrix.py"
-
-
+FIG_DIST_RES = j(
+    FIG_DIR, "distances", "{data}_metric={metric}_K={K}_cave={cave}_cdiff={cdiff}_dim={dim}.pdf"
+)
+FIG_SEP_RES = j(
+    FIG_DIR, "separatability", "{data}_metric={metric}_K={K}_cave={cave}_cdiff={cdiff}_dim={dim}.pdf"
+)
+FIG_DIST_SEP_RES = j(FIG_DIR, "result_distance_separativity.pdf")
 # ================================
 # Multiple fixed-sized communities
 # ================================
@@ -58,7 +58,7 @@ sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000],
     "nc": [100],
     "cave": [10, 50],
-    "cdiff": [20, 30, 40, 80, 160, 320, 640],  # cin - cout
+    "cdiff": [20, 30, 40, 60, 80, 160, 320, 640],  # cin - cout
     "sample": np.arange(10),
 }
 SIM_MULTI_FIXED_SZ_COM_NET = j(
@@ -156,6 +156,7 @@ MULTI_FIXED_SZ_COM_SEPARATABILITY_FILE_ALL = expand(
     MULTI_FIXED_SZ_COM_SEPARATABILITY_FILE, **sim_net_params, **emb_params
 ) + expand(MULTI_FIXED_SZ_COM_SEPARATABILITY_FILE, **sim_net_params, **emb_params_rw)
 
+
 MULTI_FIXED_SZ_COM_AUC_RES_FILE = j(
     RES_DIR, "multi_fixed_size_coms", "results", "auc.csv"
 )
@@ -171,19 +172,6 @@ MULTI_FIXED_SZ_COM_DIST_RES_FILE = j(
 MULTI_FIXED_SZ_COM_SEPARATABILITY_RES_FILE = j(
     RES_DIR, "multi_fixed_size_coms", "results", "separatability.csv"
 )
-
-
-rule generate_fixed_size_multi_com_net:
-    params:
-        cave=lambda wildcards: int(wildcards.cave),
-        cdiff=lambda wildcards: int(wildcards.cdiff),
-        n=lambda wildcards: int(wildcards.n),
-        nc=lambda wildcards: int(wildcards.nc),
-    output:
-        output_file=SIM_MULTI_FIXED_SZ_COM_NET,
-    script:
-        "workflow/generate-multi-fixed-size-com-net.py"
-
 
 rule multi_fixed_size_com_embedding:
     input:
@@ -336,7 +324,7 @@ MULTI_COM_DIR = j(DATA_DIR, "communities", "multi_coms")
 sim_net_params = {
     "n": [1000, 2500, 5000, 7500, 10000, 100000],
     "cave": [10, 50],
-    "cdiff": [20, 30, 40, 80, 160, 320, 640],  # cin - cout
+    "cdiff": [20, 30, 40, 60, 80, 160, 320, 640],  # cin - cout
     "K": [2, 25, 50],
     "sample": np.arange(10),
 }
@@ -1120,19 +1108,70 @@ rule eval_lfr_separatability:
     output:
         output_file=LFR_SEPARATABILITY_FILE,
     params:
-        K=1,
-        #K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
-#    wildcard_constraints:
-#        model_name="("
-#        + ")|(".join(emb_params["model_name"] + emb_params_rw["model_name"])
-#        + ")",
+        K=1
     script:
         "workflow/eval-community-separatability.py"
+
+rule plot_distances:
+    input:
+        input_file = DIST_RES_FILE
+    params:
+        cdiff = lambda wildcards: float(wildcards.cdiff),
+        cave = lambda wildcards: float(wildcards.cave),
+        metric = lambda wildcards: wildcards.metric,
+        dim = lambda wildcards: float(wildcards.dim),
+        K = lambda wildcards: "None" if wildcards.K == "None" else int(wildcards.K)
+    output:
+        output_file = FIG_DIST_RES
+    script:
+        "workflow/plotter/plot-distance.py"
+
+rule plot_separatability:
+    input:
+        input_file = SEPARATABILITY_RES_FILE
+    params:
+        cdiff = lambda wildcards: float(wildcards.cdiff),
+        cave = lambda wildcards: float(wildcards.cave),
+        metric = lambda wildcards: wildcards.metric,
+        dim = lambda wildcards: float(wildcards.dim),
+        K = lambda wildcards: "None" if wildcards.K == "None" else int(wildcards.K)
+    output:
+        output_file = FIG_SEP_RES
+    script:
+        "workflow/plotter/plot-separatability.py"
+
+rule plot_distance_separatability:
+    input:
+        two_coms_euc = FIG_DIST_RES.format(data="multi_coms", metric = "euclidean", cave=50, cdiff=80, dim=64, K = 2),
+        two_coms_cos = FIG_DIST_RES.format(data="multi_coms", metric = "cosine", cave=50, cdiff=80, dim=64, K = 2),
+        two_coms_sep = FIG_SEP_RES.format(data="multi_coms", metric = "None", cave=50, cdiff=80, dim=64, K = 2),
+        multi_coms_euc = FIG_DIST_RES.format(data="multi_coms", metric = "euclidean", cave=50, cdiff=160, dim=64, K = 50),
+        multi_coms_cos = FIG_DIST_RES.format(data="multi_coms", metric = "cosine", cave=50, cdiff=160, dim=64, K = 50),
+        multi_coms_sep = FIG_SEP_RES.format(data="multi_coms", metric = "None", cave=50, cdiff=160, dim=64, K = 50),
+        multi_fs_coms_euc = FIG_DIST_RES.format(data="multi_fixed_size_coms", metric = "euclidean", cave=50, cdiff=160, dim=64, K = None),
+        multi_fs_coms_cos = FIG_DIST_RES.format(data="multi_fixed_size_coms", metric = "cosine", cave=50, cdiff=160, dim=64, K = None),
+        multi_fs_coms_sep = FIG_SEP_RES.format(data="multi_fixed_size_coms", metric = "None", cave=50, cdiff=160, dim=64, K = None),
+        roc_coms_euc = FIG_DIST_RES.format(data="ring_of_cliques", metric = "euclidean", cave=50, cdiff=20, dim=64, K = None),
+        roc_coms_cos = FIG_DIST_RES.format(data="ring_of_cliques", metric = "cosine", cave=50, cdiff=20, dim=64, K = None),
+        roc_coms_sep = FIG_SEP_RES.format(data="ring_of_cliques", metric = "None", cave=50, cdiff=20, dim=64, K = None),
+    #output:
+    #    FIG_DIST_SEP_RES,
+    #shell:
+    #    "pdfjam --nup 3x3 --frame false --delta '1mm 1mm' --no-landscape --outfile {output} {input} "
+
+
+
+#rule plot_distance
 
 
 #
 # Misc
 #
+rule all:
+    input:
+        expand(DIST_RES_FILE, data = DATA_LIST),
+        expand(SEPARATABILITY_RES_FILE, data = DATA_LIST)
+
 rule _all:
     input:
         #MULTI_COM_AUC_RES_FILE,
@@ -1181,12 +1220,3 @@ rule __all:
         #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
         #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
         #TWO_COM_EMB_FILE_ALL
-
-
-# rule some_data_processing:
-# input:
-# "data/some_data.csv"
-# output:
-# "data/derived/some_derived_data.csv"
-# script:
-# "workflow/scripts/process_some_data.py"

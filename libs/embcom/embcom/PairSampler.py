@@ -56,8 +56,14 @@ class PairSampler:
         Ag, Ab = Ubg2g @ Ubg2g.T, Ubg2b @ Ubg2b.T
         Abg = Ab - Ag
         Abg.data = np.maximum(0, Abg.data)
-        PosGroup2sample, NegGroup2sample = Ag @ Usample.T, Abg @ Usample.T
+        Abg.eliminate_zeros()
+        PosGroup2sample, NegGroup2sample = (
+            Ag @ sparse.csr_matrix(Usample.T),
+            Abg @ sparse.csr_matrix(Usample.T),
+        )
 
+        PosGroup2sample.eliminate_zeros()
+        NegGroup2sample.eliminate_zeros()
         PosGroup2sample, NegGroup2sample = (
             cum_trans_prob(PosGroup2sample),
             cum_trans_prob(NegGroup2sample),
@@ -71,6 +77,38 @@ class PairSampler:
         self.num_group = Ubg2g.shape[1]
         self.num_block = Ubg2b.shape[1]
         self.num_group_block = Ubg2b.shape[0]
+
+    def sample_anchor_positive_negative_triplet(self, num_samples):
+        # Random sample positive node pairs
+        num_sampled = 0
+        anc_sampled, pos_sampled, neg_sampled = [], [], []
+        while num_sampled < num_samples:
+            rpos_group_block = np.random.choice(
+                self.num_group_block, num_samples - num_sampled, replace=True
+            )
+            anc = sample_columns_from_cum_prob(
+                rpos_group_block, self.PosGroup2sample, preprocessed=True
+            )
+            pos = sample_columns_from_cum_prob(
+                rpos_group_block, self.PosGroup2sample, preprocessed=True
+            )
+            neg = sample_columns_from_cum_prob(
+                rpos_group_block, self.NegGroup2sample, preprocessed=True
+            )
+            s = (anc >= 0) * (pos >= 0) * (neg >= 0) * (anc != pos)
+            anc, pos, neg = anc[s], pos[s], neg[s]
+
+            anc_sampled.append(anc)
+            pos_sampled.append(pos)
+            neg_sampled.append(neg)
+            num_sampled += len(pos)
+
+        anc, pos, neg = (
+            np.concatenate(anc_sampled),
+            np.concatenate(pos_sampled),
+            np.concatenate(neg_sampled),
+        )
+        return anc, pos, neg
 
     def sample_positive_pairs(self, num_samples):
         # Random sample positive node pairs
@@ -107,7 +145,7 @@ class PairSampler:
                 rneg_group_block, self.PosGroup2sample, preprocessed=True
             )
             cneg = sample_columns_from_cum_prob(
-                self.pos_neg_label_ids[rneg], self.NegGroup2sample, preprocessed=True
+                rneg_group_block, self.NegGroup2sample, preprocessed=True
             )
             s = (rneg >= 0) * (cneg >= 0) * (rneg != cneg)
             rneg, cneg = rneg[s], cneg[s]
