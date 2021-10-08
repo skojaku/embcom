@@ -173,6 +173,18 @@ MULTI_FIXED_SZ_COM_SEPARATABILITY_RES_FILE = j(
     RES_DIR, "multi_fixed_size_coms", "results", "separatability.csv"
 )
 
+
+rule generate_multi_fixed_sz_com_net:
+    params:
+        cave=lambda wildcards: int(wildcards.cave),
+        cdiff=lambda wildcards: int(wildcards.cdiff),
+        n=lambda wildcards: int(wildcards.n),
+        nc=lambda wildcards: int(wildcards.nc),
+    output:
+        output_file=SIM_MULTI_FIXED_SZ_COM_NET,
+    script:
+        "workflow/generate-multi-fixed-size-com-net.py"
+
 rule multi_fixed_size_com_embedding:
     input:
         netfile=SIM_MULTI_FIXED_SZ_COM_NET,
