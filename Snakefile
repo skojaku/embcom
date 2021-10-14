@@ -31,7 +31,7 @@ COM_DETECT_RES_FILE = j(
     RES_DIR, "{data}", "results", "community_detection.csv"
 )
 DIST_RES_FILE = j(
-    RES_DIR, "{data}", "results", "istances.csv"
+    RES_DIR, "{data}", "results", "distances.csv"
 )
 SEPARATABILITY_RES_FILE = j(
     RES_DIR, "{data}", "results", "separatability.csv"
@@ -55,10 +55,10 @@ MULTI_FIXED_SZ_COM_NET_DIR = j(DATA_DIR, "networks", "multi_fixed_sz_coms")
 MULTI_FIXED_SZ_COM_EMB_DIR = j(DATA_DIR, "embeddings", "multi_fixed_sz_coms")
 MULTI_FIXED_SZ_COM_DIR = j(DATA_DIR, "communities", "multi_fixed_sz_coms")
 sim_net_params = {
-    "n": [1000, 2500, 5000, 7500, 10000],
+    "n": [1000, 10000, 100000, 1000000],
     "nc": [100],
     "cave": [10, 50],
-    "cdiff": [20, 30, 40, 60, 80, 160, 320, 640],  # cin - cout
+    "cdiff": [20, 80, 320, 640],  # cin - cout
     "sample": np.arange(10),
 }
 SIM_MULTI_FIXED_SZ_COM_NET = j(
@@ -69,7 +69,7 @@ SIM_MULTI_FIXED_SZ_COM_NET_ALL = expand(SIM_MULTI_FIXED_SZ_COM_NET, **sim_net_pa
 
 # Embedding
 emb_params_rw = {  # parameter for methods baesd on random walks
-    "model_name": ["node2vec", "glove"],
+    "model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     "window_length": [3, 5, 10],
     "dim": [1, 64],
 }
@@ -334,9 +334,9 @@ MULTI_COM_NET_DIR = j(DATA_DIR, "networks", "multi_coms")
 MULTI_COM_EMB_DIR = j(DATA_DIR, "embeddings", "multi_coms")
 MULTI_COM_DIR = j(DATA_DIR, "communities", "multi_coms")
 sim_net_params = {
-    "n": [1000, 2500, 5000, 7500, 10000, 100000],
+    "n": [1000, 10000, 100000, 1000000],
     "cave": [10, 50],
-    "cdiff": [20, 30, 40, 60, 80, 160, 320, 640],  # cin - cout
+    "cdiff": [20, 80, 320, 640],  # cin - cout
     "K": [2, 25, 50],
     "sample": np.arange(10),
 }
@@ -346,14 +346,16 @@ SIM_MULTI_COM_NET = j(
 SIM_MULTI_COM_NET_ALL = expand(SIM_MULTI_COM_NET, **sim_net_params)
 
 emb_params_rw = {  # parameter for methods baesd on random walks
-    "model_name": ["node2vec", "glove"],
+    "model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     "window_length": [10],
-    "dim": [1, 64] + [k - 1 for k in sim_net_params["K"]],
+    "dim": [1, 64],
+    #"dim": [1, 64] + [k - 1 for k in sim_net_params["K"]],
 }
 emb_params = {
     "model_name": ["leigenmap", "modspec", "nonbacktracking"],
     "window_length": [10],
-    "dim": [1, 64] + [k - 1 for k in sim_net_params["K"]],
+    "dim": [1, 64],
+    #"dim": [1, 64] + [k - 1 for k in sim_net_params["K"]],
 }
 MULTI_COM_EMB_FILE = j(
     MULTI_COM_EMB_DIR,
@@ -595,7 +597,7 @@ RING_OF_CLIQUE_NET_DIR = j(DATA_DIR, "networks", "ring_of_cliques")
 RING_OF_CLIQUE_EMB_DIR = j(DATA_DIR, "embeddings", "ring_of_cliques")
 RING_OF_CLIQUE_DIR = j(DATA_DIR, "communities", "ring_of_cliques")
 sim_net_params = {
-    "n": [1000, 2500, 5000, 7500, 10000, 100000],
+    "n": [1000, 10000, 100000, 1000000],
     "cave": [10, 50],
     "cdiff": [20],  # cin - cout
     "nc": [10, 50, 100],
@@ -608,7 +610,7 @@ SIM_RING_OF_CLIQUE_NET = j(
 SIM_RING_OF_CLIQUE_NET_ALL = expand(SIM_RING_OF_CLIQUE_NET, **sim_net_params)
 
 emb_params_rw = {  # parameter for methods baesd on random walks
-    "model_name": ["node2vec", "glove"],
+    "model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     "window_length": [10],
     "dim": [1, 64],
 }
@@ -864,7 +866,7 @@ LFR_NET_DIR = j(DATA_DIR, "networks", "lfr")
 LFR_EMB_DIR = j(DATA_DIR, "embeddings", "lfr")
 LFR_COM_DIR = j(DATA_DIR, "communities", "lfr")
 sim_net_params = {
-    "n": [1000, 5000, 10000, 50000,100000],
+    "n": [1000, 10000, 100000, 1000000],
     "k": [10, 50],
     "maxk": [100],  # cin - cout
     "minc": 20,
@@ -886,7 +888,7 @@ SIM_LFR_NET_ALL = expand(SIM_LFR_NET, **sim_net_params)
 SIM_LFR_COM_ALL = expand(SIM_LFR_COM, **sim_net_params)
 
 emb_params_rw = {  # parameter for methods baesd on random walks
-    "model_name": ["node2vec", "glove"],
+    "model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     "window_length": [10],
     "dim": [1, 64],
 }
@@ -1181,47 +1183,23 @@ rule plot_distance_separatability:
 #
 rule all:
     input:
-        expand(DIST_RES_FILE, data = DATA_LIST),
-        expand(SEPARATABILITY_RES_FILE, data = DATA_LIST)
-
-rule _all:
-    input:
-        #MULTI_COM_AUC_RES_FILE,
-        #MULTI_COM_KMEANS_RES_FILE,
-        MULTI_FIXED_SZ_COM_AUC_RES_FILE,
-        MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
-        MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
-        MULTI_COM_AUC_RES_FILE,
-        MULTI_COM_KMEANS_RES_FILE,
+        #expand(DIST_RES_FILE, data = DATA_LIST),
+        #expand(SEPARATABILITY_RES_FILE, data = DATA_LIST),
         MULTI_COM_COM_DETECT_RES_FILE,
-        RING_OF_CLIQUE_AUC_RES_FILE,
-        RING_OF_CLIQUE_KMEANS_RES_FILE,
+        MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
         RING_OF_CLIQUE_COM_DETECT_RES_FILE,
-        #TWO_COM_AUC_RES_FILE, RES_TWO_COM_KMEANS_RES_FILE,
-        #MULTI_FIXED_SZ_COM_AUC_RES_FILE, RES_MULTI_FIXED_SZ_COM_KMEANS_RES_FILE
-        #RES_TWO_COM_KMEANS_FILE_ALL,TWO_COM_SIM_FILE_ALL,TWO_COM_AUC_FILE_ALL,
-        #RES_MULTI_FIXED_SZ_COM_KMEANS_FILE_ALL,MULTI_FIXED_SZ_COM_SIM_FILE_ALL,MULTI_FIXED_SZ_COM_AUC_FILE_ALL,
-        #RES_MULTI_COM_KMEANS_FILE_ALL,MULTI_COM_SIM_FILE_ALL,MULTI_COM_AUC_FILE_ALL,
-        #MULTI_FIXED_SZ_COM_AUC_FILE,
-        #"MULTI_FIXED_SZ_COM_SIM_FILE,
-        #RES_MULTI_FIXED_SZ_COM_KMEANS_FILE,
-        #"MULTI_COM_SIM_FILE,
-        #RES_MULTI_COM_KMEANS_FILE
-        #TWO_COM_EMB_FILE_ALL, #SIM_TWO_COM_NET_ALL
-        #TWO_COM_SIM_FILE,RES_TWO_COM_KMEANS_FILE
-        #TWO_COM_EMB_FILE_ALL
 
 
 rule __all:
     input:
         LFR_SEPARATABILITY_RES_FILE,
-        #RING_OF_CLIQUE_SEPARATABILITY_RES_FILE,
-        #MULTI_FIXED_SZ_COM_SEPARATABILITY_RES_FILE,
-        #MULTI_COM_SEPARATABILITY_RES_FILE,
-        #LFR_DIST_RES_FILE,
-        #RING_OF_CLIQUE_DIST_RES_FILE,
-        #MULTI_FIXED_SZ_COM_DIST_RES_FILE,
-        #MULTI_COM_DIST_RES_FILE,
+        LFR_DIST_RES_FILE,
+        RING_OF_CLIQUE_DIST_RES_FILE,
+        RING_OF_CLIQUE_SEPARATABILITY_RES_FILE,
+        MULTI_FIXED_SZ_COM_DIST_RES_FILE,
+        MULTI_FIXED_SZ_COM_SEPARATABILITY_RES_FILE,
+        MULTI_COM_DIST_RES_FILE,
+        MULTI_COM_SEPARATABILITY_RES_FILE,
         #MULTI_COM_COM_DETECT_RES_FILE,
         #MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
         #MULTI_FIXED_SZ_COM_KMEANS_RES_FILE,
