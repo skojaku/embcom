@@ -23,10 +23,17 @@ else:
 # Load
 #
 def sampling_num_edges(n, p):
+    if isclose(p, 0):
+        return 0
+    if isclose(p, 1):
+        return n
     try:
-        return stats.binom.rvs(n=n, p=p, size=1)[0]
+        return stats.binom.rvs(n=int(n), p=p, size=1)[0]
     except ValueError:
-        return np.sum(np.random.rand(n) < p)
+        if n < 100000:
+            return np.sum(np.random.rand(int(n) < p))
+        else:
+            return stats.poisson.rvs(mu=n * p, size=1)[0]
 
 
 def generate_dcSBM(cin, cout, Nc, N):

@@ -378,11 +378,11 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
 
 
 class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
-    def __init__(
-        self, verbose=False,
-    ):
+    def __init__(self, verbose=False, auto_dim=False):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
+        self.auto_dim = auto_dim
+        self.C = 10
 
     def fit(self, net):
         A = utils.to_adjacency_matrix(net)
@@ -391,17 +391,35 @@ class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
         return self
 
     def update_embedding(self, dim):
+
         N = self.A.shape[0]
         Z = sparse.csr_matrix((N, N))
         I = sparse.identity(N, format="csr")
         D = sparse.diags(self.deg)
         B = sparse.bmat([[Z, D - I], [-I, self.A]], format="csr")
-        s, v = sparse.linalg.eigs(B, k=dim + 1)
-        order = np.argsort(s)
-        s, v = s[order], v[:, order]
-        s, v = s[1:], v[:, 1:]
-        v = v[N:, :]
-        c = np.array(np.linalg.norm(v, axis=0)).reshape(-1)
-        v = v @ np.diag(1 / c)
+
+        if self.auto_dim is False:
+            s, v = sparse.linalg.eigs(B, k=dim + 1)
+            order = np.argsort(s)
+            s, v = s[order], v[:, order]
+            s, v = s[1:], v[:, 1:]
+            v = v[N:, :]
+            c = np.array(np.linalg.norm(v, axis=0)).reshape(-1)
+            v = v @ np.diag(1 / c)
+        else:
+            dim = int(self.C * np.sqrt(N))
+            dim = np.minimum(dim, N - 1)
+
+            s, v = sparse.linalg.eigs(B, k=dim + 1)
+
+            c = int(A.sum() / N)
+            s, v = s[np.abs(s) > c], v[:, np.abs(s) > c]
+
+            order = np.argsort(s)
+            s, v = s[order], v[:, order]
+            s, v = s[1:], v[:, 1:]
+            v = v[N:, :]
+            c = np.array(np.linalg.norm(v, axis=0)).reshape(-1)
+            v = v @ np.diag(1 / c)
+
         self.in_vec = v
-        # return v, s

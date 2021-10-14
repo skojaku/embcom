@@ -1,6 +1,7 @@
 import logging
 import os
 
+import fastnode2vec
 import numpy as np
 import pandas as pd
 from scipy import sparse
@@ -50,11 +51,13 @@ if model_name == "levy-word2vec":
         window_length=window_length, restart_prob=0, num_walks=num_walks
     )
 elif model_name == "node2vec":
-    model = embcom.embeddings.Node2Vec(
-        window_length=window_length, restart_prob=0, num_walks=num_walks
+    model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks)
+elif model_name == "depthfirst-node2vec":
+    model = fastnode2vec.Node2Vec(
+        window_length=window_length, num_walks=num_walks, p=10, q=0.1
     )
 elif model_name == "node2vec-qhalf":
-    model = embcom.embeddings.Node2Vec(
+    model = fastnode2vec.Node2Vec(
         window_length=window_length, restart_prob=0, num_walks=num_walks, q=0.5
     )
 elif model_name == "node2vec-pagerank":
@@ -65,7 +68,7 @@ elif model_name == "node2vec-pagerank":
         random_teleport=True,
     )
 elif model_name == "node2vec-qdouble":
-    model = embcom.embeddings.Node2Vec(
+    model = fastnode2vec.Node2Vec(
         window_length=window_length, restart_prob=0, num_walks=num_walks, q=2
     )
 elif model_name == "deepwalk":
