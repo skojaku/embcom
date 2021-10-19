@@ -7,6 +7,7 @@ from scipy import sparse, stats
 
 if "snakemake" in sys.modules:
     com_file = snakemake.input["com_file"]
+    ref_com_file = snakemake.input["ref_com_file"] if "ref_com_file" in snakemake.input.keys() else None
     K = int(snakemake.params["K"])
     output_file = snakemake.output["output_file"]
 else:
@@ -69,8 +70,11 @@ def calc_esim(y, ypred):
 # %%
 # Load community assignment
 cids = np.unique(np.load(com_file)["group_ids"], return_inverse=True)[1]
-n = int(np.round(len(cids) / K))
-group_ids = np.kron(np.arange(K), np.ones(n)).astype(int)
+if ref_com_file is not None:
+    group_ids = np.unique(np.load(ref_com_file)["group_ids"], return_inverse=True)[1]
+else:
+    n = int(np.round(len(cids) / K))
+    group_ids = np.kron(np.arange(K), np.ones(n)).astype(int)
 # %%
 
 # Evaluate

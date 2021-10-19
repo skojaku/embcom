@@ -93,7 +93,6 @@ elif model_name == "nonbacktracking":
 #
 model.fit(sparse.csr_matrix(net))
 emb = model.transform(dim=dim)
-out_emb = model.transform(dim=dim, return_out_vector=True)
 
 #
 # Save
@@ -101,7 +100,6 @@ out_emb = model.transform(dim=dim, return_out_vector=True)
 np.savez(
     embfile,
     emb=emb,
-    out_emb=out_emb,
     window_length=window_length,
     dim=dim,
     directed=directed,

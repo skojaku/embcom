@@ -25,9 +25,9 @@ else:
 # Load
 #
 def sampling_num_edges(n, p):
-    if np.isclose(p, 0):
+    if p<=0:
         return 0
-    if np.isclose(p, 1):
+    if p>=1:
         return n
     try:
         return stats.binom.rvs(n=int(n), p=p, size=1)[0]
@@ -85,12 +85,11 @@ def generate_dcSBM(cin, cout, Nc, N):
 #
 # Preprocess
 #
-if nc is None:
+if (nc is None) & (K is not None):
     nc = int(np.round(n / K))
 
 cin = (n - nc) / n * cdiff + cave
 cout = cave - nc / n * cdiff
-nc = int(np.round(n / K))
 A = generate_dcSBM(cin, cout, nc, n)
 
 
