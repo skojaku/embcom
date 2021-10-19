@@ -55,10 +55,11 @@ MULTI_FIXED_SZ_COM_NET_DIR = j(DATA_DIR, "networks", "multi_fixed_sz_coms")
 MULTI_FIXED_SZ_COM_EMB_DIR = j(DATA_DIR, "embeddings", "multi_fixed_sz_coms")
 MULTI_FIXED_SZ_COM_DIR = j(DATA_DIR, "communities", "multi_fixed_sz_coms")
 sim_net_params = {
-    "n": [1000, 10000, 100000, 1000000],
+    "n": [1000, 10000, 100000],
+    #"n": [1000, 10000, 100000, 1000000],
     "nc": [100],
     "cave": [10, 50],
-    "cdiff": [20, 80, 320, 640],  # cin - cout
+    "cdiff": [100, 300], 
     "sample": np.arange(10),
 }
 SIM_MULTI_FIXED_SZ_COM_NET = j(
@@ -70,7 +71,7 @@ SIM_MULTI_FIXED_SZ_COM_NET_ALL = expand(SIM_MULTI_FIXED_SZ_COM_NET, **sim_net_pa
 # Embedding
 emb_params_rw = {  # parameter for methods baesd on random walks
     "model_name": ["node2vec", "glove", "depthfirst-node2vec"],
-    "window_length": [3, 5, 10],
+    "window_length": [10],
     "dim": [1, 64],
 }
 emb_params = {
@@ -177,13 +178,13 @@ MULTI_FIXED_SZ_COM_SEPARATABILITY_RES_FILE = j(
 rule generate_multi_fixed_sz_com_net:
     params:
         cave=lambda wildcards: int(wildcards.cave),
-        cdiff=lambda wildcards: int(wildcards.cdiff),
+        cdiff=lambda wildcards: float(wildcards.cdiff),
         n=lambda wildcards: int(wildcards.n),
         nc=lambda wildcards: int(wildcards.nc),
     output:
         output_file=SIM_MULTI_FIXED_SZ_COM_NET,
     script:
-        "workflow/generate-multi-fixed-size-com-net.py"
+        "workflow/generate-net-by-multi-partition-model.py"
 
 rule multi_fixed_size_com_embedding:
     input:
@@ -334,9 +335,10 @@ MULTI_COM_NET_DIR = j(DATA_DIR, "networks", "multi_coms")
 MULTI_COM_EMB_DIR = j(DATA_DIR, "embeddings", "multi_coms")
 MULTI_COM_DIR = j(DATA_DIR, "communities", "multi_coms")
 sim_net_params = {
-    "n": [1000, 10000, 100000, 1000000],
+    "n": [1000, 10000, 100000],
+    #"n": [1000, 10000, 100000, 1000000],
     "cave": [10, 50],
-    "cdiff": [20, 80, 320, 640],  # cin - cout
+    "cdiff": [100, 300], 
     "K": [2, 25, 50],
     "sample": np.arange(10),
 }
@@ -447,13 +449,13 @@ MULTI_COM_SEPARATABILITY_RES_FILE = j(
 rule generate_multi_com_net:
     params:
         cave=lambda wildcards: int(wildcards.cave),
-        cdiff=lambda wildcards: int(wildcards.cdiff),
+        cdiff=lambda wildcards: float(wildcards.cdiff),
         n=lambda wildcards: int(wildcards.n),
         K=lambda wildcards: int(wildcards.K),
     output:
         output_file=SIM_MULTI_COM_NET,
     script:
-        "workflow/generate-multi-com-net.py"
+        "workflow/generate-net-by-multi-partition-model.py"
 
 
 rule multi_com_embedding:
@@ -597,9 +599,10 @@ RING_OF_CLIQUE_NET_DIR = j(DATA_DIR, "networks", "ring_of_cliques")
 RING_OF_CLIQUE_EMB_DIR = j(DATA_DIR, "embeddings", "ring_of_cliques")
 RING_OF_CLIQUE_DIR = j(DATA_DIR, "communities", "ring_of_cliques")
 sim_net_params = {
-    "n": [1000, 10000, 100000, 1000000],
+    "n": [1000, 10000, 100000],
+    #"n": [1000, 10000, 100000, 1000000],
     "cave": [10, 50],
-    "cdiff": [20],  # cin - cout
+    "cdiff": [100, 300], 
     "nc": [10, 50, 100],
     "sample": np.arange(10),
 }
@@ -866,26 +869,30 @@ LFR_NET_DIR = j(DATA_DIR, "networks", "lfr")
 LFR_EMB_DIR = j(DATA_DIR, "embeddings", "lfr")
 LFR_COM_DIR = j(DATA_DIR, "communities", "lfr")
 sim_net_params = {
-    "n": [1000, 10000, 100000, 1000000],
+    "n": [1000, 10000, 100000],
+    #"n": [1000, 10000, 100000, 1000000],
     "k": [10, 50],
     "maxk": [100],  # cin - cout
     "minc": 20,
     "maxc": 100,
     "tau": [2,6],
     "tau2":1,
-    "mu": np.linspace(0.05, 1, 20),
+    "mu": ["%.2f" % d for d in np.linspace(0.05, 1, 20)],
     "sample": np.arange(10),
 }
 SIM_LFR_NET = j(
     LFR_NET_DIR,
     "net_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}.npz",
 )
-SIM_LFR_COM = j(
-    LFR_COM_DIR,
+SIM_LFR_COM_FILE = j(
+    LFR_NET_DIR,
     "community_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}.npz",
 )
+com_detect_params = {
+    "model_name": ["infomap"],
+}
 SIM_LFR_NET_ALL = expand(SIM_LFR_NET, **sim_net_params)
-SIM_LFR_COM_ALL = expand(SIM_LFR_COM, **sim_net_params)
+SIM_LFR_COM_ALL = expand(SIM_LFR_COM_FILE, **sim_net_params)
 
 emb_params_rw = {  # parameter for methods baesd on random walks
     "model_name": ["node2vec", "glove", "depthfirst-node2vec"],
@@ -903,6 +910,12 @@ LFR_EMB_FILE = j(
 )
 LFR_EMB_FILE_ALL = expand(LFR_EMB_FILE, **sim_net_params, **emb_params) + expand(
     LFR_EMB_FILE, **sim_net_params, **emb_params_rw
+)
+
+# Community
+LFR_COM_FILE = j(
+    LFR_COM_DIR,
+    "community_n={n}_k={k}_maxk={maxk}_minc={minc}_maxc={maxc}_tau={tau}_tau2={tau2}_mu={mu}_sample={sample}_model={model_name}.npz",
 )
 
 # Derived
@@ -980,7 +993,7 @@ rule generate_lfr_net:
         mu=lambda wildcards: float(wildcards.mu),
     output:
         output_net=SIM_LFR_NET,
-        output_community_file=SIM_LFR_COM
+        output_community_file=SIM_LFR_COM_FILE
     script:
         "workflow/generate-lfr-net.py"
 
@@ -1003,7 +1016,7 @@ rule lfr_embedding:
 rule eval_auc_lfr_embedding:
     input:
         emb_files=LFR_EMB_FILE,
-        com_files=SIM_LFR_COM,
+        com_files=SIM_LFR_COM_FILE,
     params:
         K=1,
     output:
@@ -1012,17 +1025,25 @@ rule eval_auc_lfr_embedding:
     script:
         "workflow/eval-community.py"
 
-
-rule eval_lfr_embedding_kmeans:
+rule detect_lfr_community_by_infomap:
     input:
-        emb_files=LFR_EMB_FILE,
-        com_files=SIM_LFR_COM,
+        netfile=SIM_LFR_NET,
+    output:
+        output_file=LFR_COM_FILE,
+    script:
+        "workflow/detect-community-by-infomap.py"
+
+
+rule eval_lfr_detected_community:
+    input:
+        com_file=LFR_COM_FILE,
+        ref_com_file=SIM_LFR_COM_FILE,
+    output:
+        output_file=LFR_COM_DETECT_FILE,
     params:
         K=1,
-    output:
-        output_sim_file=LFR_KMEANS_FILE,
     script:
-        "workflow/eval-community-kmeans.py"
+        "workflow/eval-detected-community.py"
 
 
 rule concat_auc_result_lfr_file:
@@ -1078,30 +1099,10 @@ rule concat_separatability_result_lfr_file:
         "workflow/concat-files.py"
 
 
-#rule detect_lfr_community_by_infomap:
-#    input:
-#        netfile=SIM_LFR_NET,
-#    output:
-#        output_file=LFR_FILE,
-#    script:
-#        "workflow/detect-community-by-infomap.py"
-
-
-#rule eval_lfr_detected_community:
-#    input:
-#        com_file=LFR_FILE,
-#    output:
-#        output_file=LFR_COM_DETECT_FILE,
-#    params:
-#        K=lambda wildcards: int(wildcards.n) / int(wildcards.nc),
-#    script:
-#        "workflow/eval-detected-community.py"
-
-
 rule eval_lfr_distances:
     input:
         emb_file=LFR_EMB_FILE,
-        com_files=SIM_LFR_COM,
+        com_files=SIM_LFR_COM_FILE,
     output:
         output_file=LFR_DIST_FILE,
     params:
@@ -1118,7 +1119,7 @@ rule eval_lfr_distances:
 rule eval_lfr_separatability:
     input:
         emb_file=LFR_EMB_FILE,
-        com_files=SIM_LFR_COM,
+        com_files=SIM_LFR_COM_FILE,
     output:
         output_file=LFR_SEPARATABILITY_FILE,
     params:
@@ -1156,18 +1157,18 @@ rule plot_separatability:
 
 rule plot_distance_separatability:
     input:
-        two_coms_euc = FIG_DIST_RES.format(data="multi_coms", metric = "euclidean", cave=50, cdiff=80, dim=64, K = 2),
-        two_coms_cos = FIG_DIST_RES.format(data="multi_coms", metric = "cosine", cave=50, cdiff=80, dim=64, K = 2),
-        two_coms_sep = FIG_SEP_RES.format(data="multi_coms", metric = "None", cave=50, cdiff=80, dim=64, K = 2),
-        multi_coms_euc = FIG_DIST_RES.format(data="multi_coms", metric = "euclidean", cave=50, cdiff=160, dim=64, K = 50),
-        multi_coms_cos = FIG_DIST_RES.format(data="multi_coms", metric = "cosine", cave=50, cdiff=160, dim=64, K = 50),
-        multi_coms_sep = FIG_SEP_RES.format(data="multi_coms", metric = "None", cave=50, cdiff=160, dim=64, K = 50),
-        multi_fs_coms_euc = FIG_DIST_RES.format(data="multi_fixed_size_coms", metric = "euclidean", cave=50, cdiff=160, dim=64, K = None),
-        multi_fs_coms_cos = FIG_DIST_RES.format(data="multi_fixed_size_coms", metric = "cosine", cave=50, cdiff=160, dim=64, K = None),
-        multi_fs_coms_sep = FIG_SEP_RES.format(data="multi_fixed_size_coms", metric = "None", cave=50, cdiff=160, dim=64, K = None),
-        roc_coms_euc = FIG_DIST_RES.format(data="ring_of_cliques", metric = "euclidean", cave=50, cdiff=20, dim=64, K = None),
-        roc_coms_cos = FIG_DIST_RES.format(data="ring_of_cliques", metric = "cosine", cave=50, cdiff=20, dim=64, K = None),
-        roc_coms_sep = FIG_SEP_RES.format(data="ring_of_cliques", metric = "None", cave=50, cdiff=20, dim=64, K = None),
+        two_coms_euc = FIG_DIST_RES.format(data="multi_coms", metric = "euclidean", cave=50, cdiff="100", dim=64, K = 2),
+        two_coms_cos = FIG_DIST_RES.format(data="multi_coms", metric = "cosine", cave=50, cdiff="100", dim=64, K = 2),
+        two_coms_sep = FIG_SEP_RES.format(data="multi_coms", metric = "None", cave=50, cdiff="100", dim=64, K = 2),
+        multi_coms_euc = FIG_DIST_RES.format(data="multi_coms", metric = "euclidean", cave="100", cdiff=160, dim=64, K = 50),
+        multi_coms_cos = FIG_DIST_RES.format(data="multi_coms", metric = "cosine", cave=50, cdiff="100", dim=64, K = 50),
+        multi_coms_sep = FIG_SEP_RES.format(data="multi_coms", metric = "None", cave=50, cdiff="100", dim=64, K = 50),
+        multi_fs_coms_euc = FIG_DIST_RES.format(data="multi_fixed_size_coms", metric = "euclidean", cave=50, cdiff="100", dim=64, K = None),
+        multi_fs_coms_cos = FIG_DIST_RES.format(data="multi_fixed_size_coms", metric = "cosine", cave=50, cdiff="100", dim=64, K = None),
+        multi_fs_coms_sep = FIG_SEP_RES.format(data="multi_fixed_size_coms", metric = "None", cave=50, cdiff="100", dim=64, K = None),
+        roc_coms_euc = FIG_DIST_RES.format(data="ring_of_cliques", metric = "euclidean", cave=50, cdiff="100", dim=64, K = None),
+        roc_coms_cos = FIG_DIST_RES.format(data="ring_of_cliques", metric = "cosine", cave=50, cdiff="100", dim=64, K = None),
+        roc_coms_sep = FIG_SEP_RES.format(data="ring_of_cliques", metric = "None", cave=50, cdiff="100", dim=64, K = None),
     #output:
     #    FIG_DIST_SEP_RES,
     #shell:
@@ -1183,12 +1184,18 @@ rule plot_distance_separatability:
 #
 rule all:
     input:
-        #expand(DIST_RES_FILE, data = DATA_LIST),
-        #expand(SEPARATABILITY_RES_FILE, data = DATA_LIST),
+        expand(SEPARATABILITY_RES_FILE, data = DATA_LIST),
+        MULTI_COM_COM_DETECT_RES_FILE,
+        MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
+        #RING_OF_CLIQUE_COM_DETECT_RES_FILE,
+        #LFR_COM_DETECT_RES_FILE,
+
+rule _all:
+    input:
         MULTI_COM_COM_DETECT_RES_FILE,
         MULTI_FIXED_SZ_COM_COM_DETECT_RES_FILE,
         RING_OF_CLIQUE_COM_DETECT_RES_FILE,
-
+        LFR_COM_DETECT_RES_FILE,
 
 rule __all:
     input:
