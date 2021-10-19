@@ -8,7 +8,7 @@ from scipy import sparse, stats
 
 if "snakemake" in sys.modules:
     cave = int(snakemake.params["cave"])
-    cdiff = int(snakemake.params["cdiff"])
+    beta = float(snakemake.params["beta"])
     n = int(snakemake.params["n"])
     nc = int(snakemake.params["nc"])
     output_file = snakemake.output["output_file"]
@@ -78,8 +78,9 @@ def generate_dcSBM(cin, cout, Nc, N):
 #
 # Preprocess
 #
-cin = (n - nc) / n * cdiff + cave
-cout = cave - nc / n * cdiff
+cin = cave + (cave - np.sqrt(cave)) * beta
+K = int(np.round(n/nc))
+cout = (K * cave - cin)/(K-1)
 
 # %%
 A = generate_dcSBM(cin, cout, nc, n)

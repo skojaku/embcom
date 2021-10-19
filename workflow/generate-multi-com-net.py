@@ -8,30 +8,29 @@ from scipy import sparse, stats
 
 if "snakemake" in sys.modules:
     cave = int(snakemake.params["cave"])
-    cdiff = int(snakemake.params["cdiff"])
+    cdiff = float(snakemake.params["cdiff"])
     n = int(snakemake.params["n"])
     K = int(snakemake.params["K"])
     output_file = snakemake.output["output_file"]
 else:
-    K = 2
-    cave, cdiff = 100, 40
+    cave, beta = 100, 0.5
     n = 200
-    nc = 100
+    K = 2
     output_file = "../data/networks/multi-coms"
 
 # %%
 # Load
 #
 def sampling_num_edges(n, p):
-    if isclose(p, 0):
+    if np.isclose(p, 0):
         return 0
-    if isclose(p, 1):
+    if np.isclose(p, 1):
         return n
     try:
         return stats.binom.rvs(n=int(n), p=p, size=1)[0]
-    except ValueError:
+    except:
         if n < 100000:
-            return np.sum(np.random.rand(int(n) < p))
+            return np.sum(np.random.rand(int(n)) < p)
         else:
             return stats.poisson.rvs(mu=n * p, size=1)[0]
 
@@ -83,10 +82,10 @@ def generate_dcSBM(cin, cout, Nc, N):
 #
 # Preprocess
 #
-nc = int(n / K)
+nc = int(np.round(n / K))
 cin = (n - nc) / n * cdiff + cave
 cout = cave - nc / n * cdiff
-# %%
+nc = int(np.round(n / K))
 A = generate_dcSBM(cin, cout, nc, n)
 
 
