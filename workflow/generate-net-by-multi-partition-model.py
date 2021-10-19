@@ -10,9 +10,9 @@ if "snakemake" in sys.modules:
     cave = int(snakemake.params["cave"])
     cdiff = float(snakemake.params["cdiff"])
     n = int(snakemake.params["n"])
-    
-    K = int(snakemake.params["K"]) if "K" in snakemake.params.keys() else None 
-    nc = int(snakemake.params["nc"]) if "nc" in snakemake.params.keys() else None 
+
+    K = int(snakemake.params["K"]) if "K" in snakemake.params.keys() else None
+    nc = int(snakemake.params["nc"]) if "nc" in snakemake.params.keys() else None
 
     output_file = snakemake.output["output_file"]
 else:
