@@ -49,7 +49,7 @@ def generate_dcSBM(cin, cout, Nc, N):
 
     within_edges = set([])
     target_num = sampling_num_edges(n=num_within_node_pairs, p=pin)
-    #target_num = np.maximum(target_num, Nc)
+    # target_num = np.maximum(target_num, Nc)
 
     esize = 0
     while esize < target_num:
@@ -64,7 +64,7 @@ def generate_dcSBM(cin, cout, Nc, N):
 
     between_edges = set([])
     target_num = sampling_num_edges(n=num_between_node_pairs, p=pout)
-    #target_num = np.maximum(target_num, N - Nc)
+    # target_num = np.maximum(target_num, N - Nc)
     esize = 0
     while esize < target_num:
         r = np.random.choice(N, target_num - esize)
@@ -93,8 +93,8 @@ if (nc is None) & (K is not None):
 
 cin = (n - nc) / n * cdiff + cave
 cout = cave - nc / n * cdiff
-cin = np.maximum(cin, 1) # to ensure the connectivity
-cout = np.maximum(cout, 1)# to ensure the connectivity
+cin = np.maximum(cin, 1)  # to ensure the connectivity
+cout = np.maximum(cout, 1)  # to ensure the connectivity
 A = generate_dcSBM(cin, cout, nc, n)
 
 

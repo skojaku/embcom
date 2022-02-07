@@ -36,9 +36,10 @@ else:
     group_ids = np.load(com_file)["group_ids"]
     K = len(np.unique(group_ids))
 
+from scipy import sparse
+
 # %%
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from scipy import sparse
 
 
 def calc_esim(y, ypred):

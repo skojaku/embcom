@@ -5,6 +5,7 @@ import pandas as pd
 from scipy import sparse
 from tqdm import tqdm
 
+
 class PairSampler:
     """Sample sample pair samplers conditioned on class labels.
 
@@ -82,7 +83,7 @@ class PairSampler:
         # Random sample positive node pairs
         num_sampled = 0
         anc_sampled, pos_sampled, neg_sampled = [], [], []
-        pbar = tqdm(total = num_samples)
+        pbar = tqdm(total=num_samples)
         while num_sampled < num_samples:
             rpos_group_block = np.random.choice(
                 self.num_group_block, num_samples - num_sampled, replace=True
@@ -98,7 +99,7 @@ class PairSampler:
             )
             s = (anc >= 0) * (pos >= 0) * (neg >= 0) * (anc != pos)
             anc, pos, neg = anc[s], pos[s], neg[s]
-            
+
             pbar.update(len(pos))
 
             anc_sampled.append(anc)
