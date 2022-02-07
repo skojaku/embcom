@@ -1,10 +1,11 @@
-"""Plot the AUC of the community dot similarity """
+"""Plot the AUC of the community dot similarity."""
 # %%
+import sys
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import sys
 import seaborn as sns
-import matplotlib.pyplot as plt
 
 if "snakemake" in sys.modules:
     input_file = snakemake.input["input_file"]
@@ -41,12 +42,12 @@ sns.set(font_scale=1.2)
 sns.set_style("ticks")
 g = sns.FacetGrid(
     data=data_table,
-    col_wrap = 4,
+    col_wrap=4,
     col="dim",
     hue="cin",
     aspect=1,
     height=4,
-    palette = "plasma",
+    palette="plasma",
     hue_kws={"marker": ["o", "o", "o", "o"]},
 )
 g.map(sns.lineplot, "n", "auc")
@@ -56,7 +57,7 @@ g.axes.flat[0].legend(frameon=False)
 
 g.set_ylabels("AUC")
 g.set_xlabels("Number of nodes, n")
-#sns.lineplot(data = data_table, x = "n", y = "auc", hue = "dim")
+# sns.lineplot(data = data_table, x = "n", y = "auc", hue = "dim")
 
 
 # %%
@@ -85,11 +86,11 @@ g.fig.savefig(output_file, dpi=300, bbox_inches="tight")
 
 # %%
 # %%
-sns.set_style('white')
+sns.set_style("white")
 sns.set(font_scale=1.5)
-sns.set_style('ticks')
+sns.set_style("ticks")
 
-fig, axes  = plt.subplots(ncols= 2, figsize=(15,7))
+fig, axes = plt.subplots(ncols=2, figsize=(15, 7))
 
 dim = 64
 metric = "cosine"
@@ -98,16 +99,25 @@ for i, (model, df) in enumerate(data_table.groupby("model")):
     df = df[df.dim == dim]
     df = df[df.metric == metric]
 
-    ax = sns.lineplot(data = df, x = "n", y="auc", hue = "cin", palette = "coolwarm", marker = "o", markersize = 20, ax = ax)
-    ax.set_xlim(90,5e+5 * 1.1)
+    ax = sns.lineplot(
+        data=df,
+        x="n",
+        y="auc",
+        hue="cin",
+        palette="coolwarm",
+        marker="o",
+        markersize=20,
+        ax=ax,
+    )
+    ax.set_xlim(90, 5e5 * 1.1)
     ax.set_ylabel("AUC")
     ax.set_xlabel("Number of nodes, n")
     ax.set(xscale="log")
     if i == 0:
-        ax.legend(frameon = False)
+        ax.legend(frameon=False)
     else:
         ax.legend().remove()
 
 sns.despine()
-#fig.savefig(output_file, dpi=300)
+# fig.savefig(output_file, dpi=300)
 # %%

@@ -23,7 +23,10 @@ def sampling_num_edges(n, p):
     try:
         return stats.binom.rvs(n=n, p=p, size=1)[0]
     except ValueError:
-        return np.sum(np.random.rand(n) < p)
+        if n < 100000:
+            return np.sum(np.random.rand(n) < p)
+        else:
+            return stats.poisson.rvs(mu=n * p, size=1)[0]
 
 
 def generate_dcSBM(cin, cout, N):
