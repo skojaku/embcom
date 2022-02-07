@@ -11,7 +11,7 @@ from sklearn import metrics
 from tqdm import tqdm
 
 if "snakemake" in sys.modules:
-    emb_file = snakemake.input["emb_files"]
+    emb_file = snakemake.input["emb_file"]
     com_file = (
         snakemake.input["com_file"] if "com_file" in snakemake.input.keys() else None
     )

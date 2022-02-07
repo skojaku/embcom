@@ -6,7 +6,9 @@ import sys
 import numpy as np
 import pandas as pd
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
+from tqdm import tqdm
 
 if "snakemake" in sys.modules:
     emb_file = snakemake.input["emb_file"]
@@ -16,8 +18,9 @@ if "snakemake" in sys.modules:
     K = int(snakemake.params["K"])
     output_file = snakemake.output["output_file"]
 else:
-    emb_file = "../data/embeddings/multi_coms/embnet_n=1000_K=50_cave=50_cdiff=20_sample=8_model=node2vec_wl=10_dim=50.npz"
-    K = 50
+    emb_file = "../data/embeddings/lfr/embnet_n=10000_k=20_tau=2_tau2=3_mu=0.25_maxk=100_maxc=250_sample=1_model=node2vec_wl=10_dim=64.npz"
+    com_file = "../data/networks/lfr/community_n=10000_k=20_tau=2_tau2=3_mu=0.25_maxk=100_maxc=250_sample=1.npz"
+    K = 10
     output_file = "tmp.csv"
 
 
@@ -34,23 +37,56 @@ else:
     K = len(np.unique(group_ids))
 
 # %%
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from scipy import sparse
+
+
+def calc_esim(y, ypred):
+    _, y = np.unique(y, return_inverse=True)
+    _, ypred = np.unique(ypred, return_inverse=True)
+
+    K = len(set(y))
+    M = len(y)
+    UA = sparse.csr_matrix((np.ones_like(y), (np.arange(y.size), y)), shape=(M, K))
+    UB = sparse.csr_matrix(
+        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(M, K)
+    )
+
+    fA = np.array(UA.sum(axis=0)).reshape(-1)
+    fB = np.array(UB.sum(axis=0)).reshape(-1)
+
+    # fAB = UA.T @ UB
+    # Si = (
+    #    0.5
+    #    * np.array(fAB[(y, ypred)]).reshape(-1)
+    #    * (1.0 / fA[y] + 1.0 / fB[ypred] - np.abs(1.0 / fA[y] - 1.0 / fB[ypred]))
+    # )
+    # S = np.mean(Si)
+    ids, freq = np.unique(y * K + ypred, return_counts=True)
+    y, ypred = divmod(ids, K)
+    S = 0
+    UAT = sparse.csr_matrix(UA.T)
+    UBT = sparse.csr_matrix(UB.T)
+    for i in range(len(y)):
+        fab = UAT[y[i], :].multiply(UBT[ypred[i], :]).sum()
+        S += (
+            0.5
+            * freq[i]
+            * fab
+            * (
+                1.0 / fA[y[i]]
+                + 1.0 / fB[ypred[i]]
+                - np.abs(1.0 / fA[y[i]] - 1.0 / fB[ypred[i]])
+            )
+        )
+    S /= M
+    return S
+
+
 clf = LinearDiscriminantAnalysis()
+clf.fit(emb, group_ids)
+y_pred = clf.predict(emb)
+esim = calc_esim(group_ids, y_pred)
 
-scores = np.zeros(K)
-for i, k in enumerate(np.unique(group_ids)):
-    y = (group_ids == k).astype(int)
-
-    if emb.shape[1] >= 2:
-        clf.fit(emb, y)
-        x = clf.transform(emb)
-        x = np.array(x).reshape(-1)
-    else:
-        x = np.array(emb.copy()).reshape(-1)
-    try:
-        scores[i] = roc_auc_score(y, x)
-    except ValueError:
-        scores[i] = np.nan
-
-score = np.mean(scores)
-
-pd.DataFrame([{"score": score}]).to_csv(output_file, index=False)
+# %%
+pd.DataFrame([{"score": esim}]).to_csv(output_file, index=False)

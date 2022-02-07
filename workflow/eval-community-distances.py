@@ -17,8 +17,9 @@ if "snakemake" in sys.modules:
     num_samples = int(snakemake.params["num_samples"])
     output_file = snakemake.output["output_file"]
 else:
-    emb_file = "../data/embeddings/lfr/embnet_n=10000_k=10_maxk=100_minc=20_maxc=100_tau=2_tau2=1_mu=0.7_sample=1_model=leigenmap_wl=10_dim=64.npz"
-    com_file = "../data/communities/lfr/community_n=10000_k=10_maxk=100_minc=20_maxc=100_tau=2_tau2=1_mu=0.7_sample=1.npz"
+    emb_file = "../data/embeddings/lfr/embnet_n=1000_k=10_maxk=100_minc=20_maxc=100_tau=2_tau2=1_mu=0.25_sample=4_model=glove_wl=10_dim=64.npz"
+    com_file = "../data/networks/lfr/community_n=1000_k=10_maxk=100_minc=20_maxc=100_tau=2_tau2=1_mu=0.25_sample=4.npz"
+
     K = 50
     output_file = "tmp.csv"
     num_samples = 10000

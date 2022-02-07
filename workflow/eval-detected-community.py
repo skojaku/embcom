@@ -7,7 +7,11 @@ from scipy import sparse, stats
 
 if "snakemake" in sys.modules:
     com_file = snakemake.input["com_file"]
-    ref_com_file = snakemake.input["ref_com_file"] if "ref_com_file" in snakemake.input.keys() else None
+    ref_com_file = (
+        snakemake.input["ref_com_file"]
+        if "ref_com_file" in snakemake.input.keys()
+        else None
+    )
     K = int(snakemake.params["K"])
     output_file = snakemake.output["output_file"]
 else:
@@ -42,28 +46,69 @@ def calc_nmi(y, ypred):
     return Q
 
 
+# def calc_esim(y, ypred):
+#    _, y = np.unique(y, return_inverse=True)
+#    _, ypred = np.unique(ypred, return_inverse=True)
+#
+#    Kpred = int(np.max(ypred) + 1)
+#    K = int(np.max(y) + 1)
+#    M = len(y)
+#    UA = sparse.csr_matrix((np.ones_like(y), (np.arange(y.size), y)), shape=(M, K))
+#    UB = sparse.csr_matrix(
+#        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(M, Kpred)
+#    )
+#
+#    fA = np.array(UA.sum(axis=0)).reshape(-1)
+#    fB = np.array(UB.sum(axis=0)).reshape(-1)
+#    fAB = (UA.T @ UB).toarray()
+#
+#    Si = (
+#        0.5
+#        * fAB[(y, ypred)]
+#        * (1.0 / fA[y] + 1.0 / fB[ypred] - np.abs(1.0 / fA[y] - 1.0 / fB[ypred]))
+#    )
+#    S = np.mean(Si)
+#    return S
+#
 def calc_esim(y, ypred):
     _, y = np.unique(y, return_inverse=True)
     _, ypred = np.unique(ypred, return_inverse=True)
 
-    Kpred = int(np.max(ypred) + 1)
-    K = int(np.max(y) + 1)
+    K = int(np.maximum(np.max(y), np.max(ypred))) + 1
     M = len(y)
     UA = sparse.csr_matrix((np.ones_like(y), (np.arange(y.size), y)), shape=(M, K))
     UB = sparse.csr_matrix(
-        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(M, Kpred)
+        (np.ones_like(ypred), (np.arange(ypred.size), ypred)), shape=(M, K)
     )
 
     fA = np.array(UA.sum(axis=0)).reshape(-1)
     fB = np.array(UB.sum(axis=0)).reshape(-1)
-    fAB = (UA.T @ UB).toarray()
 
-    Si = (
-        0.5
-        * fAB[(y, ypred)]
-        * (1.0 / fA[y] + 1.0 / fB[ypred] - np.abs(1.0 / fA[y] - 1.0 / fB[ypred]))
-    )
-    S = np.mean(Si)
+    # fAB = UA.T @ UB
+    # Si = (
+    #    0.5
+    #    * np.array(fAB[(y, ypred)]).reshape(-1)
+    #    * (1.0 / fA[y] + 1.0 / fB[ypred] - np.abs(1.0 / fA[y] - 1.0 / fB[ypred]))
+    # )
+    # S = np.mean(Si)
+    ids, freq = np.unique(y * K + ypred, return_counts=True)
+    y, ypred = divmod(ids, K)
+    S = 0
+    UAT = sparse.csr_matrix(UA.T)
+    UBT = sparse.csr_matrix(UB.T)
+    for i in range(len(y)):
+        fab = UAT[y[i], :].multiply(UBT[ypred[i], :]).sum()
+        S += (
+            0.5
+            * freq[i]
+            * fab
+            * (
+                1.0 / fA[y[i]]
+                + 1.0 / fB[ypred[i]]
+                - np.abs(1.0 / fA[y[i]] - 1.0 / fB[ypred[i]])
+            )
+        )
+    S /= M
     return S
 
 
