@@ -15,33 +15,17 @@ logger.setLevel(level=logging.DEBUG)
 #
 # Input
 #
-netfile = snakemake.input["netfile"]
-nodefile = snakemake.input["nodefile"] if "nodefile" in snakemake.input.keys() else None
-dim = int(snakemake.params["dim"])
-window_length = int(snakemake.params["window_length"])
-model_name = snakemake.params["model_name"]
-directed = snakemake.params["directed"] == "directed"
-noselfloop = (
-    snakemake.params["noselfloop"] == "True"
-    if "noselfloop" in snakemake.params.keys()
-    else False
-)
-num_walks = (
-    int(snakemake.params["num_walks"]) if "num_walks" in snakemake.params.keys() else 1
-)
-embfile = snakemake.output["embfile"]
+netfile = snakemake.input["net_file"]
+embfile = snakemake.output["output_file"]
+params = snakemake.params["parameters"]
+dim = int(params["dim"])
+window_length = int(params["window_length"])
+model_name = params["model_name"]
+num_walks = 20
 
 net = sparse.load_npz(netfile)
-
-if nodefile is not None:
-    node_table = pd.read_csv(nodefile)
-
-if directed is False:
-    net = net + net.T
-
-if noselfloop:
-    net.setdiag(0)
-    logger.debug("Remove selfloops")
+net = net + net.T
+net.data = net.data * 0 + 1
 
 #
 # Embedding models
@@ -98,10 +82,5 @@ emb = model.transform(dim=dim)
 # Save
 #
 np.savez(
-    embfile,
-    emb=emb,
-    window_length=window_length,
-    dim=dim,
-    directed=directed,
-    model_name=model_name,
+    embfile, emb=emb, window_length=window_length, dim=dim, model_name=model_name,
 )

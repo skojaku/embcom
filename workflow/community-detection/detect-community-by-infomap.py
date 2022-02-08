@@ -6,7 +6,7 @@ import numpy as np
 from scipy import sparse
 
 if "snakemake" in sys.modules:
-    netfile = snakemake.input["netfile"]
+    netfile = snakemake.input["net_file"]
     output_file = snakemake.output["output_file"]
 else:
     netfile = (
