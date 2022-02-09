@@ -3,7 +3,6 @@ import sys
 
 import numpy as np
 import pandas as pd
-import utils
 from scipy import sparse, stats
 
 if "snakemake" in sys.modules:
@@ -17,13 +16,35 @@ else:
     metric = "cosine"
 
 
+def row_normalize(mat, mode="prob"):
+    """Normalize a sparse CSR matrix row-wise (each row sums to 1) If a row is
+    all 0's, it remains all 0's.
+
+    Parameters
+    ----------
+    mat : scipy.sparse.csr matrix
+        Matrix in CSR sparse format
+    Returns
+    -------
+    out : scipy.sparse.csr matrix
+        Normalized matrix in CSR sparse format
+    """
+    if mode == "prob":
+        denom = np.array(mat.sum(axis=1)).reshape(-1).astype(float)
+        return sparse.diags(1.0 / np.maximum(denom, 1e-32), format="csr") @ mat
+    elif mode == "norm":
+        denom = np.sqrt(np.array(mat.multiply(mat).sum(axis=1)).reshape(-1))
+        return sparse.diags(1.0 / np.maximum(denom, 1e-32), format="csr") @ mat
+    return np.nan
+
+
 def KMeans(emb, group_ids, metric="euclidean"):
     N = emb.shape[0]
     K = np.max(group_ids) + 1
     U = sparse.csr_matrix(
         (np.ones_like(group_ids), (np.arange(group_ids.size), group_ids)), shape=(N, K)
     )
-    U = utils.row_normalize(U)
+    U = row_normalize(U)
     centers = U.T @ emb
     if metric == "cosine":
         nemb = np.einsum("ij,i->ij", emb, 1 / np.linalg.norm(emb, axis=1))
@@ -45,8 +66,6 @@ emb[np.isinf(emb)] = 0
 memberships = pd.read_csv(com_file)["membership"].values.astype(int)
 
 # Evaluate
-dflist = []
-# for metric in ["cosine", "euclidean"]:
 X = emb.copy()
 if metric == "cosine":
     X = np.einsum("ij,i->ij", X, 1 / np.linalg.norm(X, axis=1))
