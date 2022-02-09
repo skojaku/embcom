@@ -45,6 +45,7 @@ PAPER, SUPP = [j(PAPER_DIR, f) for f in ("main.pdf", "supp.pdf")]
 NET_DIR = j(DATA_DIR, "multi_partition_model", "networks")
 EMB_DIR = j(DATA_DIR, "multi_partition_model", "embedding")
 COM_DIR = j(DATA_DIR, "multi_partition_model", "communities")
+EVA_DIR = j(DATA_DIR, "multi_partition_model", "evaluations")
 
 # =========
 # FIGURES
@@ -56,21 +57,23 @@ COM_DIR = j(DATA_DIR, "multi_partition_model", "communities")
 
 net_params = {
     "n": [10000, 100000], # Network size
-    "K": [2, 4, 8, 16, 32], # Number of communities
+    "K": [2, 32], # Number of communities
     "cave": [10, 50], # average degree
-    "mu": [0.05, 0.1, 0.25, 0.50, 0.75, 0.9, 0.95,0.68, 0.85], # detectbility threshold
+    "mu": [0.1, 0.50, 0.9, 0.68, 0.85], # detectbility threshold
+    #"mu": [0.05, 0.1, 0.25, 0.50, 0.75, 0.9, 0.95,0.68, 0.85], # detectbility threshold
     "sample": np.arange(10), # Number of samples
 }
 
 # Convert to a paramspace
 net_paramspace = to_paramspace(net_params)
-NET_FILE = j(NET_DIR, f"{net_paramspace.wildcard_pattern}.npz" )
+NET_FILE = j(NET_DIR, f"net_{net_paramspace.wildcard_pattern}.npz" )
+NODE_FILE = j(NET_DIR, f"node_{net_paramspace.wildcard_pattern}.npz" )
 
 # =================
 # Embedding
 # =================
 emb_params = {
-    "model_name": ["node2vec", "glove", "deepwalk", "leigenmap", "modspec", "nonbacktracking"],
+    "model_name": ["node2vec", "leigenmap", "modspec"],
     #"model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     #"model_name": ["leigenmap", "modspec", "nonbacktracking"],
     "window_length": [10],
@@ -89,8 +92,23 @@ com_detect_params = {
 }
 com_detect_paramspace = to_paramspace([net_params, com_detect_params])
 
-# Community
+# Community detection
 COM_DETECT_FILE = j(COM_DIR, f"{com_detect_paramspace.wildcard_pattern}.npz")
+
+# Community detection by voronoi clustering to embedding
+com_detect_emb_paramspace = to_paramspace([net_params, emb_params])
+COM_DETECT_EMB_FILE = j(COM_DIR, f"vonoroi_clus_{com_detect_emb_paramspace.wildcard_pattern}.npz")
+
+
+# ==========
+# Evaluation
+# ==========
+
+eva_emb_paramspace = to_paramspace([net_params, emb_params])
+EVAL_ESIM_EMB_FILE = j(EVA_DIR, f"esim_voronoi_clus_{eva_emb_paramspace.wildcard_pattern}.npz")
+
+eva_paramspace = to_paramspace([net_params, com_detect_params])
+EVAL_ESIM_FILE = j(EVA_DIR, f"esim_{eva_paramspace.wildcard_pattern}.npz")
 
 # ======
 # RULES
@@ -98,14 +116,18 @@ COM_DETECT_FILE = j(COM_DIR, f"{com_detect_paramspace.wildcard_pattern}.npz")
 
 rule all:
     input:
-        expand(EMB_FILE, **net_params, **emb_params),
-        expand(COM_DETECT_FILE, **net_params, **com_detect_params)
+        #expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
+        expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params),
+        #expand(EMB_FILE, **net_params, **emb_params),
+        #expand(COM_DETECT_FILE, **net_params, **com_detect_params),
+        #expand(COM_DETECT_EMB_FILE, **net_params, **emb_params)
 
 rule generate_net_multi_partition_model:
     params:
         parameters = net_paramspace.instance
     output:
         output_file=NET_FILE,
+        output_node_file=NODE_FILE,
     script:
         "workflow/net_generator/generate-net-by-multi-partition-model.py"
 
@@ -119,15 +141,45 @@ rule embedding_multi_partition_model:
     script:
         "workflow/embedding/embedding.py"
 
+
+rule voronoi_clustering_multi_partition_model:
+    input:
+        emb_file=EMB_FILE,
+        com_file=NODE_FILE,
+    output:
+        output_file=COM_DETECT_EMB_FILE,
+    params:
+        parameters = com_detect_emb_paramspace.instance
+    script:
+        "workflow/community-detection/voronoi-clustering.py"
+
 rule community_detection_multi_partition_model:
     input:
         net_file=NET_FILE,
     output:
-        output_file=COM_DETECT_FILE,
+        output_file= COM_DETECT_FILE,
     params:
         parameters = com_detect_paramspace.instance
     script:
         "workflow/community-detection/detect-community-by-infomap.py"
+
+rule evaluate_communities_by_esim:
+    input:
+        detected_group_file = COM_DETECT_FILE,
+        com_file = NODE_FILE
+    output:
+        output_file = EVAL_ESIM_FILE
+    script:
+        "workflow/evaluation/eval-esim.py"
+
+rule evaluate_communities_by_esim_for_embedding:
+    input:
+        detected_group_file = COM_DETECT_EMB_FILE,
+        com_file = NODE_FILE
+    output:
+        output_file = EVAL_ESIM_EMB_FILE
+    script:
+        "workflow/evaluation/eval-esim.py"
 
 #        netfile=SIM_MULTI_FIXED_SZ_COM_NET,
 #    output:

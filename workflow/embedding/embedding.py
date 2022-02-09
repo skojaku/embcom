@@ -21,7 +21,7 @@ params = snakemake.params["parameters"]
 dim = int(params["dim"])
 window_length = int(params["window_length"])
 model_name = params["model_name"]
-num_walks = 20
+num_walks = 10
 
 net = sparse.load_npz(netfile)
 net = net + net.T

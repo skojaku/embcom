@@ -14,6 +14,7 @@ if "snakemake" in sys.modules:
     cave = int(params["cave"])
     mu = float(params["mu"])
     output_file = snakemake.output["output_file"]
+    output_node_file = snakemake.output["output_node_file"]
 else:
     n = 100
     K = 3
@@ -55,16 +56,20 @@ def generate_network(Cave, mixing_rate, N, q, min_deg=1):
         indeg = np.array(A.sum(axis=0)).reshape(-1)
         if np.min(indeg) >= min_deg:
             break
-    return A
+    return A, memberships
 
 
 # %%
 # Load
 #
-A = generate_network(cave, mu, n, K)
+A, memberships = generate_network(cave, mu, n, K)
 
 
 # %%
 # Save
 #
 sparse.save_npz(output_file, A)
+node_ids = np.arange(A.shape[0]).astype(int)
+pd.DataFrame({"node_id": node_ids, "membership": memberships}).to_csv(
+    output_node_file, index=False
+)
