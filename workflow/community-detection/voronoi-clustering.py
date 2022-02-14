@@ -9,11 +9,11 @@ if "snakemake" in sys.modules:
     emb_file = snakemake.input["emb_file"]
     com_file = snakemake.input["com_file"]
     output_file = snakemake.output["output_file"]
-    metric = "cosine"
+    metric = "euclidean"
 else:
     emb_file = "../data/embeddings/two_coms/embeddings/xxx"
     output_file = "unko"
-    metric = "cosine"
+    metric = "euclidean"
 
 
 def row_normalize(mat, mode="prob"):

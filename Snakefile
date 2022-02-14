@@ -57,9 +57,9 @@ EVA_DIR = j(DATA_DIR, "multi_partition_model", "evaluations")
 
 net_params = {
     "n": [10000, 100000], # Network size
-    "K": [2, 32], # Number of communities
-    "cave": [10, 50], # average degree
-    "mu": [0.1, 0.50, 0.9, 0.68, 0.85], # detectbility threshold
+    "K": [2, 16, 32], # Number of communities
+    "cave": [10, 20, 50], # average degree
+    "mu": [0.1, 0.3, 0.50, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 0.95, 0.68, 0.85], # detectbility threshold
     #"mu": [0.05, 0.1, 0.25, 0.50, 0.75, 0.9, 0.95,0.68, 0.85], # detectbility threshold
     "sample": np.arange(10), # Number of samples
 }
@@ -73,7 +73,7 @@ NODE_FILE = j(NET_DIR, f"node_{net_paramspace.wildcard_pattern}.npz" )
 # Embedding
 # =================
 emb_params = {
-    "model_name": ["node2vec", "leigenmap", "modspec"],
+    "model_name": ["node2vec", "leigenmap", "modspec", "levy-word2vec"],
     #"model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     #"model_name": ["leigenmap", "modspec", "nonbacktracking"],
     "window_length": [10],
@@ -116,7 +116,7 @@ EVAL_ESIM_FILE = j(EVA_DIR, f"esim_{eva_paramspace.wildcard_pattern}.npz")
 
 rule all:
     input:
-        #expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
+        expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
         expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params),
         #expand(EMB_FILE, **net_params, **emb_params),
         #expand(COM_DETECT_FILE, **net_params, **com_detect_params),
@@ -156,6 +156,7 @@ rule voronoi_clustering_multi_partition_model:
 rule community_detection_multi_partition_model:
     input:
         net_file=NET_FILE,
+        com_file=NODE_FILE,
     output:
         output_file= COM_DETECT_FILE,
     params:

@@ -29,7 +29,7 @@ def calc_esim(y, ypred):
     _, y = np.unique(y, return_inverse=True)
     _, ypred = np.unique(ypred, return_inverse=True)
 
-    K = len(set(y))
+    K = int(np.maximum(np.max(y), np.max(ypred))) + 1
     M = len(y)
     UA = sparse.csr_matrix((np.ones_like(y), (np.arange(y.size), y)), shape=(M, K))
     UB = sparse.csr_matrix(
@@ -67,7 +67,7 @@ def calc_esim(y, ypred):
     return S
 
 
-score_esim = calc_esim(group_ids, group_ids)
+score_esim = calc_esim(memberships, group_ids)
 
 #
 # Save

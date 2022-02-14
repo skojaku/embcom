@@ -6,6 +6,7 @@ import graph_tool.all as gt
 import numpy as np
 import pandas as pd
 from scipy import sparse, stats
+from scipy.sparse.csgraph import connected_components
 
 if "snakemake" in sys.modules:
     params = snakemake.params["parameters"]
@@ -16,14 +17,14 @@ if "snakemake" in sys.modules:
     output_file = snakemake.output["output_file"]
     output_node_file = snakemake.output["output_node_file"]
 else:
-    n = 100
-    K = 3
-    cave = 16
-    mu = 0.5
+    n = 600
+    K = 25
+    cave = 10
+    mu = 0.68
     output_file = "../data/networks/multi-coms"
 
 
-def generate_network(Cave, mixing_rate, N, q, min_deg=1):
+def generate_network(Cave, mixing_rate, N, q):
 
     memberships = np.sort(np.arange(N) % q)
 
@@ -36,7 +37,6 @@ def generate_network(Cave, mixing_rate, N, q, min_deg=1):
     pout = Cout / N
     pin = Cin / N
 
-    degs = np.ones(N) * Cave
     Nk = np.array(U.sum(axis=0)).reshape(-1)
 
     P = np.ones((q, q)) * pout + np.eye(q) * (pin - pout)
@@ -53,13 +53,13 @@ def generate_network(Cave, mixing_rate, N, q, min_deg=1):
         g = gt.generate_sbm(**gt_params)
         A = gt.adjacency(g).T
         A.data = np.ones_like(A.data)
-        indeg = np.array(A.sum(axis=0)).reshape(-1)
-        if np.min(indeg) >= min_deg:
+        # check if the graph is connected
+        if connected_components(A)[0] == 1:
             break
     return A, memberships
 
 
-# %%
+#
 # Load
 #
 A, memberships = generate_network(cave, mu, n, K)
