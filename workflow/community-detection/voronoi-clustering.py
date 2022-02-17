@@ -1,4 +1,5 @@
 """Evaluate the detected communities using the element-centric similarity."""
+# %%
 import sys
 
 import numpy as np
@@ -9,11 +10,13 @@ if "snakemake" in sys.modules:
     emb_file = snakemake.input["emb_file"]
     com_file = snakemake.input["com_file"]
     output_file = snakemake.output["output_file"]
-    metric = "euclidean"
+    params = snakemake.params["parameters"]
+    metric = params["metric"]
 else:
-    emb_file = "../data/embeddings/two_coms/embeddings/xxx"
+    emb_file = "../../data/multi_partition_model/embedding/n~100000_K~32_cave~50_mu~0.95_sample~7_model_name~node2vec_window_length~10_dim~64.npz"
+    com_file = "../../data/multi_partition_model/networks/node_n~100000_K~32_cave~50_mu~0.95_sample~7.npz"
     output_file = "unko"
-    metric = "euclidean"
+    metric = "cosine"
 
 
 def row_normalize(mat, mode="prob"):
@@ -75,3 +78,7 @@ group_ids = KMeans(emb, memberships, metric=metric)
 # Save
 #
 np.savez(output_file, group_ids=group_ids)
+
+# %%
+
+# %%

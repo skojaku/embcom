@@ -56,12 +56,15 @@ EVA_DIR = j(DATA_DIR, "multi_partition_model", "evaluations")
 # ================================
 
 net_params = {
-    "n": [10000, 100000], # Network size
-    "K": [2, 16, 32], # Number of communities
+    "n": [100000], # Network size
+    #"n": [10000, 100000], # Network size
+    "K": [2, 32], # Number of communities
+    #"K": [2, 16, 32], # Number of communities
     "cave": [10, 20, 50], # average degree
     "mu": [0.1, 0.3, 0.50, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 0.95, 0.68, 0.85], # detectbility threshold
     #"mu": [0.05, 0.1, 0.25, 0.50, 0.75, 0.9, 0.95,0.68, 0.85], # detectbility threshold
-    "sample": np.arange(10), # Number of samples
+    "sample": np.arange(3), # Number of samples
+    #"sample": np.arange(10), # Number of samples
 }
 
 # Convert to a paramspace
@@ -96,7 +99,10 @@ com_detect_paramspace = to_paramspace([net_params, com_detect_params])
 COM_DETECT_FILE = j(COM_DIR, f"{com_detect_paramspace.wildcard_pattern}.npz")
 
 # Community detection by voronoi clustering to embedding
-com_detect_emb_paramspace = to_paramspace([net_params, emb_params])
+voronoi_com_detect_params = {
+    "metric": ["cosine", "euclidean"]
+}
+com_detect_emb_paramspace = to_paramspace([net_params, emb_params, voronoi_com_detect_params])
 COM_DETECT_EMB_FILE = j(COM_DIR, f"vonoroi_clus_{com_detect_emb_paramspace.wildcard_pattern}.npz")
 
 
@@ -104,7 +110,7 @@ COM_DETECT_EMB_FILE = j(COM_DIR, f"vonoroi_clus_{com_detect_emb_paramspace.wildc
 # Evaluation
 # ==========
 
-eva_emb_paramspace = to_paramspace([net_params, emb_params])
+eva_emb_paramspace = to_paramspace([net_params, emb_params, voronoi_com_detect_params])
 EVAL_ESIM_EMB_FILE = j(EVA_DIR, f"esim_voronoi_clus_{eva_emb_paramspace.wildcard_pattern}.npz")
 
 eva_paramspace = to_paramspace([net_params, com_detect_params])
@@ -117,7 +123,7 @@ EVAL_ESIM_FILE = j(EVA_DIR, f"esim_{eva_paramspace.wildcard_pattern}.npz")
 rule all:
     input:
         expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
-        expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params),
+        expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params, **voronoi_com_detect_params),
         #expand(EMB_FILE, **net_params, **emb_params),
         #expand(COM_DETECT_FILE, **net_params, **com_detect_params),
         #expand(COM_DETECT_EMB_FILE, **net_params, **emb_params)
