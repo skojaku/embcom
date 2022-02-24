@@ -56,9 +56,9 @@ EVA_DIR = j(DATA_DIR, "multi_partition_model", "evaluations")
 # ================================
 
 net_params = {
-    "n": [100000], # Network size
+    "n": [2500, 5000, 10000, 50000, 100000], # Network size
     #"n": [10000, 100000], # Network size
-    "K": [2, 32], # Number of communities
+    "K": [2, 16, 32, 64, 100, 200, 500, 1000], # Number of communities
     #"K": [2, 16, 32], # Number of communities
     "cave": [10, 20, 50], # average degree
     "mu": [0.1, 0.3, 0.50, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 0.95, 0.68, 0.85], # detectbility threshold

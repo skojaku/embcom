@@ -53,6 +53,8 @@ def KMeans(emb, group_ids, metric="euclidean"):
         nemb = np.einsum("ij,i->ij", emb, 1 / np.linalg.norm(emb, axis=1))
         ncenters = np.einsum("ij,i->ij", centers, 1 / np.linalg.norm(centers, axis=1))
         return np.argmax(nemb @ ncenters.T, axis=1)
+    elif metric == "dotsim":
+        return np.argmax(emb @ centers.T, axis=1)
     elif metric == "euclidean":
         norm_emb = np.linalg.norm(emb, axis=1) ** 2
         norm_cent = np.linalg.norm(centers, axis=1) ** 2
@@ -72,7 +74,7 @@ memberships = pd.read_csv(com_file)["membership"].values.astype(int)
 X = emb.copy()
 if metric == "cosine":
     X = np.einsum("ij,i->ij", X, 1 / np.linalg.norm(X, axis=1))
-group_ids = KMeans(emb, memberships, metric=metric)
+group_ids = KMeans(X, memberships, metric=metric)
 
 # %%
 # Save
