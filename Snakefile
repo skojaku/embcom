@@ -76,11 +76,11 @@ NODE_FILE = j(NET_DIR, f"node_{net_paramspace.wildcard_pattern}.npz" )
 # Embedding
 # =================
 emb_params = {
-    "model_name": ["node2vec", "leigenmap", "modspec", "levy-word2vec"],
+    "model_name": ["node2vec", "leigenmap", "modspec", "levy-word2vec", "node2vec-matrixfact-limit"],
     #"model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     #"model_name": ["leigenmap", "modspec", "nonbacktracking"],
     "window_length": [10],
-    "dim": [64],
+    "dim": [0, 64],
 }
 
 emb_paramspace = to_paramspace([net_params, emb_params])
@@ -98,20 +98,21 @@ com_detect_paramspace = to_paramspace([net_params, com_detect_params])
 # Community detection
 COM_DETECT_FILE = j(COM_DIR, f"{com_detect_paramspace.wildcard_pattern}.npz")
 
-# Community detection by voronoi clustering to embedding
-voronoi_com_detect_params = {
-    "metric": ["cosine", "euclidean"]
+# Community detection by clustering to embedding
+clustering_params = {
+    "metric": ["cosine", "euclidean"],
+    "clustering": ["voronoi", "kmeans"]
 }
-com_detect_emb_paramspace = to_paramspace([net_params, emb_params, voronoi_com_detect_params])
-COM_DETECT_EMB_FILE = j(COM_DIR, f"vonoroi_clus_{com_detect_emb_paramspace.wildcard_pattern}.npz")
+com_detect_emb_paramspace = to_paramspace([net_params, emb_params, clustering_params])
+COM_DETECT_EMB_FILE = j(COM_DIR, f"clus_{com_detect_emb_paramspace.wildcard_pattern}.npz")
 
 
 # ==========
 # Evaluation
 # ==========
 
-eva_emb_paramspace = to_paramspace([net_params, emb_params, voronoi_com_detect_params])
-EVAL_ESIM_EMB_FILE = j(EVA_DIR, f"esim_voronoi_clus_{eva_emb_paramspace.wildcard_pattern}.npz")
+eva_emb_paramspace = to_paramspace([net_params, emb_params, clustering_params])
+EVAL_ESIM_EMB_FILE = j(EVA_DIR, f"esim_clus_{eva_emb_paramspace.wildcard_pattern}.npz")
 
 eva_paramspace = to_paramspace([net_params, com_detect_params])
 EVAL_ESIM_FILE = j(EVA_DIR, f"esim_{eva_paramspace.wildcard_pattern}.npz")
@@ -123,7 +124,7 @@ EVAL_ESIM_FILE = j(EVA_DIR, f"esim_{eva_paramspace.wildcard_pattern}.npz")
 rule all:
     input:
         expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
-        expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params, **voronoi_com_detect_params),
+        expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params, **clustering_params),
         #expand(EMB_FILE, **net_params, **emb_params),
         #expand(COM_DETECT_FILE, **net_params, **com_detect_params),
         #expand(COM_DETECT_EMB_FILE, **net_params, **emb_params)
@@ -140,6 +141,7 @@ rule generate_net_multi_partition_model:
 rule embedding_multi_partition_model:
     input:
         net_file=NET_FILE,
+        com_file=NODE_FILE
     output:
         output_file=EMB_FILE,
     params:
@@ -156,8 +158,24 @@ rule voronoi_clustering_multi_partition_model:
         output_file=COM_DETECT_EMB_FILE,
     params:
         parameters = com_detect_emb_paramspace.instance
+    wildcard_constraints:
+        clustering = "voronoi",
     script:
         "workflow/community-detection/voronoi-clustering.py"
+
+rule kmeans_clustering_multi_partition_model:
+    input:
+        emb_file=EMB_FILE,
+        com_file=NODE_FILE,
+    output:
+        output_file=COM_DETECT_EMB_FILE,
+    params:
+        parameters = com_detect_emb_paramspace.instance
+    wildcard_constraints:
+        clustering = "kmeans",
+    script:
+        "workflow/community-detection/kmeans-clustering.py"
+
 
 rule community_detection_multi_partition_model:
     input:

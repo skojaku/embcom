@@ -27,6 +27,14 @@ net = sparse.load_npz(netfile)
 net = net + net.T
 net.data = net.data * 0 + 1
 
+true_membership = pd.read_csv(snakemake.input["com_file"])["membership"].values.astype(
+    int
+)
+
+if dim == 0:
+    dim = len(set(true_membership)) - 1
+    dim = np.minimum(net.shape[0] - 1, dim)
+
 #
 # Embedding models
 #
@@ -71,6 +79,18 @@ elif model_name == "modspec":
     model = embcom.embeddings.ModularitySpectralEmbedding()
 elif model_name == "nonbacktracking":
     model = embcom.embeddings.NonBacktrackingSpectralEmbedding()
+elif model_name == "node2vec-matrixfact":
+    model = embcom.embeddings.Node2VecMatrixFactorization(
+        window_length=window_length, blocking_membership=None
+    )
+elif model_name == "highorder-modspec":
+    model = embcom.embeddings.HighOrderModularitySpectralEmbedding(
+        window_length=window_length
+    )
+elif model_name == "node2vec-matrixfact-limit":
+    model = embcom.embeddings.NormalizedTransitionMatrixSpectralEmbedding(
+        window_length=window_length
+    )
 
 #
 # Embedding
