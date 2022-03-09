@@ -13,8 +13,8 @@ if "snakemake" in sys.modules:
     params = snakemake.params["parameters"]
     metric = params["metric"]
 else:
-    emb_file = "../../data/multi_partition_model/embedding/n~100000_K~32_cave~50_mu~0.95_sample~7_model_name~node2vec_window_length~10_dim~64.npz"
-    com_file = "../../data/multi_partition_model/networks/node_n~100000_K~32_cave~50_mu~0.95_sample~7.npz"
+    emb_file = "../../data/multi_partition_model/embedding/n~2500_K~2_cave~20_mu~0.7_sample~0_model_name~node2vec-matrixfact-limit_window_length~10_dim~0.npz"
+    com_file = "../../data/multi_partition_model/networks/node_n~2500_K~2_cave~20_mu~0.7_sample~0.npz"
     output_file = "unko"
     metric = "cosine"
 
@@ -75,7 +75,13 @@ X = emb.copy()
 if metric == "cosine":
     X = np.einsum("ij,i->ij", X, 1 / np.linalg.norm(X, axis=1))
 group_ids = KMeans(X, memberships, metric=metric)
+print(len(set(group_ids)))
 
+# %%
+import seaborn as sns
+
+sns.scatterplot(x=np.arange(X.shape[0]), y=np.cumsum((2 * group_ids - 1).reshape(-1)))
+group_ids
 # %%
 # Save
 #

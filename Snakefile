@@ -60,7 +60,8 @@ net_params = {
     #"n": [10000, 100000], # Network size
     "K": [2, 16, 32, 64, 100, 200, 500, 1000], # Number of communities
     #"K": [2, 16, 32], # Number of communities
-    "cave": [10, 20, 50], # average degree
+    "cave": [20, 50], # average degree
+    #"cave": [10, 20, 50], # average degree
     "mu": [0.1, 0.3, 0.50, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 0.95, 0.68, 0.85], # detectbility threshold
     #"mu": [0.05, 0.1, 0.25, 0.50, 0.75, 0.9, 0.95,0.68, 0.85], # detectbility threshold
     "sample": np.arange(3), # Number of samples
@@ -101,6 +102,7 @@ COM_DETECT_FILE = j(COM_DIR, f"{com_detect_paramspace.wildcard_pattern}.npz")
 # Community detection by clustering to embedding
 clustering_params = {
     "metric": ["cosine", "euclidean"],
+    #"clustering": ["voronoi"]
     "clustering": ["voronoi", "kmeans"]
 }
 com_detect_emb_paramspace = to_paramspace([net_params, emb_params, clustering_params])

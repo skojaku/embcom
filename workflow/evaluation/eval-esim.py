@@ -1,4 +1,6 @@
 """Evaluate the detected communities using the element-centric similarity."""
+
+# %%
 import sys
 
 import numpy as np
@@ -10,8 +12,8 @@ if "snakemake" in sys.modules:
     com_file = snakemake.input["com_file"]
     output_file = snakemake.output["output_file"]
 else:
-    emb_file = "../data/embeddings/two_coms/embeddings/xxx"
-    K = 2
+    com_file = "../../data/multi_partition_model/networks/node_n~2500_K~2_cave~20_mu~0.5_sample~0.npz"
+    detected_group_file = "../../data/multi_partition_model/communities/clus_n~2500_K~2_cave~20_mu~0.5_sample~0_model_name~node2vec-matrixfact-limit_window_length~10_dim~0_metric~cosine_clustering~kmeans.npz"
     output_sim_file = "unko"
 
 
@@ -39,13 +41,6 @@ def calc_esim(y, ypred):
     fA = np.array(UA.sum(axis=0)).reshape(-1)
     fB = np.array(UB.sum(axis=0)).reshape(-1)
 
-    # fAB = UA.T @ UB
-    # Si = (
-    #    0.5
-    #    * np.array(fAB[(y, ypred)]).reshape(-1)
-    #    * (1.0 / fA[y] + 1.0 / fB[ypred] - np.abs(1.0 / fA[y] - 1.0 / fB[ypred]))
-    # )
-    # S = np.mean(Si)
     ids, freq = np.unique(y * K + ypred, return_counts=True)
     y, ypred = divmod(ids, K)
     S = 0
@@ -69,9 +64,11 @@ def calc_esim(y, ypred):
 
 score_esim = calc_esim(memberships, group_ids)
 
-#
+# %%
 # Save
 #
 res_table = pd.DataFrame([{"score": score_esim, "score_type": "esim"}]).to_csv(
     output_file, index=False
 )
+
+# %%
