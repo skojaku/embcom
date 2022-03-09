@@ -15,33 +15,25 @@ logger.setLevel(level=logging.DEBUG)
 #
 # Input
 #
-netfile = snakemake.input["netfile"]
-nodefile = snakemake.input["nodefile"] if "nodefile" in snakemake.input.keys() else None
-dim = int(snakemake.params["dim"])
-window_length = int(snakemake.params["window_length"])
-model_name = snakemake.params["model_name"]
-directed = snakemake.params["directed"] == "directed"
-noselfloop = (
-    snakemake.params["noselfloop"] == "True"
-    if "noselfloop" in snakemake.params.keys()
-    else False
-)
-num_walks = (
-    int(snakemake.params["num_walks"]) if "num_walks" in snakemake.params.keys() else 1
-)
-embfile = snakemake.output["embfile"]
+netfile = snakemake.input["net_file"]
+embfile = snakemake.output["output_file"]
+params = snakemake.params["parameters"]
+dim = int(params["dim"])
+window_length = int(params["window_length"])
+model_name = params["model_name"]
+num_walks = 10
 
 net = sparse.load_npz(netfile)
+net = net + net.T
+net.data = net.data * 0 + 1
 
-if nodefile is not None:
-    node_table = pd.read_csv(nodefile)
+true_membership = pd.read_csv(snakemake.input["com_file"])["membership"].values.astype(
+    int
+)
 
-if directed is False:
-    net = net + net.T
-
-if noselfloop:
-    net.setdiag(0)
-    logger.debug("Remove selfloops")
+if dim == 0:
+    dim = len(set(true_membership)) - 1
+    dim = np.minimum(net.shape[0] - 1, dim)
 
 #
 # Embedding models
@@ -87,6 +79,18 @@ elif model_name == "modspec":
     model = embcom.embeddings.ModularitySpectralEmbedding()
 elif model_name == "nonbacktracking":
     model = embcom.embeddings.NonBacktrackingSpectralEmbedding()
+elif model_name == "node2vec-matrixfact":
+    model = embcom.embeddings.Node2VecMatrixFactorization(
+        window_length=window_length, blocking_membership=None
+    )
+elif model_name == "highorder-modspec":
+    model = embcom.embeddings.HighOrderModularitySpectralEmbedding(
+        window_length=window_length
+    )
+elif model_name == "node2vec-matrixfact-limit":
+    model = embcom.embeddings.NormalizedTransitionMatrixSpectralEmbedding(
+        window_length=window_length
+    )
 
 #
 # Embedding
@@ -98,10 +102,5 @@ emb = model.transform(dim=dim)
 # Save
 #
 np.savez(
-    embfile,
-    emb=emb,
-    window_length=window_length,
-    dim=dim,
-    directed=directed,
-    model_name=model_name,
+    embfile, emb=emb, window_length=window_length, dim=dim, model_name=model_name,
 )

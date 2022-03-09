@@ -52,6 +52,21 @@ class TestCalc(unittest.TestCase):
         model.fit(self.A)
         vec = model.transform(dim=32)
 
+    def test_node2vec_matrix_factorization(self):
+        model = embcom.embeddings.Node2VecMatrixFactorization()
+        model.fit(self.A)
+        vec = model.transform(dim=32)
+
+    def test_highorder_modularity_spec_embedding(self):
+        model = embcom.embeddings.HighOrderModularitySpectralEmbedding()
+        model.fit(self.A)
+        vec = model.transform(dim=32)
+
+    def test_normalized_trans_matrix_spec_embedding(self):
+        model = embcom.embeddings.NormalizedTransitionMatrixSpectralEmbedding()
+        model.fit(self.A)
+        vec = model.transform(dim=32)
+
 
 if __name__ == "__main__":
     unittest.main()

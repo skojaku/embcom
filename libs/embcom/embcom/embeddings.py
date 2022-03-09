@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import scipy
 from scipy import sparse, stats
+from sklearn.decomposition import TruncatedSVD
 
 from embcom import rsvd, samplers, utils
 
@@ -377,6 +378,67 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
         self.out_vec = None
 
 
+class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
+    def __init__(
+        self, verbose=False, window_length=10,
+    ):
+        self.in_vec = None  # In-vector
+        self.out_vec = None  # Out-vector
+        self.window_length = window_length
+
+    def fit(self, net):
+        A = utils.to_adjacency_matrix(net)
+        self.A = A
+        self.deg = np.array(A.sum(axis=1)).reshape(-1)
+        return self
+
+    def update_embedding(self, dim):
+        stationary_prob = self.deg / np.sum(self.deg)
+
+        P = utils.to_trans_mat(self.A)
+        Q = []
+        for t in range(self.window_length):
+            Q.append(
+                [sparse.diags(stationary_prob / self.window_length) @ P]
+                + [P for _ in range(t)]
+            )
+        Q.append([-stationary_prob.reshape((-1, 1)), stationary_prob.reshape((1, -1))])
+        u, s, v = rsvd.rSVD(Q, dim=dim)
+        self.in_vec = u @ sparse.diags(s)
+        self.out_vec = None
+
+
+class NormalizedTransitionMatrixSpectralEmbedding(NodeEmbeddings):
+    def __init__(
+        self, verbose=False, window_length=10,
+    ):
+        self.in_vec = None  # In-vector
+        self.out_vec = None  # Out-vector
+        self.window_length = window_length
+
+    def fit(self, net):
+        A = utils.to_adjacency_matrix(net)
+        self.A = A
+        self.deg = np.array(A.sum(axis=1)).reshape(-1)
+        return self
+
+    def update_embedding(self, dim):
+
+        # Calculate the normalized transition matrix
+        Dinvsqrt = sparse.diags(1 / np.sqrt(self.deg))
+        Psym = Dinvsqrt @ self.A @ Dinvsqrt
+
+        u, s, v = rsvd.rSVD(Psym, dim=dim + 1)
+        mask = s < np.max(s)
+        u = u[:, mask]
+        s = s[mask]
+
+        s = (s * (1 - s ** self.window_length)) / (self.window_length * (1 - s))
+
+        self.in_vec = u @ sparse.diags(np.sqrt(s))
+        self.out_vec = None
+
+
 class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
     def __init__(self, verbose=False, auto_dim=False):
         self.in_vec = None  # In-vector
@@ -412,7 +474,7 @@ class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
 
             s, v = sparse.linalg.eigs(B, k=dim + 1)
 
-            c = int(A.sum() / N)
+            c = int(self.A.sum() / N)
             s, v = s[np.abs(s) > c], v[:, np.abs(s) > c]
 
             order = np.argsort(s)
@@ -423,3 +485,30 @@ class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
             v = v @ np.diag(1 / c)
 
         self.in_vec = v
+
+
+class Node2VecMatrixFactorization(NodeEmbeddings):
+    def __init__(self, verbose=False, window_length=10, num_blocks=500):
+        self.in_vec = None  # In-vector
+        self.out_vec = None  # Out-vector
+        self.window_length = window_length
+        self.num_blocks = num_blocks
+
+    def fit(self, net):
+        A = utils.to_adjacency_matrix(net)
+
+        self.A = A
+        self.deg = np.array(A.sum(axis=1)).reshape(-1)
+        return self
+
+    def update_embedding(self, dim):
+
+        P = utils.to_trans_mat(self.A)
+        Ppow = utils.matrix_sum_power(P, self.window_length) / self.window_length
+        stationary_prob = self.deg / np.sum(self.deg)
+        R = np.log(Ppow @ np.diag(1 / stationary_prob))
+
+        u, s, v = rsvd.rSVD(R, dim=dim)
+        self.in_vec = u @ sparse.diags(np.sqrt(s))
+        self.out_vec = None
+
