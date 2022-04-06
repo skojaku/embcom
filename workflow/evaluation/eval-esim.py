@@ -28,8 +28,10 @@ group_ids = np.load(detected_group_file)["group_ids"]
 #
 def calc_esim(y, ypred):
     """Element centric similarity."""
-    _, y = np.unique(y, return_inverse=True)
-    _, ypred = np.unique(ypred, return_inverse=True)
+    ylab, y = np.unique(y, return_inverse=True)
+    ypredlab, ypred = np.unique(ypred, return_inverse=True)
+
+    Ka, Kb = len(ylab), len(ypredlab)
 
     K = int(np.maximum(np.max(y), np.max(ypred))) + 1
     M = len(y)
@@ -41,25 +43,19 @@ def calc_esim(y, ypred):
     fA = np.array(UA.sum(axis=0)).reshape(-1)
     fB = np.array(UB.sum(axis=0)).reshape(-1)
 
-    ids, freq = np.unique(y * K + ypred, return_counts=True)
-    y, ypred = divmod(ids, K)
+    fAB = UA.T @ UB
+
     S = 0
-    UAT = sparse.csr_matrix(UA.T)
-    UBT = sparse.csr_matrix(UB.T)
     for i in range(len(y)):
-        fab = UAT[y[i], :].multiply(UBT[ypred[i], :]).sum()
-        S += (
-            0.5
-            * freq[i]
-            * fab
-            * (
-                1.0 / fA[y[i]]
-                + 1.0 / fB[ypred[i]]
-                - np.abs(1.0 / fA[y[i]] - 1.0 / fB[ypred[i]])
-            )
+        S += (fAB[y[i], ypred[i]] ** 2) * np.minimum(
+            1 / np.maximum(1, fA[y[i]]), 1 / np.maximum(1, fB[ypred[i]])
         )
     S /= M
-    return S
+
+    Srand = np.minimum(1 / Ka, 1 / Kb)
+
+    Scorrected = (S - Srand) / (1 - Srand)
+    return Scorrected
 
 
 score_esim = calc_esim(memberships, group_ids)

@@ -59,10 +59,10 @@ net_params = {
     "n": [2500, 5000, 10000, 50000, 100000], # Network size
     #"n": [10000, 100000], # Network size
     "K": [2, 16, 32, 64, 100, 200, 500, 1000], # Number of communities
-    #"K": [2, 16, 32], # Number of communities
+    #"K": [2], # Number of communities
     "cave": [20, 50], # average degree
     #"cave": [10, 20, 50], # average degree
-    "mu": [0.1, 0.3, 0.50, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 0.95, 0.68, 0.85], # detectbility threshold
+    "mu": [0.1, 0.3, 0.50, 0.55, 0.6, 0.65, 0.7, 0.71, 0.75, 0.8, 0.85, 0.9, 0.95, 0.68, 0.85], # detectbility threshold
     #"mu": [0.05, 0.1, 0.25, 0.50, 0.75, 0.9, 0.95,0.68, 0.85], # detectbility threshold
     "sample": np.arange(3), # Number of samples
     #"sample": np.arange(10), # Number of samples
