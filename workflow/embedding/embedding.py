@@ -88,9 +88,7 @@ elif model_name == "highorder-modspec":
         window_length=window_length
     )
 elif model_name == "node2vec-matrixfact-limit":
-    model = embcom.embeddings.NormalizedTransitionMatrixSpectralEmbedding(
-        window_length=window_length
-    )
+    model = embcom.embeddings.LinearizedNode2Vec(window_length=window_length)
 
 #
 # Embedding
