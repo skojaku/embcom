@@ -49,6 +49,7 @@ NET_DIR = j(DATA_DIR, "multi_partition_model", "networks")
 EMB_DIR = j(DATA_DIR, "multi_partition_model", "embedding")
 COM_DIR = j(DATA_DIR, "multi_partition_model", "communities")
 EVA_DIR = j(DATA_DIR, "multi_partition_model", "evaluations")
+VAL_SPEC_DIR = j(DATA_DIR, "multi_partition_model", "spectral_analysis")
 
 # =========
 # FIGURES
@@ -125,7 +126,6 @@ COM_DETECT_FILE = j(COM_DIR, f"{com_detect_paramspace.wildcard_pattern}.npz")
 # Community detection by clustering to embedding
 clustering_params = {
     "metric": ["cosine", "euclidean"],
-    # "clustering": ["voronoi"]
     "clustering": ["voronoi", "kmeans"],
 }
 com_detect_emb_paramspace = to_paramspace([net_params, emb_params, clustering_params])
@@ -144,6 +144,18 @@ EVAL_ESIM_EMB_FILE = j(EVA_DIR, f"esim_clus_{eva_emb_paramspace.wildcard_pattern
 eva_paramspace = to_paramspace([net_params, com_detect_params])
 EVAL_ESIM_FILE = j(EVA_DIR, f"esim_{eva_paramspace.wildcard_pattern}.npz")
 
+
+
+# ===============================
+# Validating detectability limit
+# ===============================
+bipartition_params = {"Cave":[10, 20, 50], "mixing_rate":[0.5], "N":[1000, 10000], "q":[2], "matrixType":["node2vec", "linearized-node2vec"], "L":[1, 10, 50], "n_samples":[10]}
+
+bipartition_paramspace = to_paramspace([bipartition_params])
+SPECTRAL_DENSITY_FILE= j(VAL_SPEC_DIR , f"{bipartition_paramspace.wildcard_pattern}.csv")
+
+
+
 # ======
 # RULES
 # ======
@@ -151,12 +163,15 @@ EVAL_ESIM_FILE = j(EVA_DIR, f"esim_{eva_paramspace.wildcard_pattern}.npz")
 
 rule all:
     input:
-        expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
-        expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params, **clustering_params), #expand(EMB_FILE, **net_params, **emb_params),
+        #expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
+        #expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params, **clustering_params),
+        expand(SPECTRAL_DENSITY_FILE, **bipartition_params)
          #expand(COM_DETECT_FILE, **net_params, **com_detect_params),
          #expand(COM_DETECT_EMB_FILE, **net_params, **emb_params)
 
-
+#
+# network generation
+#
 rule generate_net_multi_partition_model:
     params:
         parameters=net_paramspace.instance,
@@ -167,6 +182,9 @@ rule generate_net_multi_partition_model:
         "workflow/net_generator/generate-net-by-multi-partition-model.py"
 
 
+#
+# Embedding
+#
 rule embedding_multi_partition_model:
     input:
         net_file=NET_FILE,
@@ -179,6 +197,9 @@ rule embedding_multi_partition_model:
         "workflow/embedding/embedding.py"
 
 
+#
+# Clustering
+#
 rule voronoi_clustering_multi_partition_model:
     input:
         emb_file=EMB_FILE,
@@ -219,6 +240,9 @@ rule community_detection_multi_partition_model:
         "workflow/community-detection/detect-community-by-infomap.py"
 
 
+#
+# Evaluation
+#
 rule evaluate_communities_by_esim:
     input:
         detected_group_file=COM_DETECT_FILE,
@@ -237,3 +261,19 @@ rule evaluate_communities_by_esim_for_embedding:
         output_file=EVAL_ESIM_EMB_FILE,
     script:
         "workflow/evaluation/eval-esim.py"
+
+#
+# Validating the detectability condition
+#
+rule calc_spectral_density_linearized_node2vec:
+    output:
+        output_file = SPECTRAL_DENSITY_FILE
+    params:
+        parameters=bipartition_paramspace.instance,
+    script:
+        "workflow/spectral-density-analysis/calc-spec-density-node2vec.py"
+
+
+#
+# Plot
+#
