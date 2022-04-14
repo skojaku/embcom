@@ -70,7 +70,7 @@ sns.set_style("ticks")
 import matplotlib.pyplot as plt
 
 _plot_data = plot_data.copy()
-_plot_data = plot_data[plot_data["N"] == 5000]
+_plot_data = plot_data[plot_data["N"] <= 5000]
 _plot_data = _plot_data[_plot_data["L"] == 10]
 g = sns.FacetGrid(
     data=_plot_data,
@@ -87,6 +87,62 @@ g.axes[0, 0].legend(frameon=False, loc="lower left")
 g.axes[0, 0].axvline(1 - 1 / np.sqrt(10), color="k", linestyle="--")
 g.axes[2, 0].legend(frameon=False, loc="lower left")
 g.axes[2, 0].axvline(1 - 1 / np.sqrt(50), color="k", linestyle="--")
+
+sns.despine()
+
+# %% Same but different panels
+sns.set_style("white")
+sns.set(font_scale=1.2)
+sns.set_style("ticks")
+import matplotlib.pyplot as plt
+
+_plot_data = plot_data.copy()
+_plot_data = plot_data[plot_data["N"] <= 5000]
+_plot_data = _plot_data[_plot_data["L"] == 10]
+_plot_data = _plot_data[_plot_data["Cave"] == 50]
+g = sns.FacetGrid(
+    data=_plot_data,
+    col="model",
+    hue="N",
+    palette="plasma",
+    # hue_order=["original node2vec", "linearized node2vec"],
+    height=3.5,
+    aspect=1.0,
+)
+g.map(sns.lineplot, "rate", "score", marker="o")
+
+g.axes[0, 0].legend(frameon=False, loc="lower left")
+g.axes[0, 0].axvline(1 - 1 / np.sqrt(50), color="k", linestyle="--")
+g.axes[0, 1].axvline(1 - 1 / np.sqrt(50), color="k", linestyle="--")
+g.set_ylabels("AUC-ROC")
+g.set_xlabels("Mixing rate, $\mu$")
+
+sns.despine()
+# %% Same but different panels
+sns.set_style("white")
+sns.set(font_scale=1.2)
+sns.set_style("ticks")
+import matplotlib.pyplot as plt
+
+_plot_data = plot_data.copy()
+_plot_data = plot_data[plot_data["N"] == 5000]
+_plot_data = _plot_data[_plot_data["L"] == 10]
+g = sns.FacetGrid(
+    data=_plot_data,
+    col="model",
+    hue="Cave",
+    palette="plasma",
+    # hue_order=["original node2vec", "linearized node2vec"],
+    height=3.5,
+    aspect=1.0,
+)
+g.map(sns.lineplot, "rate", "score", marker="o")
+
+g.axes[0, 0].legend(frameon=False, loc="lower left")
+g.axes[0, 0].axvline(1 - 1 / np.sqrt(50), color="k", linestyle="--")
+g.axes[0, 1].axvline(1 - 1 / np.sqrt(50), color="k", linestyle="--")
+g.set_ylabels("AUC-ROC")
+g.set_xlabels("Mixing rate, $\mu$")
 
 sns.despine()
 # %%
@@ -114,3 +170,5 @@ g.axes[2, 0].legend(frameon=False, loc="lower left")
 g.axes[2, 0].axvline(1 - 1 / np.sqrt(50), color="k", linestyle="--")
 
 sns.despine()
+
+# %%
