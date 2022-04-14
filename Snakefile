@@ -151,7 +151,7 @@ EVAL_ESIM_FILE = j(EVA_DIR, f"esim_{eva_paramspace.wildcard_pattern}.npz")
 bipartition_params = {
     "Cave": [10, 20, 50],
     "mixing_rate": [0.5],
-    "N": [1000],
+    "N": [1000, 5000],
     "q": [2],
     "matrixType": ["node2vec", "linearized-node2vec"],
     "L": [1, 10, 50],
