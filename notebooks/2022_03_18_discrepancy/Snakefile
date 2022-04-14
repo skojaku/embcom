@@ -1,0 +1,61 @@
+import numpy as np
+from os.path import join as j
+import itertools
+import pandas as pd
+from snakemake.utils import Paramspace
+
+#configfile: "workflow/config.yaml"
+
+
+# =================
+# Utility function
+# =================
+def make_filename(prefix, ext, names):
+    retval = prefix
+    for key in names:
+        retval += "_" + str(key) + "={" + str(key) + "}"
+    return retval + "." + ext
+
+
+def to_paramspace(dict_list):
+    if isinstance(dict_list, list) is False:
+        dict_list = [dict_list]
+    my_dict = {}
+    cols = []
+    for dic in dict_list:
+        my_dict.update(dic)
+        cols += list(dic.keys())
+    keys, values = zip(*my_dict.items())
+    permutations_dicts = [dict(zip(keys, v)) for v in itertools.product(*values)]
+    df = pd.DataFrame(permutations_dicts)
+    df = df[cols]
+    return Paramspace(df, filename_params="*")
+
+
+DATA_DIR = "data"
+RES_DIR = j(DATA_DIR, "results")
+
+param_net = {
+    "Cave": [10, 20, 50, 100, 200],
+    "mixing_rate": [float("%.2f" % x) for x in np.linspace(0.1, 1.0, 20)],
+    "N": [1000, 5000],
+    "L": [2, 5, 10, 100],
+    "n_samples": [10],
+    "q": [2],
+}
+
+net_paramspace = to_paramspace(param_net)
+
+RES_FILE = j(RES_DIR, f"res_{net_paramspace.wildcard_pattern}.csv")
+
+rule main:
+    output:
+        output_file=RES_FILE,
+    params:
+        parameters = net_paramspace.instance
+    script:
+        "main.py"
+
+rule all:
+    input:
+        expand(RES_FILE, **param_net),
