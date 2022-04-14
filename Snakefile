@@ -151,7 +151,7 @@ EVAL_ESIM_FILE = j(EVA_DIR, f"esim_{eva_paramspace.wildcard_pattern}.npz")
 bipartition_params = {
     "Cave": [10, 20, 50],
     "mixing_rate": [0.5],
-    "N": [1000, 10000],
+    "N": [1000],
     "q": [2],
     "matrixType": ["node2vec", "linearized-node2vec"],
     "L": [1, 10, 50],
@@ -163,6 +163,10 @@ SPECTRAL_DENSITY_FILE = j(
     VAL_SPEC_DIR, f"{bipartition_paramspace.wildcard_pattern}.csv"
 )
 
+# =====
+# Figures
+# =====
+FIG_SPECTRAL_DENSITY_FILE = j(FIG_DIR, "spectral-density", f"{bipartition_paramspace.wildcard_pattern}.pdf")
 
 # ======
 # RULES
@@ -176,6 +180,9 @@ rule all:
          #expand(COM_DETECT_FILE, **net_params, **com_detect_params),
          #expand(COM_DETECT_EMB_FILE, **net_params, **emb_params)
 
+rule figs:
+    input:
+        expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
 
 #
 # network generation
@@ -286,3 +293,10 @@ rule calc_spectral_density_linearized_node2vec:
 #
 # Plot
 #
+rule plot_spectral_density:
+    input:
+        input_file=SPECTRAL_DENSITY_FILE,
+    output:
+        output_file=FIG_SPECTRAL_DENSITY_FILE
+    script:
+        "workflow/plot/plot-spectral-density.py"
