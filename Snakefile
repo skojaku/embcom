@@ -145,15 +145,23 @@ eva_paramspace = to_paramspace([net_params, com_detect_params])
 EVAL_ESIM_FILE = j(EVA_DIR, f"esim_{eva_paramspace.wildcard_pattern}.npz")
 
 
-
 # ===============================
 # Validating detectability limit
 # ===============================
-bipartition_params = {"Cave":[10, 20, 50], "mixing_rate":[0.5], "N":[1000, 10000], "q":[2], "matrixType":["node2vec", "linearized-node2vec"], "L":[1, 10, 50], "n_samples":[10]}
+bipartition_params = {
+    "Cave": [10, 20, 50],
+    "mixing_rate": [0.5],
+    "N": [1000, 10000],
+    "q": [2],
+    "matrixType": ["node2vec", "linearized-node2vec"],
+    "L": [1, 10, 50],
+    "n_samples": [10],
+}
 
 bipartition_paramspace = to_paramspace([bipartition_params])
-SPECTRAL_DENSITY_FILE= j(VAL_SPEC_DIR , f"{bipartition_paramspace.wildcard_pattern}.csv")
-
+SPECTRAL_DENSITY_FILE = j(
+    VAL_SPEC_DIR, f"{bipartition_paramspace.wildcard_pattern}.csv"
+)
 
 
 # ======
@@ -163,11 +171,11 @@ SPECTRAL_DENSITY_FILE= j(VAL_SPEC_DIR , f"{bipartition_paramspace.wildcard_patte
 
 rule all:
     input:
-        #expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
-        #expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params, **clustering_params),
-        expand(SPECTRAL_DENSITY_FILE, **bipartition_params)
+        expand(SPECTRAL_DENSITY_FILE, **bipartition_params), #expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
+         #expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params, **clustering_params),
          #expand(COM_DETECT_FILE, **net_params, **com_detect_params),
          #expand(COM_DETECT_EMB_FILE, **net_params, **emb_params)
+
 
 #
 # network generation
@@ -262,12 +270,13 @@ rule evaluate_communities_by_esim_for_embedding:
     script:
         "workflow/evaluation/eval-esim.py"
 
+
 #
 # Validating the detectability condition
 #
 rule calc_spectral_density_linearized_node2vec:
     output:
-        output_file = SPECTRAL_DENSITY_FILE
+        output_file=SPECTRAL_DENSITY_FILE,
     params:
         parameters=bipartition_paramspace.instance,
     script:
