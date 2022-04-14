@@ -408,7 +408,7 @@ class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
         self.out_vec = None
 
 
-class NormalizedTransitionMatrixSpectralEmbedding(NodeEmbeddings):
+class LinearizedNode2Vec(NodeEmbeddings):
     def __init__(
         self, verbose=False, window_length=10,
     ):
@@ -511,4 +511,3 @@ class Node2VecMatrixFactorization(NodeEmbeddings):
         u, s, v = rsvd.rSVD(R, dim=dim)
         self.in_vec = u @ sparse.diags(np.sqrt(s))
         self.out_vec = None
-

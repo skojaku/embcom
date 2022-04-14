@@ -100,7 +100,7 @@ emb_params = {
         "leigenmap",
         "modspec",
         "levy-word2vec",
-        "node2vec-matrixfact-limit",
+        "linearized-node2vec",
     ],
     # "model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     # "model_name": ["leigenmap", "modspec", "nonbacktracking"],
@@ -175,8 +175,8 @@ FIG_SPECTRAL_DENSITY_FILE = j(FIG_DIR, "spectral-density", f"{bipartition_params
 
 rule all:
     input:
-        expand(SPECTRAL_DENSITY_FILE, **bipartition_params), #expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
-         #expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params, **clustering_params),
+        #expand(SPECTRAL_DENSITY_FILE, **bipartition_params), #expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
+        expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params, **clustering_params),
          #expand(COM_DETECT_FILE, **net_params, **com_detect_params),
          #expand(COM_DETECT_EMB_FILE, **net_params, **emb_params)
 
