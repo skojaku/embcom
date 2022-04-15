@@ -87,7 +87,7 @@ elif model_name == "highorder-modspec":
     model = embcom.embeddings.HighOrderModularitySpectralEmbedding(
         window_length=window_length
     )
-elif model_name == "node2vec-matrixfact-limit":
+elif model_name == "linearized-node2vec":
     model = embcom.embeddings.LinearizedNode2Vec(window_length=window_length)
 
 #

@@ -124,12 +124,16 @@ COM_DETECT_EMB_FILE = j(
 # ==========
 # Evaluation
 # ==========
+eval_params = {
+    "scoreType": ["esim", "nmi"],
+}
+eva_emb_paramspace = to_paramspace([eval_params, net_params, emb_params, clustering_params])
+EVAL_EMB_FILE = j(EVA_DIR, f"score_clus_{eva_emb_paramspace.wildcard_pattern}.npz")
 
-eva_emb_paramspace = to_paramspace([net_params, emb_params, clustering_params])
-EVAL_ESIM_EMB_FILE = j(EVA_DIR, f"esim_clus_{eva_emb_paramspace.wildcard_pattern}.npz")
+eva_paramspace = to_paramspace([eval_params, net_params, com_detect_params])
+EVAL_FILE = j(EVA_DIR, f"score_{eva_paramspace.wildcard_pattern}.npz")
 
-eva_paramspace = to_paramspace([net_params, com_detect_params])
-EVAL_ESIM_FILE = j(EVA_DIR, f"esim_{eva_paramspace.wildcard_pattern}.npz")
+EVAL_CONCAT_FILE = j(EVA_DIR, f"esim-all-result.csv")
 
 
 # ===============================
@@ -162,10 +166,10 @@ FIG_SPECTRAL_DENSITY_FILE = j(FIG_DIR, "spectral-density", f"{bipartition_params
 
 rule all:
     input:
-        #expand(SPECTRAL_DENSITY_FILE, **bipartition_params), #expand(EVAL_ESIM_FILE, **net_params, **com_detect_params),
-        expand(EVAL_ESIM_EMB_FILE, **net_params, **emb_params, **clustering_params),
-         #expand(COM_DETECT_FILE, **net_params, **com_detect_params),
-         #expand(COM_DETECT_EMB_FILE, **net_params, **emb_params)
+        #expand(SPECTRAL_DENSITY_FILE, **bipartition_params), #expand(EVAL_FILE, **net_params, **com_detect_params),
+        expand(EVAL_EMB_FILE, **net_params, **emb_params, **clustering_params, **eval_params),
+        #expand(COM_DETECT_FILE, **net_params, **com_detect_params),
+        expand(COM_DETECT_EMB_FILE, **net_params, **emb_params, **clustering_params)
 
 rule figs:
     input:
@@ -245,25 +249,33 @@ rule community_detection_multi_partition_model:
 #
 # Evaluation
 #
-rule evaluate_communities_by_esim:
+rule evaluate_communities:
     input:
         detected_group_file=COM_DETECT_FILE,
         com_file=NODE_FILE,
     output:
-        output_file=EVAL_ESIM_FILE,
+        output_file=EVAL_FILE,
+    params:
+        parameters=eva_paramspace.instance,
     script:
-        "workflow/evaluation/eval-esim.py"
+        "workflow/evaluation/eval-com-detect-score.py"
 
-
-rule evaluate_communities_by_esim_for_embedding:
+rule evaluate_communities_for_embedding:
     input:
         detected_group_file=COM_DETECT_EMB_FILE,
         com_file=NODE_FILE,
     output:
-        output_file=EVAL_ESIM_EMB_FILE,
+        output_file=EVAL_EMB_FILE,
     script:
-        "workflow/evaluation/eval-esim.py"
+        "workflow/evaluation/eval-com-detect-score.py"
 
+rule concatenate_results:
+    input:
+        input_dir = EVA_DIR
+    output:
+        output_file=EVAL_CONCAT_FILE
+    script:
+        "workflow/evaluation/concatenate_results.py"
 
 #
 # Validating the detectability condition

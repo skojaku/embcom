@@ -1,9 +1,10 @@
 # %%
+import sys
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import sys
 import seaborn as sns
-import matplotlib.pyplot as plt
 from sklearn import metrics
 
 if "snakemake" in sys.modules:
@@ -53,4 +54,3 @@ sns.despine()
 fig.savefig(
     output_file, bbox_inches="tight",
 )
-
