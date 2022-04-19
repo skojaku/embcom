@@ -12,7 +12,7 @@ if "snakemake" in sys.modules:
     detected_group_file = snakemake.input["detected_group_file"]
     com_file = snakemake.input["com_file"]
     output_file = snakemake.output["output_file"]
-    params = snakemake.output["parameters"]
+    params = snakemake.params["parameters"]
     scoreType = params["scoreType"]
 else:
     com_file = "../../data/multi_partition_model/networks/node_n~100000_K~2_cave~50_mu~0.5_sample~0.npz"

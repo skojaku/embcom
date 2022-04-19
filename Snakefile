@@ -88,6 +88,7 @@ emb_params = {
         "modspec",
         "levy-word2vec",
         "linearized-node2vec",
+        "non-backtrack-node2vec",
     ],
     # "model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     # "model_name": ["leigenmap", "modspec", "nonbacktracking"],
@@ -266,6 +267,8 @@ rule evaluate_communities_for_embedding:
         com_file=NODE_FILE,
     output:
         output_file=EVAL_EMB_FILE,
+    params:
+        parameters=eva_paramspace.instance,
     script:
         "workflow/evaluation/eval-com-detect-score.py"
 
