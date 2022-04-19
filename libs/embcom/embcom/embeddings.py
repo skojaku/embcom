@@ -511,3 +511,32 @@ class Node2VecMatrixFactorization(NodeEmbeddings):
         u, s, v = rsvd.rSVD(R, dim=dim)
         self.in_vec = u @ sparse.diags(np.sqrt(s))
         self.out_vec = None
+
+
+class NonBacktrackingNode2Vec(Node2Vec):
+    """A python class for the node2vec.
+
+    Parameters
+    ----------
+    num_walks : int (optional, default 10)
+        Number of walks per node
+    walk_length : int (optional, default 40)
+        Length of walks
+    window_length : int (optional, default 10)
+    restart_prob : float (optional, default 0)
+        Restart probability of a random walker.
+    p : node2vec parameter (TODO: Write doc)
+    q : node2vec parameter (TODO: Write doc)
+    """
+
+    def __init__(self, num_walks=10, walk_length=80, window_length=10, **params):
+        Node2Vec.__init__(
+            self,
+            num_walks=num_walks,
+            walk_length=walk_length,
+            window_length=window_length,
+            **params
+        )
+        self.sampler = samplers.NonBacktrackingWalkSampler(
+            num_walks=10, walk_length=80, window_length=10
+        )
