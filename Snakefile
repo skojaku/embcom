@@ -88,7 +88,7 @@ emb_params = {
         "modspec",
         "levy-word2vec",
         "linearized-node2vec",
-        "non-backtrack-node2vec",
+        "non-backtracking-node2vec",
     ],
     # "model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     # "model_name": ["leigenmap", "modspec", "nonbacktracking"],

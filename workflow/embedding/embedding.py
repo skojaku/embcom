@@ -89,6 +89,10 @@ elif model_name == "highorder-modspec":
     )
 elif model_name == "linearized-node2vec":
     model = embcom.embeddings.LinearizedNode2Vec(window_length=window_length)
+elif model_name == "non-backtracking-node2vec":
+    model = embcom.embeddings.NonBacktrackingNode2Vec(
+        window_length=window_length, num_walks=num_walks
+    )
 
 #
 # Embedding
