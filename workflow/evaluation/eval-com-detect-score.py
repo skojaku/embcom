@@ -6,15 +6,19 @@ import sys
 import numpy as np
 import pandas as pd
 from scipy import sparse, stats
+from sklearn.metrics.cluster import normalized_mutual_info_score
 
 if "snakemake" in sys.modules:
     detected_group_file = snakemake.input["detected_group_file"]
     com_file = snakemake.input["com_file"]
     output_file = snakemake.output["output_file"]
+    params = snakemake.params["parameters"]
+    scoreType = params["scoreType"]
 else:
-    com_file = "../../data/multi_partition_model/networks/node_n~2500_K~16_cave~50_mu~0.5_sample~0.npz"
-    detected_group_file = "../../data/multi_partition_model/communities/clus_n~2500_K~16_cave~50_mu~0.1_sample~0_model_name~node2vec-matrixfact-limit_window_length~10_dim~0_metric~cosine_clustering~kmeans.npz"
+    com_file = "../../data/multi_partition_model/networks/node_n~100000_K~2_cave~50_mu~0.5_sample~0.npz"
+    detected_group_file = "../../data/multi_partition_model/communities/clus_n~100000_K~2_cave~50_mu~0.5_sample~0_model_name~leigenmap_window_length~10_dim~0_metric~cosine_clustering~voronoi.npz"
     output_sim_file = "unko"
+    scoreType = "nmi"
 
 
 #
@@ -22,6 +26,7 @@ else:
 #
 memberships = pd.read_csv(com_file)["membership"].values.astype(int)
 group_ids = np.load(detected_group_file)["group_ids"]
+
 
 #
 # Evaluation
@@ -59,11 +64,17 @@ def calc_esim(y, ypred):
     return Scorrected
 
 
-score_esim = calc_esim(memberships, group_ids)
-
+if scoreType == "nmi":
+    score = normalized_mutual_info_score(memberships, group_ids)
+elif scoreType == "esim":
+    score = calc_esim(memberships, group_ids)
+else:
+    raise ValueError("Unknown score type: {}".format(scoreType))
 # %%
 # Save
 #
-res_table = pd.DataFrame([{"score": score_esim, "score_type": "esim"}]).to_csv(
+res_table = pd.DataFrame([{"score": score, "score_type": scoreType}]).to_csv(
     output_file, index=False
 )
+
+# %%

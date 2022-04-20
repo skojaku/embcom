@@ -233,6 +233,142 @@ class SimpleWalkSampler(NodeSampler):
 
 
 #
+# Non-backtracking walks
+#
+class NonBacktrackingWalkSampler(NodeSampler):
+    def __init__(
+        self, num_walks=10, walk_length=80, window_length=10, verbose=False, **params
+    ):
+        self.verbose = verbose
+        self.num_nodes = -1
+        self.num_walks = int(num_walks)
+        self.walk_length = walk_length
+        self.window_length = window_length
+        self.walks = None
+
+    def sampling(self, net):
+        self.num_nodes = net.shape[0]
+        self.A = net
+        self.walks = simulate_non_backtracking_walk(
+            self.A, self.num_walks, self.walk_length,
+        )
+        self.walks = self.walks.astype(int)
+
+    def get_trans_matrix(self, scale="normal"):
+        """Construct the transition matrix for the node sequence.
+
+        Return
+        ------
+        trans_prob : sparse.csr_matrix
+            Transition matrix. trans_prob[i,j] is the probability
+            that a random walker in node i moves to node j.
+        """
+        raise NotImplementedError("")
+
+    def get_center_context_pairs(self, num_walks=5):
+        raise NotImplementedError("")
+
+    def sample_context(self, pos_pairs, sz):
+        raise NotImplementedError("")
+
+
+def simulate_non_backtracking_walk(
+    A, num_walk, walk_length, start_node_ids=None, is_cum_trans_prob_mat=False, **params
+):
+    """Wrapper for."""
+
+    if A.getformat() != "csr":
+        raise TypeError("A should be in the scipy.sparse.csc_matrix")
+
+    if start_node_ids is None:
+        start_node_ids = np.arange(A.shape[0])
+
+    # Extract the information on the csr matrix
+    logger.debug(
+        "simulate random walks: network of {} nodes. {} walkers per node. {} start nodes".format(
+            A.shape[0], num_walk, len(start_node_ids)
+        )
+    )
+    if is_cum_trans_prob_mat is False:
+        logger.debug("Calculating the transition probability")
+        P = calc_cum_trans_prob(A)
+    else:
+        P = A
+
+    logger.debug("Start simulation")
+    walks = []
+    sz = 0
+    while sz <= (walk_length * num_walk * A.shape[0]):
+        _walks, n_sampled_walks = _simulate_non_backtracking_walk(
+            P.indptr,
+            P.indices,
+            P.data.astype(float),
+            np.repeat(start_node_ids, num_walk),
+            walk_length,
+        )
+        sz += n_sampled_walks
+        walks.append(_walks)
+    if len(walks) > 1:
+        walks = np.vstack(walks)
+    else:
+        walks = walks[0]
+    return walks
+
+
+@numba.jit(nopython=True, cache=True, parallel=True)
+def _simulate_non_backtracking_walk(
+    A_indptr, A_indices, A_data, start_node_ids, walk_length,  # should be cumulative
+):
+    """Sampler based on a non-backtracking walk. A random walker chooses a
+    neighbor with probability proportional to edge weights. For a fast
+    simulation of random walks, we exploit scipy.sparse.csr_matrix data
+    structure. In scipy.sparse.csr_matrix A, there are 3 attributes:
+
+    - A.indices : column ID
+    - A.data : element value
+    - A.indptr : the first index of A.indices for the ith row
+    The neighbors of node i are given by A.indices[A.indptr[i]:A.indptr[i+1]], and
+    the edge weights are given by A.data[A.indptr[i]:A.indptr[i+1]].
+    """
+    # Alocate a memory for recording a walk
+    walks = -np.ones((len(start_node_ids), walk_length), dtype=np.int32)
+    n_sampled_walks = 0
+    for sample_id in prange(len(start_node_ids)):
+        start_node = start_node_ids[sample_id]
+        # Record the starting node
+        visit = start_node
+        prev_visit = -1
+        walks[sample_id, 0] = visit
+        n_sampled_walks += 1
+        for t in range(1, walk_length):
+            # Compute the number of neighbors
+            outdeg = A_indptr[visit + 1] - A_indptr[visit]
+            neighbors = A_indices[A_indptr[visit] : A_indptr[visit + 1]]
+            # If reaches to an absorbing state, finish the walk
+            if outdeg == 0:
+                break
+            elif (outdeg == 1) & (neighbors[0] == prev_visit):
+                break
+            else:
+                # find a neighbor by a roulette selection
+                next_node = prev_visit
+                while next_node == prev_visit:
+                    _next_node = np.searchsorted(
+                        A_data[A_indptr[visit] : A_indptr[visit + 1]],
+                        np.random.rand(),
+                        side="right",
+                    )
+                    next_node = neighbors[_next_node]
+            # Record the transition
+            walks[sample_id, t] = next_node
+            # Move
+            prev_visit = visit
+            visit = next_node
+            n_sampled_walks += 1
+    return walks, n_sampled_walks
+
+
+#
 # Helper function
 #
 def calc_cum_trans_prob(A):
@@ -282,6 +418,7 @@ def simulate_simple_walk(
     restart_at_dangling=False,
     is_cum_trans_prob_mat=False,
     random_teleport=False,
+    **params
 ):
     """Wrapper for."""
 

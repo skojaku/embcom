@@ -63,7 +63,12 @@ class TestCalc(unittest.TestCase):
         vec = model.transform(dim=32)
 
     def test_normalized_trans_matrix_spec_embedding(self):
-        model = embcom.embeddings.NormalizedTransitionMatrixSpectralEmbedding()
+        model = embcom.embeddings.LinearizedNode2Vec()
+        model.fit(self.A)
+        vec = model.transform(dim=32)
+
+    def test_non_backtracking_node2vec(self):
+        model = embcom.embeddings.NonBacktrackingNode2Vec()
         model.fit(self.A)
         vec = model.transform(dim=32)
 

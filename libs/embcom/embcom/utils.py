@@ -375,8 +375,8 @@ def to_member_matrix(group_ids, node_ids=None, shape=None):
 
 
 def matrix_sum_power(A, T):
-    """Take the sum of the powers of a matrix, i.e.,
-    sum_{t=1} ^T A^t.
+    """Take the sum of the powers of a matrix, i.e., sum_{t=1} ^T A^t.
+
     :param A: Matrix to be powered
     :type A: np.ndarray
     :param T: Maximum order for the matrixpower
@@ -390,4 +390,3 @@ def matrix_sum_power(A, T):
         At = A @ At
         As += At
     return As
-
