@@ -134,7 +134,7 @@ EVAL_EMB_FILE = j(EVA_DIR, f"score_clus_{eva_emb_paramspace.wildcard_pattern}.np
 eva_paramspace = to_paramspace([eval_params, net_params, com_detect_params])
 EVAL_FILE = j(EVA_DIR, f"score_{eva_paramspace.wildcard_pattern}.npz")
 
-EVAL_CONCAT_FILE = j(EVA_DIR, f"esim-all-result.csv")
+EVAL_CONCAT_FILE = j(EVA_DIR, f"all-result.csv")
 
 
 # ===============================
@@ -169,6 +169,7 @@ rule all:
     input:
         #expand(SPECTRAL_DENSITY_FILE, **bipartition_params), #expand(EVAL_FILE, **net_params, **com_detect_params),
         expand(EVAL_EMB_FILE, **net_params, **emb_params, **clustering_params, **eval_params),
+        EVAL_CONCAT_FILE,
         #expand(COM_DETECT_FILE, **net_params, **com_detect_params),
         expand(COM_DETECT_EMB_FILE, **net_params, **emb_params, **clustering_params)
 

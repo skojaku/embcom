@@ -329,7 +329,9 @@ class LaplacianEigenMap(NodeEmbeddings):
         return self.in_vec
 
     def update_embedding(self, dim):
-        u, s, _ = rsvd.rSVD(self.L, dim + 1)  # add one for the trivial solution
+        u, s, v = rsvd.rSVD(self.L, dim + 1)  # add one for the trivial solution
+        sign = np.sign(np.diag(v @ u))
+        s = s * sign
         order = np.argsort(s)[::-1][1:]
         u = u[:, order]
 
