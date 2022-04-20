@@ -441,7 +441,7 @@ class LinearizedNode2Vec(NodeEmbeddings):
 
         s = (s * (1 - s ** self.window_length)) / (self.window_length * (1 - s))
 
-        self.in_vec = u @ sparse.diags(np.sqrt(s))
+        self.in_vec = u @ sparse.diags(s)
         self.out_vec = None
 
 
