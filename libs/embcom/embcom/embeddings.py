@@ -374,6 +374,8 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
             [-self.deg.reshape((-1, 1)) / np.sum(self.deg), self.deg.reshape((1, -1))],
         ]
         u, s, v = rsvd.rSVD(Q, dim=dim)
+        sign = np.sign(np.diag(v @ u))
+        s = s * sign
         self.in_vec = u @ sparse.diags(s)
         self.out_vec = None
 
@@ -429,6 +431,8 @@ class LinearizedNode2Vec(NodeEmbeddings):
         Psym = Dinvsqrt @ self.A @ Dinvsqrt
 
         u, s, v = rsvd.rSVD(Psym, dim=dim + 1)
+        sign = np.sign(np.diag(v @ u))
+        s = s * sign
         mask = s < np.max(s)
         u = u[:, mask]
         s = s[mask]
