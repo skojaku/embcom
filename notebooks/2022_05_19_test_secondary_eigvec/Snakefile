@@ -1,0 +1,44 @@
+import numpy as np
+from os.path import join as j
+import itertools
+import pandas as pd
+from snakemake.utils import Paramspace
+
+
+# Module workflows
+include: "../../Snakefile"
+RES_SECONDARY_EIG_DIR = "results"
+
+sec_emb_params = {
+    "model_name": [
+        "modspec",
+    ],
+    "window_length": [10],
+    "dim": [64],
+}
+sec_net_params = {
+    "n": [2500, 5000, 10000, 50000, 100000],  # Network size
+    "K": [2],  # Number of communities
+    "cave": [10, 20, 50],  # average degree
+    "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
+    "sample": np.arange(3),  # Number of samples
+}
+sec_eigs_paramspace = to_paramspace([sec_net_params, sec_emb_params])
+EVAL_SECONDARY_EIGS_FILE = j(
+    RES_SECONDARY_EIG_DIR, f"res_{sec_eigs_paramspace.wildcard_pattern}.csv"
+)
+
+rule eval_secondary_eigenvecs:
+    input:
+        emb_file=EMB_FILE,
+        com_file=NODE_FILE,
+    output:
+        output_file=EVAL_SECONDARY_EIGS_FILE,
+    params:
+        parameters=sec_eigs_paramspace.instance,
+    script:
+        "workflow/main.py"
+
+rule _all:
+    input:
+        expand(EVAL_SECONDARY_EIGS_FILE, **sec_net_params, **sec_emb_params)
