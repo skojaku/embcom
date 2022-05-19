@@ -329,7 +329,9 @@ class LaplacianEigenMap(NodeEmbeddings):
         return self.in_vec
 
     def update_embedding(self, dim):
-        u, s, _ = rsvd.rSVD(self.L, dim + 1)  # add one for the trivial solution
+        u, s, v = rsvd.rSVD(self.L, dim + 1)  # add one for the trivial solution
+        sign = np.sign(np.diag(v @ u))
+        s = s * sign
         order = np.argsort(s)[::-1][1:]
         u = u[:, order]
 
@@ -374,6 +376,8 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
             [-self.deg.reshape((-1, 1)) / np.sum(self.deg), self.deg.reshape((1, -1))],
         ]
         u, s, v = rsvd.rSVD(Q, dim=dim)
+        sign = np.sign(np.diag(v @ u))
+        s = s * sign
         self.in_vec = u @ sparse.diags(s)
         self.out_vec = None
 
@@ -429,13 +433,15 @@ class LinearizedNode2Vec(NodeEmbeddings):
         Psym = Dinvsqrt @ self.A @ Dinvsqrt
 
         u, s, v = rsvd.rSVD(Psym, dim=dim + 1)
+        sign = np.sign(np.diag(v @ u))
+        s = s * sign
         mask = s < np.max(s)
         u = u[:, mask]
         s = s[mask]
 
         s = (s * (1 - s ** self.window_length)) / (self.window_length * (1 - s))
 
-        self.in_vec = u @ sparse.diags(np.sqrt(s))
+        self.in_vec = u @ sparse.diags(s)
         self.out_vec = None
 
 

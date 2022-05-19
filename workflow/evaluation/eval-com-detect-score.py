@@ -15,8 +15,8 @@ if "snakemake" in sys.modules:
     params = snakemake.params["parameters"]
     scoreType = params["scoreType"]
 else:
-    com_file = "../../data/multi_partition_model/networks/node_n~100000_K~2_cave~50_mu~0.5_sample~0.npz"
-    detected_group_file = "../../data/multi_partition_model/communities/clus_n~100000_K~2_cave~50_mu~0.5_sample~0_model_name~leigenmap_window_length~10_dim~0_metric~cosine_clustering~voronoi.npz"
+    com_file = "../../data/multi_partition_model/networks/node_n~10000_K~2_cave~50_mu~0.5_sample~0.npz"
+    detected_group_file = "../../data/multi_partition_model/communities/clus_n~10000_K~2_cave~50_mu~0.5_sample~0_model_name~leigenmap_window_length~10_dim~0_metric~cosine_clustering~voronoi.npz"
     output_sim_file = "unko"
     scoreType = "nmi"
 
@@ -70,11 +70,14 @@ elif scoreType == "esim":
     score = calc_esim(memberships, group_ids)
 else:
     raise ValueError("Unknown score type: {}".format(scoreType))
+print(score)
 # %%
 # Save
 #
 res_table = pd.DataFrame([{"score": score, "score_type": scoreType}]).to_csv(
     output_file, index=False
 )
+
+# %%
 
 # %%

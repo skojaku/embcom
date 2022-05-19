@@ -10,7 +10,7 @@ from collections import Counter
 import faiss
 import numba
 import numpy as np
-from numba import prange
+from numba import njit, prange
 from scipy import sparse
 from sklearn.cluster import KMeans
 
@@ -315,7 +315,7 @@ def simulate_non_backtracking_walk(
     return walks
 
 
-@numba.jit(nopython=True, cache=True, parallel=True)
+@njit(nogil=True)
 def _simulate_non_backtracking_walk(
     A_indptr, A_indices, A_data, start_node_ids, walk_length,  # should be cumulative
 ):
@@ -378,7 +378,7 @@ def calc_cum_trans_prob(A):
     return P
 
 
-# @numba.jit(nopython=True, parallel=True)
+@njit(nogil=True)
 def _calc_cum_trans_prob(
     A_indptr, A_indices, A_data_, num_nodes,  # should be cumulative
 ):
@@ -392,7 +392,7 @@ def _calc_cum_trans_prob(
     return A_data
 
 
-@numba.jit(nopython=True, parallel=True)
+@njit(nogil=True)
 def sample_columns_from_cum_prob(rows, A_indptr, A_indices, A_data):
     retvals = -np.ones(len(rows))
     for i in range(len(rows)):
@@ -455,7 +455,7 @@ def simulate_simple_walk(
 
 
 # @numba.jit(nopython=True, parallel=True)
-@numba.jit(nopython=True, cache=True, parallel=True)
+@njit(nogil=True)
 def _simulate_simple_walk(
     A_indptr,
     A_indices,
@@ -605,7 +605,7 @@ def sample_center_context_pair(
     return center.astype(int), context.astype(int), freq
 
 
-@numba.jit(nopython=True, cache=True, parallel=True)
+@njit(nogil=True)
 def _generate_center_context_pair_ids(walks, window_length):
 
     """Generate center context node pairs from walks."""
@@ -642,7 +642,7 @@ def generate_center_context_pair(walks, window_length):
     return _generate_center_context_pair(walks.astype(np.int64), int(window_length))
 
 
-@numba.jit(nopython=True, cache=True, parallel=True)
+@njit(nogil=True)
 def _generate_center_context_pair(walks, window_length):
     """Generate center context node pairs from walks."""
 
