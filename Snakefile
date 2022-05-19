@@ -169,7 +169,7 @@ FIG_SPECTRAL_DENSITY_FILE = j(FIG_DIR, "spectral-density", f"{bipartition_params
 rule all:
     input:
         #expand(SPECTRAL_DENSITY_FILE, **bipartition_params), #expand(EVAL_FILE, **net_params, **com_detect_params),
-        expand(EVAL_FILE, **net_params, **com_detect_params, **eval_params), 
+        expand(EVAL_FILE, **net_params, **com_detect_params, **eval_params),
         expand(EVAL_EMB_FILE, **net_params, **emb_params, **clustering_params, **eval_params),
         EVAL_CONCAT_FILE,
         expand(COM_DETECT_FILE, **net_params, **com_detect_params),

@@ -10,8 +10,7 @@ from collections import Counter
 import faiss
 import numba
 import numpy as np
-from numba import prange
-from numba import njit
+from numba import njit, prange
 from scipy import sparse
 from sklearn.cluster import KMeans
 
