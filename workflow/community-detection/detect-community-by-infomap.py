@@ -29,10 +29,7 @@ K = len(set(memberships))
 #
 def detect_by_infomap(A, K):
     r, c, v = sparse.find(A + A.T)
-    # s = r < c
-    # r, c, v = r[s], c[s], v[s]
     im = infomap.Infomap("--two-level --directed")
-    # im = infomap.Infomap(two_level=True, preferred_number_of_modules=K)
     for i in range(len(r)):
         im.add_link(r[i], c[i], 1)
     im.run()
