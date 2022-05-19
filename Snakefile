@@ -105,7 +105,7 @@ EMB_FILE = j(EMB_DIR, f"{emb_paramspace.wildcard_pattern}.npz")
 # Community detection
 # ===================
 com_detect_params = {
-    "model_name": ["infomap"],
+    "model_name": ["infomap", "flatsbm"],
 }
 com_detect_paramspace = to_paramspace([net_params, com_detect_params])
 
@@ -247,7 +247,7 @@ rule community_detection_multi_partition_model:
     params:
         parameters=com_detect_paramspace.instance,
     script:
-        "workflow/community-detection/detect-community-by-infomap.py"
+        "workflow/community-detection/detect-community.py"
 
 
 #
