@@ -23,7 +23,6 @@ sec_net_params = {
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
     "sample": np.arange(3),  # Number of samples
 }
-
 sec_eigs_paramspace = to_paramspace([sec_net_params, sec_emb_params])
 EVAL_SECONDARY_EIGS_FILE = j(
     RES_SECONDARY_EIG_DIR, f"res_{sec_eigs_paramspace.wildcard_pattern}.csv"
@@ -36,7 +35,7 @@ rule eval_secondary_eigenvecs:
     output:
         output_file=EVAL_SECONDARY_EIGS_FILE,
     params:
-        parameters=com_detect_emb_paramspace.instance,
+        parameters=sec_eigs_paramspace.instance,
     script:
         "workflow/main.py"
 

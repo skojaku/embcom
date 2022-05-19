@@ -11,9 +11,8 @@ if "snakemake" in sys.modules:
     com_file = snakemake.input["com_file"]
     output_file = snakemake.output["output_file"]
 else:
-    emb_file = "../../data/multi_partition_model/embedding/n~2500_K~2_cave~10_mu~0.5_sample~0_model_name~modspec_window_length~10_dim~64.npz"
-
-    com_file = "../../data/multi_partition_model/networks/node_n~2500_K~2_cave~10_mu~0.5_sample~0.npz"
+    emb_file = "../../../data/multi_partition_model/embedding/n~2500_K~2_cave~10_mu~0.5_sample~0_model_name~modspec_window_length~10_dim~64.npz"
+    com_file = "../../../data/multi_partition_model/networks/node_n~2500_K~2_cave~10_mu~0.5_sample~0.npz"
     output_file = ""
 
 from sklearn import cluster
@@ -29,12 +28,23 @@ emb[np.isinf(emb)] = 0
 memberships = pd.read_csv(com_file)["membership"].values.astype(int)
 
 # %% Filter the eigenvectors
-def get_focal_eigenvec(emb, focal_eigenvec):
+def get_focal_eigenvec(emb, focal_eigenvec, pick_multiple_eigenvec, normalize):
     norm_emb = np.linalg.norm(emb, axis=0)
-    return emb[:, np.argsort(-norm_emb)[focal_eigenvec]].reshape((-1, 1))
+    sorted_emb = emb[:, np.argsort(-norm_emb)]
+    if pick_multiple_eigenvec:
+        retval = sorted_emb[:, : focal_eigenvec + 1]
+    else:
+        retval = sorted_emb[:, focal_eigenvec]
+
+    if len(retval.shape) == 1:
+        retval = retval.reshape(emb.shape[0], -1)
+
+    if normalize:
+        retval = retval / np.linalg.norm(retval, axis=0)
+    return retval
 
 
-# %%
+#
 # Community detection
 #
 def KMeans(emb, group_ids, metric="euclidean"):
@@ -73,7 +83,7 @@ def Voronoi(emb, group_ids, metric="euclidean"):
         return np.argmin(dist, axis=1)
 
 
-# %%
+#
 # Evaluation
 #
 def calc_esim(y, ypred):
@@ -114,41 +124,47 @@ def calc_esim(y, ypred):
 #
 results = []
 for focal_eigenvec in [0, 1, 2, 3, 4, 5]:
-    # Filter out the eigenvec
-    emb_filtered = get_focal_eigenvec(emb, focal_eigenvec)
+    for pick_multiple_eigenvec in [True, False]:
+        for normalize in [True, False]:
+            # Filter out the eigenvec
+            emb_filtered = get_focal_eigenvec(
+                emb, focal_eigenvec, pick_multiple_eigenvec, normalize
+            )
 
-    for clus_name in ["kmeans", "voronoi"]:
-        for metric in ["cosine", "euclidean"]:
+            for clus_name in ["kmeans", "voronoi"]:
+                for metric in ["cosine", "euclidean"]:
 
-            # Detect the communities
-            if clus_name == "kmeans":
-                group_ids = KMeans(emb_filtered, memberships, metric=metric)
-            elif clus_name == "voronoi":
-                group_ids = Voronoi(emb_filtered, memberships, metric=metric)
+                    # Detect the communities
+                    if clus_name == "kmeans":
+                        group_ids = KMeans(emb_filtered, memberships, metric=metric)
+                    elif clus_name == "voronoi":
+                        group_ids = Voronoi(emb_filtered, memberships, metric=metric)
 
-            # Evaluate the detected communities
-            for scoreType in ["nmi", "esim"]:
-                if scoreType == "nmi":
-                    score = normalized_mutual_info_score(memberships, group_ids)
-                elif scoreType == "esim":
-                    score = calc_esim(memberships, group_ids)
-                else:
-                    raise ValueError("Unknown score type: {}".format(scoreType))
+                    # Evaluate the detected communities
+                    for scoreType in ["nmi", "esim"]:
+                        if scoreType == "nmi":
+                            score = normalized_mutual_info_score(memberships, group_ids)
+                        elif scoreType == "esim":
+                            score = calc_esim(memberships, group_ids)
+                        else:
+                            raise ValueError("Unknown score type: {}".format(scoreType))
 
-                results.append(
-                    {
-                        "score": score,
-                        "scoreType": scoreType,
-                        "metric": metric,
-                        "focal_eigenvec": focal_eigenvec,
-                        "clustering": clus_name,
-                    }
-                )
+                        results.append(
+                            {
+                                "score": score,
+                                "scoreType": scoreType,
+                                "metric": metric,
+                                "focal_eigenvec": focal_eigenvec,
+                                "clustering": clus_name,
+                                "multiple_eigenvec": pick_multiple_eigenvec,
+                                "normalize": normalize,
+                            }
+                        )
 
 df = pd.DataFrame(results)
+
 # %%
 #
 # Save
 #
 df.to_csv(output_file, index=False)
-# %%
