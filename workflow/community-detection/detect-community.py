@@ -16,7 +16,8 @@ from scipy import sparse
 if "snakemake" in sys.modules:
     netfile = snakemake.input["net_file"]
     com_file = snakemake.input["com_file"]
-    model_name = snakemake.params["model_name"]
+    params = snakemake.params["parameters"]
+    model_name = params["model_name"]
     output_file = snakemake.output["output_file"]
 else:
     netfile = "../../data/multi_partition_model/networks/net_n~2500_K~2_cave~20_mu~0.85_sample~2.npz"
