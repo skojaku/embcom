@@ -4,9 +4,11 @@ import itertools
 import pandas as pd
 from snakemake.utils import Paramspace
 
+configfile: "../../workflow/config.yaml"
 
 # Module workflows
-include: "../../Snakefile"
+include: "../../utils.smk"
+include: "../../multipartition_files.smk"
 RES_SECONDARY_EIG_DIR = "results"
 
 sec_emb_params = {

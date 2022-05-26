@@ -337,6 +337,7 @@ dependencies:
   - zstandard=0.17.0=py37h5e8e339_0
   - zstd=1.5.0=ha95c52a_0
   - pip:
+    - emlens==0.0.11
     - faiss-cpu==1.7.1
     - glove-python-binary==0.2.0
     - pynverse==0.1.4.4
