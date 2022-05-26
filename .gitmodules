@@ -1,0 +1,3 @@
+[submodule "libs/fastnode2vec"]
+	path = libs/fastnode2vec
+	url = https://github.com/skojaku/fastnode2vec

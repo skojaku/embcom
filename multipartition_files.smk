@@ -25,7 +25,7 @@ VAL_SPEC_DIR = j(DATA_DIR, "multi_partition_model", "spectral_analysis")
 # ================================
 
 net_params = {
-    "n": [2500, 5000, 10000, 50000, 100000, 1000000],  # Network size
+    "n": [1000000],  # Network size
     #"n": [2500, 5000, 10000, 50000, 100000, 1000000],  # Network size
     # "n": [10000, 100000], # Network size
     #"K": [2],  # Number of communities
