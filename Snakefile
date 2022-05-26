@@ -60,11 +60,11 @@ VAL_SPEC_DIR = j(DATA_DIR, "multi_partition_model", "spectral_analysis")
 # ================================
 
 net_params = {
-    "n": [2500, 5000, 10000, 50000, 100000],  # Network size
+    "n": [2500, 5000, 10000, 50000, 100000, 1000000],  # Network size
     #"n": [2500, 5000, 10000, 50000, 100000, 1000000],  # Network size
     # "n": [10000, 100000], # Network size
     #"K": [2],  # Number of communities
-    "K": [2, 16, 32, 64],  # Number of communities
+    "K": [2, 16, 32, 64, 128],  # Number of communities
     # "K": [2, 16, 32], # Number of communities
     "cave": [10, 20, 50],  # average degree
     # "cave": [10, 20, 50], # average degree
@@ -87,7 +87,7 @@ emb_params = {
         "node2vec",
         "leigenmap",
         "modspec",
-        "levy-word2vec",
+        #"levy-word2vec",
         "linearized-node2vec",
         "non-backtracking-node2vec",
     ],
@@ -106,6 +106,7 @@ EMB_FILE = j(EMB_DIR, f"{emb_paramspace.wildcard_pattern}.npz")
 # ===================
 com_detect_params = {
     "model_name": ["infomap", "flatsbm"],
+    #"model_name": ["infomap", "flatsbm"],
 }
 com_detect_paramspace = to_paramspace([net_params, com_detect_params])
 
