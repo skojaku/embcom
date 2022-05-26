@@ -56,6 +56,7 @@ def generate_network(Cave, mixing_rate, N, q):
         # check if the graph is connected
         if connected_components(A)[0] == 1:
             break
+        break
     return A, memberships
 
 

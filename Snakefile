@@ -87,7 +87,7 @@ emb_params = {
         "node2vec",
         "leigenmap",
         "modspec",
-        "levy-word2vec",
+        #"levy-word2vec",
         "linearized-node2vec",
         "non-backtracking-node2vec",
     ],
