@@ -28,9 +28,26 @@ emb[np.isinf(emb)] = 0
 memberships = pd.read_csv(com_file)["membership"].values.astype(int)
 
 # %% Filter the eigenvectors
-def get_focal_eigenvec(emb, focal_eigenvec, pick_multiple_eigenvec, normalize):
+def get_focal_eigenvec(
+    emb, focal_eigenvec, pick_multiple_eigenvec, normalize, memberships
+):
     norm_emb = np.linalg.norm(emb, axis=0)
     sorted_emb = emb[:, np.argsort(-norm_emb)]
+    if focal_eigenvec < 0:
+        zk = np.zeros(emb.shape[0])
+        zk[memberships == 0] = -1
+        zk[memberships == 1] = 1
+        zk = zk / np.linalg.norm(zk)
+        zk = zk.reshape((-1, 1))
+        normalized_sorted_emb = np.einsum(
+            "ij,i->ij", sorted_emb, 1 / np.linalg.norm(sorted_emb, axis=1)
+        )
+        scores = np.array(zk.T @ normalized_sorted_emb).reshape(-1)
+        if pick_multiple_eigenvec:
+            sorted_emb = sorted_emb[:, np.argsort(-scores)]
+            focal_eigenvec = int(-focal_eigenvec)
+        else:
+            focal_eigenvec = np.argmax(scores)
     if pick_multiple_eigenvec:
         retval = sorted_emb[:, : focal_eigenvec + 1]
     else:
@@ -83,6 +100,13 @@ def Voronoi(emb, group_ids, metric="euclidean"):
         return np.argmin(dist, axis=1)
 
 
+def SignClustering(emb, *arg, **params):
+    if emb.shape[1] > 1:
+        emb = emb[:, 0]
+    bemb = np.sign(emb)
+    return np.unique(np.array(bemb).reshape(-1), return_inverse=True)[1]
+
+
 #
 # Evaluation
 #
@@ -123,15 +147,15 @@ def calc_esim(y, ypred):
 # Main
 #
 results = []
-for focal_eigenvec in [0, 1, 2, 3, 4, 5]:
-    for pick_multiple_eigenvec in [True, False]:
+for focal_eigenvec in [-1, 0, 1, 2, 3, 4, 5]:
+    for pick_multiple_eigenvec in [False]:
         for normalize in [True, False]:
             # Filter out the eigenvec
             emb_filtered = get_focal_eigenvec(
-                emb, focal_eigenvec, pick_multiple_eigenvec, normalize
+                emb, focal_eigenvec, pick_multiple_eigenvec, normalize, memberships
             )
 
-            for clus_name in ["kmeans", "voronoi"]:
+            for clus_name in ["kmeans", "voronoi", "sign"]:
                 for metric in ["cosine", "euclidean"]:
 
                     # Detect the communities
@@ -139,6 +163,10 @@ for focal_eigenvec in [0, 1, 2, 3, 4, 5]:
                         group_ids = KMeans(emb_filtered, memberships, metric=metric)
                     elif clus_name == "voronoi":
                         group_ids = Voronoi(emb_filtered, memberships, metric=metric)
+                    elif clus_name == "sign":
+                        group_ids = SignClustering(
+                            emb_filtered, memberships, metric=metric
+                        )
 
                     # Evaluate the detected communities
                     for scoreType in ["nmi", "esim"]:
