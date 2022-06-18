@@ -47,14 +47,14 @@ def to_numeric(df, to_int, to_float):
 
 
 if "snakemake" in sys.modules:
-    input_dir = snakemake.input["input_dir"]
+    input_files = snakemake.input["input_files"]
     output_file = snakemake.output["output_file"]
 else:
     input_dir = "../../data/multi_partition_model/evaluations/"
     output_file = "../data/"
 
 #%% Load
-data_table = load_files(input_dir).fillna("")
+data_table = load_files(input_files).fillna("")
 
 # %% Type conversion
 to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]

@@ -26,17 +26,19 @@ VAL_SPEC_DIR = j(DATA_DIR, "multi_partition_model", "spectral_analysis")
 
 net_params = {
     "n": [2500, 5000, 10000, 50000, 100000, 1000000],  # Network size
-    #"n": [2500, 5000, 10000, 50000, 100000, 1000000],  # Network size
-    # "n": [10000, 100000], # Network size
-    #"K": [2],  # Number of communities
     "K": [2, 16, 32, 64, 128],  # Number of communities
-    # "K": [2, 16, 32], # Number of communities
     "cave": [10, 20, 50],  # average degree
-    # "cave": [10, 20, 50], # average degree
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
-    # "mu": [0.05, 0.1, 0.25, 0.50, 0.75, 0.9, 0.95,0.68, 0.85], # detectbility threshold
     "sample": np.arange(3),  # Number of samples
-    # "sample": np.arange(10), # Number of samples
+}
+
+# Tentative
+net_params = {
+    "n": [100000],  # Network size
+    "K": [2],  # Number of communities
+    "cave": [10],  # average degree
+    "mu": ["%.2f" % d for d in np.linspace(0.6, 0.8, 21)],
+    "sample": np.arange(3),  # Number of samples
 }
 
 # Convert to a paramspace
@@ -62,6 +64,15 @@ emb_params = {
     "dim": [0, 64],
 }
 
+# Tentative
+emb_params = {
+    "model_name": [
+        "non-backtracking-node2vec", "linearized-node2vec"
+    ],
+    "window_length": [1, 10],
+    "dim": [64],
+}
+
 emb_paramspace = to_paramspace([net_params, emb_params])
 
 EMB_FILE = j(EMB_DIR, f"{emb_paramspace.wildcard_pattern}.npz")
@@ -72,6 +83,9 @@ EMB_FILE = j(EMB_DIR, f"{emb_paramspace.wildcard_pattern}.npz")
 com_detect_params = {
     "model_name": ["infomap", "flatsbm"],
     #"model_name": ["infomap", "flatsbm"],
+}
+com_detect_params = {
+    "model_name": ["infomap"],
 }
 com_detect_paramspace = to_paramspace([net_params, com_detect_params])
 

@@ -25,7 +25,7 @@ from sklearn import cluster
 def KMeans(emb, group_ids, metric="euclidean"):
     K = np.max(group_ids) + 1
     if metric == "cosine":
-        X = np.einsum("ij,i->ij", emb, 1 / np.linalg.norm(emb, axis=1))
+        X = np.einsum("ij,i->ij", emb, 1 / np.maximum(np.linalg.norm(emb, axis=1), 1e-24))
     else:
         X = emb
     kmeans = cluster.MiniBatchKMeans(n_clusters=K, random_state=0).fit(X)

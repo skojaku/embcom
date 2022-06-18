@@ -43,6 +43,7 @@ def get_focal_eigenvec(
             "ij,i->ij", sorted_emb, 1 / np.linalg.norm(sorted_emb, axis=1)
         )
         scores = np.array(zk.T @ normalized_sorted_emb).reshape(-1)
+        scores = np.abs(scores)
         if pick_multiple_eigenvec:
             sorted_emb = sorted_emb[:, np.argsort(-scores)]
             focal_eigenvec = int(-focal_eigenvec)
