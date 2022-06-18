@@ -21,6 +21,7 @@ rule all:
         #expand(SPECTRAL_DENSITY_FILE, **bipartition_params), #expand(EVAL_FILE, **net_params, **com_detect_params),
         expand(EVAL_FILE, **net_params, **com_detect_params, **eval_params),
         expand(EVAL_EMB_FILE, **net_params, **emb_params, **clustering_params, **eval_params),
+        expand(EMB_FILE, **net_params, **emb_params),
         EVAL_CONCAT_FILE,
         expand(COM_DETECT_FILE, **net_params, **com_detect_params),
         expand(COM_DETECT_EMB_FILE, **net_params, **emb_params, **clustering_params)
@@ -127,7 +128,7 @@ rule evaluate_communities_for_embedding:
 
 rule concatenate_results:
     input:
-        input_dir = EVA_DIR
+        input_files = expand(EVAL_FILE, **net_params, **com_detect_params, **eval_params) + expand(EVAL_EMB_FILE, **net_params, **emb_params, **clustering_params, **eval_params)
     output:
         output_file=EVAL_CONCAT_FILE
     script:
