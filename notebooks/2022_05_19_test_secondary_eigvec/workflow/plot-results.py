@@ -25,9 +25,9 @@ data_table = utils.load_files(input_dir)
 # Preprocess
 #
 params = {
-    "metric": "euclidean",
+    "metric": "cosine",
     "scoreType": "esim",
-    "clustering": "voronoi",
+    "clustering": "sign",
     "normalize": True,
     "multiple_eigenvec": False,
 }

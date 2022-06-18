@@ -6,6 +6,8 @@ from snakemake.utils import Paramspace
 
 
 configfile: "workflow/config.yaml"
+
+
 include: "./utils.smk"
 include: "./multipartition_files.smk"
 
@@ -19,7 +21,8 @@ rule all:
         #expand(SPECTRAL_DENSITY_FILE, **bipartition_params), #expand(EVAL_FILE, **net_params, **com_detect_params),
         expand(EVAL_FILE, **net_params, **com_detect_params, **eval_params),
         expand(EVAL_EMB_FILE, **net_params, **emb_params, **clustering_params, **eval_params),
-        #EVAL_CONCAT_FILE,
+        expand(EMB_FILE, **net_params, **emb_params),
+        EVAL_CONCAT_FILE,
         expand(COM_DETECT_FILE, **net_params, **com_detect_params),
         expand(COM_DETECT_EMB_FILE, **net_params, **emb_params, **clustering_params)
 
@@ -123,13 +126,13 @@ rule evaluate_communities_for_embedding:
     script:
         "workflow/evaluation/eval-com-detect-score.py"
 
-#rule concatenate_results:
-#    input:
-#        input_dir = EVA_DIR,
-#    output:
-#        output_file=EVAL_CONCAT_FILE
-#    script:
-#        "workflow/evaluation/concatenate_results.py"
+rule concatenate_results:
+    input:
+        input_files = expand(EVAL_FILE, **net_params, **com_detect_params, **eval_params) + expand(EVAL_EMB_FILE, **net_params, **emb_params, **clustering_params, **eval_params)
+    output:
+        output_file=EVAL_CONCAT_FILE
+    script:
+        "workflow/evaluation/concatenate_results.py"
 
 #
 # Validating the detectability condition
