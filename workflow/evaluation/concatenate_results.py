@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 def load_files(dirname):
     if isinstance(dirname, str):
-        input_files = list(glob.glob(dirname + "/*"))
+        input_files = list(glob.glob(dirname))
     else:
         input_files = dirname
 
@@ -50,8 +50,8 @@ if "snakemake" in sys.modules:
     input_files = snakemake.input["input_files"]
     output_file = snakemake.output["output_file"]
 else:
-    input_dir = "../../data/multi_partition_model/evaluations/"
-    output_file = "../data/"
+    input_files = "../../data/multi_partition_model/evaluations/score*.npz"
+    output_file = "../../data/multi_partition_model/evaluations/all-result.csv"
 
 #%% Load
 data_table = load_files(input_files).fillna("")

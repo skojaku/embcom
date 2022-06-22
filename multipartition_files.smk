@@ -32,6 +32,13 @@ net_params = {
     "sample": np.arange(3),  # Number of samples
 }
 
+net_params = {
+    "n": [2500, 5000, 10000, 50000, 100000], # Network size
+    "K": [2, 16, 32, 64, 128],  # Number of communities
+    "cave": [10, 20, 50],  # average degree
+    "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
+    "sample": np.arange(3),  # Number of samples
+}
 
 # Convert to a paramspace
 net_paramspace = to_paramspace(net_params)
@@ -66,7 +73,7 @@ EMB_FILE = j(EMB_DIR, f"{emb_paramspace.wildcard_pattern}.npz")
 # Community detection
 # ===================
 com_detect_params = {
-    "model_name": ["infomap", "flatsbm"],
+    "model_name": ["infomap"],
     #"model_name": ["infomap", "flatsbm"],
 }
 com_detect_paramspace = to_paramspace([net_params, com_detect_params])
