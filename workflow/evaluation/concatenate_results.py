@@ -1,9 +1,8 @@
-"""Putting together results into a data table"""
-import sys
-import glob
+"""Putting together results into a data table."""
 import glob
 import pathlib
 import sys
+
 import pandas as pd
 from tqdm import tqdm
 
