@@ -28,7 +28,8 @@ rule all:
 
 rule figs:
     input:
-        expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
+        expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing)
+        #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
 
 #
 # network generation
@@ -126,13 +127,13 @@ rule evaluate_communities_for_embedding:
     script:
         "workflow/evaluation/eval-com-detect-score.py"
 
-rule concatenate_results:
-    input:
-        input_files = expand(EVAL_FILE, **net_params, **com_detect_params, **eval_params) + expand(EVAL_EMB_FILE, **net_params, **emb_params, **clustering_params, **eval_params)
-    output:
-        output_file=EVAL_CONCAT_FILE
-    script:
-        "workflow/evaluation/concatenate_results.py"
+#rule concatenate_results:
+#    input:
+#        input_files = expand(EVAL_FILE, **net_params, **com_detect_params, **eval_params) + expand(EVAL_EMB_FILE, **net_params, **emb_params, **clustering_params, **eval_params)
+#    output:
+#        output_file=EVAL_CONCAT_FILE
+#    script:
+#        "workflow/evaluation/concatenate_results.py"
 
 #
 # Validating the detectability condition
@@ -149,6 +150,18 @@ rule calc_spectral_density_linearized_node2vec:
 #
 # Plot
 #
+rule plot_performance_vs_mixing: 
+    input:
+        input_file=EVAL_CONCAT_FILE
+    output:
+        output_file=FIG_PERFORMANCE_VS_MIXING
+    params:
+        parameters = fig_perf_vs_mixing_paramspace.instance
+    script:
+        "workflow/plot/plot-mixing-vs-performance.py"
+
+
+
 rule plot_spectral_density:
     input:
         input_file=SPECTRAL_DENSITY_FILE,

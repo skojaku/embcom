@@ -19,25 +19,28 @@ VAL_SPEC_DIR = j(DATA_DIR, "multi_partition_model", "spectral_analysis")
 # =========
 # FIGURES
 # =========
+fig_params_perf_vs_mixing={
+   "q": [2,64],
+   "dim": [64],
+   "n": [100000],
+   "metric": ["cosine"],
+   "length": [10],
+   "clustering": ["voronoi"],
+   "score_type": ["esim"],
+   "cave": [10,50],
+}
+fig_perf_vs_mixing_paramspace = to_paramspace(fig_params_perf_vs_mixing)
+FIG_PERFORMANCE_VS_MIXING=j(FIG_DIR, "multi_partition_model", "perf_vs_mixing", f"fig_{fig_perf_vs_mixing_paramspace.wildcard_pattern}.pdf")
 
 # ================================
 # Networks and communities
 # ================================
 
 net_params = {
-    "n": [2500, 5000, 10000, 50000, 100000, 1000000],  # Network size
-    "K": [2, 16, 32, 64, 128],  # Number of communities
-    "cave": [10, 20, 50],  # average degree
-    "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
-    "sample": np.arange(3),  # Number of samples
-}
-
-# Tentative
-net_params = {
     "n": [100000],  # Network size
-    "K": [2],  # Number of communities
-    "cave": [10],  # average degree
-    "mu": ["%.2f" % d for d in np.linspace(0.6, 0.8, 21)],
+    "K": [2, 64],  # Number of communities
+    "cave": [10, 50],  # average degree
+    "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
     "sample": np.arange(3),  # Number of samples
 }
 
@@ -52,26 +55,22 @@ NODE_FILE = j(NET_DIR, f"node_{net_paramspace.wildcard_pattern}.npz")
 emb_params = {
     "model_name": [
         "node2vec",
+        "deepwalk",
+        "line",
         "leigenmap",
         "modspec",
         #"levy-word2vec",
         "linearized-node2vec",
         "non-backtracking-node2vec",
+        "nonbacktracking", 
+        "depthfirst-node2vec"
     ],
     # "model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     # "model_name": ["leigenmap", "modspec", "nonbacktracking"],
     "window_length": [10],
-    "dim": [0, 64],
-}
-
-# Tentative
-emb_params = {
-    "model_name": [
-        "non-backtracking-node2vec", "linearized-node2vec"
-    ],
-    "window_length": [1, 10],
     "dim": [64],
 }
+
 
 emb_paramspace = to_paramspace([net_params, emb_params])
 
@@ -81,11 +80,8 @@ EMB_FILE = j(EMB_DIR, f"{emb_paramspace.wildcard_pattern}.npz")
 # Community detection
 # ===================
 com_detect_params = {
+    #"model_name": ["infomap"],
     "model_name": ["infomap", "flatsbm"],
-    #"model_name": ["infomap", "flatsbm"],
-}
-com_detect_params = {
-    "model_name": ["infomap"],
 }
 com_detect_paramspace = to_paramspace([net_params, com_detect_params])
 
@@ -94,7 +90,7 @@ COM_DETECT_FILE = j(COM_DIR, f"{com_detect_paramspace.wildcard_pattern}.npz")
 
 # Community detection by clustering to embedding
 clustering_params = {
-    "metric": ["cosine", "euclidean"],
+    "metric": ["cosine"],
     "clustering": ["voronoi", "kmeans"],
 }
 com_detect_emb_paramspace = to_paramspace([net_params, emb_params, clustering_params])
