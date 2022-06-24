@@ -19,6 +19,18 @@ VAL_SPEC_DIR = j(DATA_DIR, "multi_partition_model", "spectral_analysis")
 # =========
 # FIGURES
 # =========
+fig_params_perf_vs_mixing={
+   "q": [2,64],
+   "dim": [64],
+   "n": [100000],
+   "metric": ["cosine"],
+   "length": [10],
+   "clustering": ["voronoi"],
+   "score_type": ["esim"],
+   "cave": [10,50],
+}
+fig_perf_vs_mixing_paramspace = to_paramspace(fig_params_perf_vs_mixing)
+FIG_PERFORMANCE_VS_MIXING=j(FIG_DIR, "multi_partition_model", "perf_vs_mixing", f"fig_{fig_perf_vs_mixing_paramspace.wildcard_pattern}.pdf")
 
 # ================================
 # Networks and communities
@@ -34,7 +46,7 @@ net_params = {
 
 net_params = {
     "n": [2500, 5000, 10000, 50000, 100000], # Network size
-    "K": [2, 16, 32, 64, 128],  # Number of communities
+    "K": [2, 16, 32, 64],  # Number of communities
     "cave": [10, 20, 50],  # average degree
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
     "sample": np.arange(3),  # Number of samples
@@ -57,10 +69,12 @@ emb_params = {
         #"levy-word2vec",
         "linearized-node2vec",
         "non-backtracking-node2vec",
+        "nonbacktracking", 
+        "depthfirst-node2vec"
     ],
     # "model_name": ["node2vec", "glove", "depthfirst-node2vec"],
     # "model_name": ["leigenmap", "modspec", "nonbacktracking"],
-    "window_length": [1,10],
+    "window_length": [10],
     "dim": [0, 64],
 }
 
