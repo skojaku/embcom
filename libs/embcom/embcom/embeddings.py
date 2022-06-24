@@ -429,7 +429,7 @@ class LinearizedNode2Vec(NodeEmbeddings):
     def update_embedding(self, dim):
 
         # Calculate the normalized transition matrix
-        Dinvsqrt = sparse.diags(1 / np.sqrt(np.maximum(1,self.deg)))
+        Dinvsqrt = sparse.diags(1 / np.sqrt(np.maximum(1, self.deg)))
         Psym = Dinvsqrt @ self.A @ Dinvsqrt
 
         u, s, v = rsvd.rSVD(Psym, dim=dim + 1)
@@ -438,8 +438,8 @@ class LinearizedNode2Vec(NodeEmbeddings):
         mask = s < np.max(s)
         u = u[:, mask]
         s = s[mask]
-        
-        if self.window_length>1:
+
+        if self.window_length > 1:
             s = (s * (1 - s ** self.window_length)) / (self.window_length * (1 - s))
 
         self.in_vec = u @ sparse.diags(s)
