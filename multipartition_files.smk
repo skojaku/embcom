@@ -1,19 +1,23 @@
 # =========
 # FIGURES
 # =========
-fig_params_perf_vs_mixing={
-   "q": [2,64],
-   "dim": [64],
-   "n": [100000],
-   "metric": ["cosine"],
-   "length": [10],
-   "clustering": ["voronoi"],
-   "score_type": ["esim"],
-   "cave": [10,50],
-   "data":["multi_partition_model"]
+fig_params_perf_vs_mixing = {
+    "q": [2, 64],
+    "dim": [64],
+    "n": [100000],
+    "metric": ["cosine"],
+    "length": [10],
+    "clustering": ["voronoi"],
+    "score_type": ["esim"],
+    "cave": [10, 50],
+    "data": ["multi_partition_model"],
 }
 fig_perf_vs_mixing_paramspace = to_paramspace(fig_params_perf_vs_mixing)
-FIG_PERFORMANCE_VS_MIXING=j(FIG_DIR, "perf_vs_mixing", f"fig_{fig_perf_vs_mixing_paramspace.wildcard_pattern}.pdf")
+FIG_PERFORMANCE_VS_MIXING = j(
+    FIG_DIR,
+    "perf_vs_mixing",
+    f"fig_{fig_perf_vs_mixing_paramspace.wildcard_pattern}.pdf",
+)
 
 # ================================
 # Networks and communities
@@ -60,7 +64,9 @@ COM_DETECT_EMB_FILE = j(
 eval_params = {
     "scoreType": ["esim", "nmi"],
 }
-eva_emb_paramspace = to_paramspace([eval_params, net_params, emb_params, clustering_params])
+eva_emb_paramspace = to_paramspace(
+    [eval_params, net_params, emb_params, clustering_params]
+)
 EVAL_EMB_FILE = j(EVA_DIR, f"score_clus_{eva_emb_paramspace.wildcard_pattern}.npz")
 
 eva_paramspace = to_paramspace([eval_params, net_params, com_detect_params])
@@ -84,7 +90,10 @@ bipartition_paramspace = to_paramspace([bipartition_params])
 SPECTRAL_DENSITY_FILE = j(
     VAL_SPEC_DIR, f"{bipartition_paramspace.wildcard_pattern}.csv"
 )
-FIG_SPECTRAL_DENSITY_FILE = j(FIG_DIR, "spectral-density", f"{bipartition_paramspace.wildcard_pattern}.pdf")
+FIG_SPECTRAL_DENSITY_FILE = j(
+    FIG_DIR, "spectral-density", f"{bipartition_paramspace.wildcard_pattern}.pdf"
+)
+
 
 # ======
 # RULES
@@ -99,9 +108,10 @@ rule generate_net_multi_partition_model:
         output_file=NET_FILE,
         output_node_file=NODE_FILE,
     wildcard_constraints:
-        data="multi_partition_model"
+        data="multi_partition_model",
     script:
         "workflow/net_generator/generate-net-by-multi-partition-model.py"
+
 
 #
 # Embedding
@@ -190,13 +200,27 @@ rule evaluate_communities_for_embedding:
 
 rule concatenate_results_multipartition:
     input:
-        input_files = expand(EVAL_FILE, data="multi_partition_model", **net_params, **com_detect_params, **eval_params) + expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params, **eval_params)
+        input_files=expand(
+            EVAL_FILE,
+            data="multi_partition_model",
+            **net_params,
+            **com_detect_params,
+            **eval_params
+        ) + expand(
+            EVAL_EMB_FILE,
+            data="multi_partition_model",
+            **net_params,
+            **emb_params,
+            **clustering_params,
+            **eval_params
+        ),
     output:
-        output_file=EVAL_CONCAT_FILE
+        output_file=EVAL_CONCAT_FILE,
     wildcard_constraints:
-        data="multi_partition_model"
+        data="multi_partition_model",
     script:
         "workflow/evaluation/concatenate_results.py"
+
 
 #
 # Validating the detectability condition
@@ -215,20 +239,19 @@ rule calc_spectral_density_linearized_node2vec:
 #
 rule plot_performance_vs_mixing:
     input:
-        input_file=EVAL_CONCAT_FILE
+        input_file=EVAL_CONCAT_FILE,
     output:
-        output_file=FIG_PERFORMANCE_VS_MIXING
+        output_file=FIG_PERFORMANCE_VS_MIXING,
     params:
-        parameters = fig_perf_vs_mixing_paramspace.instance
+        parameters=fig_perf_vs_mixing_paramspace.instance,
     script:
         "workflow/plot/plot-mixing-vs-performance.py"
-
 
 
 rule plot_spectral_density:
     input:
         input_file=SPECTRAL_DENSITY_FILE,
     output:
-        output_file=FIG_SPECTRAL_DENSITY_FILE
+        output_file=FIG_SPECTRAL_DENSITY_FILE,
     script:
         "workflow/plot/plot-spectral-density.py"
