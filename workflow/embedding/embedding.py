@@ -98,6 +98,6 @@ emb = model.transform(dim=dim)
 #
 # Save
 #
-np.savez(
+np.savez_compressed(
     embfile, emb=emb, window_length=window_length, dim=dim, model_name=model_name,
 )

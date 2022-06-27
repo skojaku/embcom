@@ -1,7 +1,7 @@
 import os
 import sys
 from pathlib import Path
-
+import pandas as pd
 import numpy as np
 from scipy import sparse
 
@@ -65,4 +65,6 @@ community_ids -= 1  # because the offset is one
 
 # Save
 sparse.save_npz(output_net_file, net)
-np.savez(output_community_file, group_ids=community_ids)
+pd.DataFrame({"node_id": np.arange(len(community_ids)), "membership": community_ids}).to_csv(
+    output_node_file, index=False
+)
