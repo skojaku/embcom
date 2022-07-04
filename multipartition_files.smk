@@ -233,6 +233,9 @@ rule concatenate_results_multipartition:
         output_file=EVAL_CONCAT_FILE,
     wildcard_constraints:
         data="multi_partition_model",
+    resources:
+        mem="4G",
+        time="00:50:00"
     script:
         "workflow/evaluation/concatenate_results.py"
 
@@ -259,6 +262,9 @@ rule plot_performance_vs_mixing:
         output_file=FIG_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_perf_vs_mixing_paramspace.instance,
+    resources:
+        mem="4G",
+        time="00:50:00"
     script:
         "workflow/plot/plot-mixing-vs-performance.py"
 
@@ -268,5 +274,8 @@ rule plot_spectral_density:
         input_file=SPECTRAL_DENSITY_FILE,
     output:
         output_file=FIG_SPECTRAL_DENSITY_FILE,
+    resources:
+        mem="4G",
+        time="00:50:00"
     script:
         "workflow/plot/plot-spectral-density.py"

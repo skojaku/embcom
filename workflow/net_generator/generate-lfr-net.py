@@ -17,7 +17,7 @@ if "snakemake" in sys.modules:
     mu = float(params["mu"])
     minc = float(params["minc"])
     output_net_file = snakemake.output["output_file"]
-    output_community_file = snakemake.output["output_node_file"]
+    output_node_file = snakemake.output["output_node_file"]
 
     maxk = None 
     maxc = None 
