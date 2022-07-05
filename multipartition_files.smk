@@ -198,28 +198,28 @@ rule evaluate_communities_for_embedding:
         "workflow/evaluation/eval-com-detect-score.py"
 
 
-rule concatenate_results_multipartition:
-    input:
-        input_files=expand(
-            EVAL_FILE,
-            data="multi_partition_model",
-            **net_params,
-            **com_detect_params,
-            **eval_params
-        ) + expand(
-            EVAL_EMB_FILE,
-            data="multi_partition_model",
-            **net_params,
-            **emb_params,
-            **clustering_params,
-            **eval_params
-        ),
-    output:
-        output_file=EVAL_CONCAT_FILE,
-    wildcard_constraints:
-        data="multi_partition_model",
-    script:
-        "workflow/evaluation/concatenate_results.py"
+#rule concatenate_results_multipartition:
+#    input:
+#        input_files=expand(
+#            EVAL_FILE,
+#            data="multi_partition_model",
+#            **net_params,
+#            **com_detect_params,
+#            **eval_params
+#        ) + expand(
+#            EVAL_EMB_FILE,
+#            data="multi_partition_model",
+#            **net_params,
+#            **emb_params,
+#            **clustering_params,
+#            **eval_params
+#        ),
+#    output:
+#        output_file=EVAL_CONCAT_FILE,
+#    wildcard_constraints:
+#        data="multi_partition_model",
+#    script:
+#        "workflow/evaluation/concatenate_results.py"
 
 
 #

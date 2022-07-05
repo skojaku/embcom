@@ -22,7 +22,7 @@ PAPER_DIR = config["paper_dir"]
 PAPER_SRC, SUPP_SRC = [j(PAPER_DIR, f) for f in ("main.tex", "supp.tex")]
 PAPER, SUPP = [j(PAPER_DIR, f) for f in ("main.pdf", "supp.pdf")]
 
-FIG_DIR = j("figs", "{data}", "networks")
+FIG_DIR = j("figs", "{data}")
 NET_DIR = j(DATA_DIR, "{data}", "networks")
 EMB_DIR = j(DATA_DIR, "{data}", "embedding")
 COM_DIR = j(DATA_DIR, "{data}", "communities")
