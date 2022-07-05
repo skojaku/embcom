@@ -141,5 +141,8 @@ rule concatenate_results_lfr:
         output_file=EVAL_CONCAT_FILE
     wildcard_constraints:
         data="lfr"
+    params:
+        to_int=["n", "k", "tau", "tau2", "minc", "dim", "sample", "length", "dim"],
+        to_float=["mu"],
     script:
         "workflow/evaluation/concatenate_results.py"

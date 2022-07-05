@@ -48,6 +48,8 @@ def to_numeric(df, to_int, to_float):
 if "snakemake" in sys.modules:
     input_files = snakemake.input["input_files"]
     output_file = snakemake.output["output_file"]
+    to_int = snakemake.params["to_int"]
+    to_float = snakemake.params["to_float"]
 else:
     input_files = "../../data/multi_partition_model/evaluations/score*.npz"
     output_file = "../../data/multi_partition_model/evaluations/all-result.csv"
@@ -56,8 +58,8 @@ else:
 data_table = load_files(input_files).fillna("")
 
 # %% Type conversion
-to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
-to_float = ["mu"]
+#to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
+#to_float = ["mu"]
 data_table = to_numeric(data_table, to_int, to_float)
 data_table = data_table.rename(columns={"K": "q"})
 

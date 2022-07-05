@@ -231,6 +231,9 @@ rule concatenate_results_multipartition:
         ),
     output:
         output_file=EVAL_CONCAT_FILE,
+    params:
+        to_int=["n", "K", "dim", "sample", "length", "dim", "cave"],
+        to_float=["mu"],
     wildcard_constraints:
         data="multi_partition_model",
     resources:

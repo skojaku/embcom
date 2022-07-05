@@ -41,7 +41,7 @@ emb_params = {
     "model_name": [
         "node2vec",
         "deepwalk",
-        "line",
+        #"line",
         "leigenmap",
         "modspec",
         "linearized-node2vec",
