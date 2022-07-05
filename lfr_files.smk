@@ -61,6 +61,9 @@ rule generate_lfr_net:
         output_node_file=LFR_NODE_FILE,
     wildcard_constraints:
         data="lfr"
+    resources:
+        mem="12G",
+        time="04:00:00"
     script:
         "workflow/net_generator/generate-lfr-net.py"
 

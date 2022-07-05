@@ -109,6 +109,9 @@ rule generate_net_multi_partition_model:
         output_node_file=NODE_FILE,
     wildcard_constraints:
         data="multi_partition_model",
+    resources:
+        mem="12G",
+        time="04:00:00"
     script:
         "workflow/net_generator/generate-net-by-multi-partition-model.py"
 
@@ -141,6 +144,9 @@ rule voronoi_clustering_multi_partition_model:
         parameters=com_detect_emb_paramspace.instance,
     wildcard_constraints:
         clustering="voronoi",
+    resources:
+        mem="12G",
+        time="01:00:00"
     script:
         "workflow/community-detection/voronoi-clustering.py"
 
@@ -155,6 +161,9 @@ rule kmeans_clustering_multi_partition_model:
         parameters=com_detect_emb_paramspace.instance,
     wildcard_constraints:
         clustering="kmeans",
+    resources:
+        mem="12G",
+        time="01:00:00"
     script:
         "workflow/community-detection/kmeans-clustering.py"
 
@@ -182,6 +191,9 @@ rule evaluate_communities:
         output_file=EVAL_FILE,
     params:
         parameters=eva_paramspace.instance,
+    resources:
+        mem="12G",
+        time="00:10:00"
     script:
         "workflow/evaluation/eval-com-detect-score.py"
 
@@ -194,32 +206,38 @@ rule evaluate_communities_for_embedding:
         output_file=EVAL_EMB_FILE,
     params:
         parameters=eva_paramspace.instance,
+    resources:
+        mem="12G",
+        time="00:20:00"
     script:
         "workflow/evaluation/eval-com-detect-score.py"
 
 
-#rule concatenate_results_multipartition:
-#    input:
-#        input_files=expand(
-#            EVAL_FILE,
-#            data="multi_partition_model",
-#            **net_params,
-#            **com_detect_params,
-#            **eval_params
-#        ) + expand(
-#            EVAL_EMB_FILE,
-#            data="multi_partition_model",
-#            **net_params,
-#            **emb_params,
-#            **clustering_params,
-#            **eval_params
-#        ),
-#    output:
-#        output_file=EVAL_CONCAT_FILE,
-#    wildcard_constraints:
-#        data="multi_partition_model",
-#    script:
-#        "workflow/evaluation/concatenate_results.py"
+rule concatenate_results_multipartition:
+    input:
+        input_files=expand(
+            EVAL_FILE,
+            data="multi_partition_model",
+            **net_params,
+            **com_detect_params,
+            **eval_params
+        ) + expand(
+            EVAL_EMB_FILE,
+            data="multi_partition_model",
+            **net_params,
+            **emb_params,
+            **clustering_params,
+            **eval_params
+        ),
+    output:
+        output_file=EVAL_CONCAT_FILE,
+    wildcard_constraints:
+        data="multi_partition_model",
+    resources:
+        mem="4G",
+        time="00:50:00"
+    script:
+        "workflow/evaluation/concatenate_results.py"
 
 
 #
@@ -244,6 +262,9 @@ rule plot_performance_vs_mixing:
         output_file=FIG_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_perf_vs_mixing_paramspace.instance,
+    resources:
+        mem="4G",
+        time="00:50:00"
     script:
         "workflow/plot/plot-mixing-vs-performance.py"
 
@@ -253,5 +274,8 @@ rule plot_spectral_density:
         input_file=SPECTRAL_DENSITY_FILE,
     output:
         output_file=FIG_SPECTRAL_DENSITY_FILE,
+    resources:
+        mem="4G",
+        time="00:50:00"
     script:
         "workflow/plot/plot-spectral-density.py"
