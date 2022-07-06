@@ -173,8 +173,8 @@ rule concatenate_results_lfr:
 #
 rule plot_lfr_performance_vs_mixing:
     input:
-        #input_file="data/lfr/all-result.csv",
-        input_file=EVAL_CONCAT_FILE,
+        input_file="data/lfr/all-result.csv",
+        #input_file=EVAL_CONCAT_FILE,
     output:
         output_file=FIG_LFR_PERFORMANCE_VS_MIXING,
     params:
@@ -184,3 +184,4 @@ rule plot_lfr_performance_vs_mixing:
         time="00:50:00"
     script:
         "workflow/plot/plot-mixing-vs-performance-lfr.py"
+
