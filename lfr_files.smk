@@ -4,7 +4,7 @@
 
 lfr_net_params = {
     "n": [100000],  # Network size
-    "k": [50, 100],  # Average degree
+    "k": [10, 50, 100],  # Average degree
     "tau": [3],  # degree exponent
     "tau2": [1],  # community size exponent
     "minc": [50],  # min community size
@@ -46,6 +46,27 @@ LFR_EVAL_EMB_FILE = j(EVA_DIR, f"score_clus_{lfr_eva_emb_paramspace.wildcard_pat
 
 lfr_eva_paramspace = to_paramspace([eval_params, lfr_net_params, com_detect_params])
 LFR_EVAL_FILE = j(EVA_DIR, f"score_{lfr_eva_paramspace.wildcard_pattern}.npz")
+
+
+# =========
+# FIGURES
+# =========
+fig_lfr_params_perf_vs_mixing = {
+    "dim": [64],
+    "k": [50, 100],  # Average degree
+    "n": [100000],
+    "metric": ["cosine"],
+    "length": [10],
+    "clustering": ["voronoi", "kmeans"],
+    "score_type": ["esim", "nmi"],
+    "data": ["lfr"],
+}
+fig_lfr_perf_vs_mixing_paramspace = to_paramspace(fig_lfr_params_perf_vs_mixing)
+FIG_LFR_PERFORMANCE_VS_MIXING = j(
+    FIG_DIR,
+    "perf_vs_mixing",
+    f"fig_{fig_lfr_perf_vs_mixing_paramspace.wildcard_pattern}.pdf",
+)
 
 # ======
 # RULES
@@ -146,3 +167,20 @@ rule concatenate_results_lfr:
         to_float=["mu"],
     script:
         "workflow/evaluation/concatenate_results.py"
+
+#
+# Plot
+#
+rule plot_lfr_performance_vs_mixing:
+    input:
+        #input_file="data/lfr/all-result.csv",
+        input_file=EVAL_CONCAT_FILE,
+    output:
+        output_file=FIG_LFR_PERFORMANCE_VS_MIXING,
+    params:
+        parameters=fig_lfr_perf_vs_mixing_paramspace.instance,
+    resources:
+        mem="4G",
+        time="00:50:00"
+    script:
+        "workflow/plot/plot-mixing-vs-performance-lfr.py"
