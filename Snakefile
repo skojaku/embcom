@@ -50,7 +50,8 @@ emb_params = {
         "depthfirst-node2vec",
     ],
     "window_length": [10],
-    "dim": [64],
+    "dim": [64,256],
+    #"dim": [64],
 }
 
 # Community detection
@@ -79,8 +80,8 @@ include: "./lfr_files.smk"
 # RULES
 # ======
 
-#DATA_LIST = ["lfr"]
-DATA_LIST = ["multi_partition_model"]
+DATA_LIST = ["lfr"]
+#DATA_LIST = ["multi_partition_model"]
 
 
 rule all:

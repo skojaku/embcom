@@ -295,7 +295,11 @@ class LevyWord2Vec(NodeEmbeddings):
             (freq[s], (center[s], context[s])), shape=self.sampler.A.shape
         )
         logger.debug("SVD")
-        in_vec, val, out_vec = rsvd.rSVD(Q, dim)
+        svd = TruncatedSVD(n_components=dim, n_iter=7, random_state=42)
+        in_vec = svd.fit_transform(Q)
+        val = svd.singular_values_
+        out_vec = in_vec.copy()
+        #in_vec, val, out_vec = rsvd.rSVD(Q, dim)
         order = np.argsort(val)[::-1]
         val = val[order]
         alpha = 0.5
@@ -353,7 +357,10 @@ class AdjacencySpectralEmbedding(NodeEmbeddings):
         return self
 
     def update_embedding(self, dim):
-        u, s, v = rsvd.rSVD(self.A, dim=dim)
+        svd = TruncatedSVD(n_components=dim, n_iter=7, random_state=42)
+        u = svd.fit_transform(self.A)
+        s = svd.singular_values_
+        #u, s, v = rsvd.rSVD(self.A, dim=dim)
         self.in_vec = u @ sparse.diags(s)
 
 
@@ -432,12 +439,15 @@ class LinearizedNode2Vec(NodeEmbeddings):
         Dinvsqrt = sparse.diags(1 / np.sqrt(np.maximum(1, self.deg)))
         Psym = Dinvsqrt @ self.A @ Dinvsqrt
 
-        u, s, v = rsvd.rSVD(Psym, dim=dim + 1)
-        sign = np.sign(np.diag(v @ u))
-        s = s * sign
-        mask = s < np.max(s)
-        u = u[:, mask]
-        s = s[mask]
+        svd = TruncatedSVD(n_components=dim+1, n_iter=7, random_state=42)
+        u = svd.fit_transform(Psym)
+        s = svd.singular_values_
+        #u, s, v = rsvd.rSVD(Psym, dim=dim + 1)
+        #sign = np.sign(np.diag(v @ u))
+        #s = s * sign
+        #mask = s < np.max(s)
+        #u = u[:, mask]
+        #s = s[mask]
 
         if self.window_length > 1:
             s = (s * (1 - s ** self.window_length)) / (self.window_length * (1 - s))
@@ -515,7 +525,10 @@ class Node2VecMatrixFactorization(NodeEmbeddings):
         stationary_prob = self.deg / np.sum(self.deg)
         R = np.log(Ppow @ np.diag(1 / stationary_prob))
 
-        u, s, v = rsvd.rSVD(R, dim=dim)
+        #u, s, v = rsvd.rSVD(R, dim=dim)
+        svd = TruncatedSVD(n_components=dim+1, n_iter=7, random_state=42)
+        u = svd.fit_transform(R)
+        s = svd.singular_values_
         self.in_vec = u @ sparse.diags(np.sqrt(s))
         self.out_vec = None
 

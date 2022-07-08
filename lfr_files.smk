@@ -3,7 +3,8 @@
 # ================================
 
 lfr_net_params = {
-    "n": [1000, 10000, 100000],  # Network size
+    "n": [10000],  # Network size
+    #"n": [1000, 10000, 100000],  # Network size
     "k": [10, 50, 100],  # Average degree
     "tau": [3],  # degree exponent
     "tau2": [1],  # community size exponent
@@ -55,6 +56,7 @@ fig_lfr_params_perf_vs_mixing = {
     "dim": [64],
     "k": [10, 50, 100],  # Average degree
     "n": [1000, 10000, 100000],
+    "dim":[64, 256],
     "metric": ["cosine"],
     "length": [10],
     "clustering": ["voronoi", "kmeans"],
