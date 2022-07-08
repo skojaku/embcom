@@ -4,7 +4,7 @@
 fig_params_perf_vs_mixing = {
     "q": [2, 64],
     "dim": [64],
-    "n": [100000],
+    "n": [1000, 10000, 100000],
     "metric": ["cosine"],
     "length": [10],
     "clustering": ["voronoi"],

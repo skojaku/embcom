@@ -3,7 +3,7 @@
 # ================================
 
 lfr_net_params = {
-    "n": [100000],  # Network size
+    "n": [1000, 10000, 100000],  # Network size
     "k": [10, 50, 100],  # Average degree
     "tau": [3],  # degree exponent
     "tau2": [1],  # community size exponent
@@ -53,8 +53,8 @@ LFR_EVAL_FILE = j(EVA_DIR, f"score_{lfr_eva_paramspace.wildcard_pattern}.npz")
 # =========
 fig_lfr_params_perf_vs_mixing = {
     "dim": [64],
-    "k": [50, 100],  # Average degree
-    "n": [100000],
+    "k": [10, 50, 100],  # Average degree
+    "n": [1000, 10000, 100000],
     "metric": ["cosine"],
     "length": [10],
     "clustering": ["voronoi", "kmeans"],
@@ -173,8 +173,8 @@ rule concatenate_results_lfr:
 #
 rule plot_lfr_performance_vs_mixing:
     input:
-        input_file="data/lfr/all-result.csv",
-        #input_file=EVAL_CONCAT_FILE,
+        #input_file="data/lfr/all-result.csv",
+        input_file=EVAL_CONCAT_FILE,
     output:
         output_file=FIG_LFR_PERFORMANCE_VS_MIXING,
     params:
