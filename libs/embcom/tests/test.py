@@ -72,6 +72,15 @@ class TestCalc(unittest.TestCase):
         model.fit(self.A)
         vec = model.transform(dim=32)
 
+    def test_non_backtracking_deepwalk(self):
+        model = embcom.embeddings.NonBacktrackingDeepWalk()
+        model.fit(self.A)
+        vec = model.transform(dim=32)
+    
+    def test_non_backtracking_glove(self):
+        model = embcom.embeddings.NonBacktrackingGlove()
+        model.fit(self.A)
+        vec = model.transform(dim=32)
 
 if __name__ == "__main__":
     unittest.main()
