@@ -96,6 +96,14 @@ elif model_name == "non-backtracking-node2vec":
     model = embcom.embeddings.NonBacktrackingNode2Vec(
         window_length=window_length, num_walks=num_walks
     )
+elif model_name == "non-backtracking-deepwalk":
+    model = embcom.embeddings.NonBacktrackingDeepWalk(
+        window_length=window_length, num_walks=num_walks
+    )
+elif model_name == "non-backtracking-glove":
+    model = embcom.embeddings.NonBacktrackingGlove(
+        window_length=window_length, num_walks=num_walks
+    )
 
 #
 # Embedding

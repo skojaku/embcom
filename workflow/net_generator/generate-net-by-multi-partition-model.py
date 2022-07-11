@@ -17,11 +17,11 @@ if "snakemake" in sys.modules:
     output_file = snakemake.output["output_file"]
     output_node_file = snakemake.output["output_node_file"]
 else:
-    n = 600
-    K = 25
+    n = 10000 
+    K = 64
     cave = 10
-    mu = 0.68
-    output_file = "../data/networks/multi-coms"
+    mu = 0.4
+    output_file = "" 
 
 
 def generate_network(Cave, mixing_rate, N, q):
@@ -41,7 +41,6 @@ def generate_network(Cave, mixing_rate, N, q):
 
     P = np.ones((q, q)) * pout + np.eye(q) * (pin - pout)
     probs = np.diag(Nk) @ P @ np.diag(Nk)
-
     gt_params = {
         "b": memberships,
         "probs": probs,
@@ -54,7 +53,9 @@ def generate_network(Cave, mixing_rate, N, q):
     # satisfied the thresholds
     while True:
         g = gt.generate_sbm(**gt_params)
+
         A = gt.adjacency(g).T
+        
         A.data = np.ones_like(A.data)
         # check if the graph is connected
         if connected_components(A)[0] == 1:

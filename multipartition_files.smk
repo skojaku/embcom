@@ -2,14 +2,14 @@
 # FIGURES
 # =========
 fig_params_perf_vs_mixing = {
-    "q": [2, 64],
+    "q": [2, 50],
     "dim": [64],
-    "n": [1000, 10000, 100000],
+    "n": [1000, 10000],
     "metric": ["cosine"],
     "length": [10],
     "clustering": ["voronoi"],
-    "score_type": ["esim"],
-    "cave": [10, 50],
+    "score_type": ["esim", "nmi"],
+    "cave": [10, 50, 100],
     "data": ["multi_partition_model"],
 }
 fig_perf_vs_mixing_paramspace = to_paramspace(fig_params_perf_vs_mixing)
@@ -24,8 +24,11 @@ FIG_PERFORMANCE_VS_MIXING = j(
 # ================================
 
 net_params = {
-    "n": [100000],  # Network size
-    "K": [2, 64],  # Number of communities
+    #"n": [100000],  # Network size
+    "n": [1000, 10000],
+    #"n": [1000, 10000, 100000],
+    "K": [2, 50],  # Number of communities
+    #"K": [2, 64],  # Number of communities
     "cave": [10, 50],  # average degree
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
     "sample": np.arange(3),  # Number of samples

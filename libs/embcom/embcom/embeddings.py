@@ -54,70 +54,6 @@ class NodeEmbeddings:
         pass
 
 
-class Glove(NodeEmbeddings):
-    def __init__(
-        self,
-        num_walks=10,
-        walk_length=40,
-        window_length=10,
-        restart_prob=0,
-        p=1.0,
-        q=1.0,
-        verbose=False,
-    ):
-        self.in_vec = None  # In-vector
-        self.out_vec = None  # Out-vector
-        self.sampler = samplers.SimpleWalkSampler(
-            num_walks,
-            walk_length,
-            window_length,
-            restart_prob,
-            p,
-            q,
-            sample_center_context_pairs=True,
-            verbose=False,
-        )
-        self.learning_rate = 0.05
-        self.w2vparams = {"epochs": 25, "no_threads": 4}
-
-    def fit(self, net):
-        A = utils.to_adjacency_matrix(net)
-        self.sampler.sampling(A)
-        center, context, freq = self.sampler.get_center_context_pairs()
-        center = center.astype(int)
-        context = context.astype(int)
-        N = self.sampler.num_nodes
-        self.cooccur = sparse.coo_matrix(
-            (freq, (center, context)), shape=(N, N), dtype="double"
-        )
-        return self
-
-    def transform(self, dim, return_out_vector=False):
-        # Update the in-vector and out-vector if
-        # (i) this is the first to compute the vectors or
-        # (ii) the dimension is different from that
-        # for the previous call of transform function
-        update_embedding = False
-        if self.out_vec is None:
-            update_embedding = True
-        elif self.out_vec.shape[1] != dim:
-            update_embedding = True
-
-        # Update the dimension and train the model
-        if update_embedding:
-            self.model = glove.Glove(
-                no_components=dim, learning_rate=self.learning_rate
-            )
-            self.model.fit(self.cooccur, **self.w2vparams)
-            self.in_vec = self.model.word_vectors
-            self.out_vec = self.model.word_vectors
-
-        if return_out_vector:
-            return self.out_vec
-        else:
-            return self.in_vec
-
-
 class Node2Vec(NodeEmbeddings):
     """A python class for the node2vec.
 
@@ -299,7 +235,7 @@ class LevyWord2Vec(NodeEmbeddings):
         in_vec = svd.fit_transform(Q)
         val = svd.singular_values_
         out_vec = in_vec.copy()
-        #in_vec, val, out_vec = rsvd.rSVD(Q, dim)
+        # in_vec, val, out_vec = rsvd.rSVD(Q, dim)
         order = np.argsort(val)[::-1]
         val = val[order]
         alpha = 0.5
@@ -346,7 +282,8 @@ class LaplacianEigenMap(NodeEmbeddings):
 
 class AdjacencySpectralEmbedding(NodeEmbeddings):
     def __init__(
-        self, verbose=False,
+        self,
+        verbose=False,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -360,13 +297,14 @@ class AdjacencySpectralEmbedding(NodeEmbeddings):
         svd = TruncatedSVD(n_components=dim, n_iter=7, random_state=42)
         u = svd.fit_transform(self.A)
         s = svd.singular_values_
-        #u, s, v = rsvd.rSVD(self.A, dim=dim)
+        # u, s, v = rsvd.rSVD(self.A, dim=dim)
         self.in_vec = u @ sparse.diags(s)
 
 
 class ModularitySpectralEmbedding(NodeEmbeddings):
     def __init__(
-        self, verbose=False,
+        self,
+        verbose=False,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -391,7 +329,9 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
 
 class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
     def __init__(
-        self, verbose=False, window_length=10,
+        self,
+        verbose=False,
+        window_length=10,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -421,7 +361,9 @@ class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
 
 class LinearizedNode2Vec(NodeEmbeddings):
     def __init__(
-        self, verbose=False, window_length=10,
+        self,
+        verbose=False,
+        window_length=10,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -439,18 +381,18 @@ class LinearizedNode2Vec(NodeEmbeddings):
         Dinvsqrt = sparse.diags(1 / np.sqrt(np.maximum(1, self.deg)))
         Psym = Dinvsqrt @ self.A @ Dinvsqrt
 
-        svd = TruncatedSVD(n_components=dim+1, n_iter=7, random_state=42)
+        svd = TruncatedSVD(n_components=dim + 1, n_iter=7, random_state=42)
         u = svd.fit_transform(Psym)
         s = svd.singular_values_
-        #u, s, v = rsvd.rSVD(Psym, dim=dim + 1)
-        #sign = np.sign(np.diag(v @ u))
-        #s = s * sign
-        #mask = s < np.max(s)
-        #u = u[:, mask]
-        #s = s[mask]
+        # u, s, v = rsvd.rSVD(Psym, dim=dim + 1)
+        # sign = np.sign(np.diag(v @ u))
+        # s = s * sign
+        # mask = s < np.max(s)
+        # u = u[:, mask]
+        # s = s[mask]
 
         if self.window_length > 1:
-            s = (s * (1 - s ** self.window_length)) / (self.window_length * (1 - s))
+            s = (s * (1 - s**self.window_length)) / (self.window_length * (1 - s))
 
         self.in_vec = u @ sparse.diags(s)
         self.out_vec = None
@@ -478,7 +420,7 @@ class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
         B = sparse.bmat([[Z, D - I], [-I, self.A]], format="csr")
 
         if self.auto_dim is False:
-            s, v = sparse.linalg.eigs(B, k=dim + 1)
+            s, v = sparse.linalg.eigs(B, k=dim + 1, tol=1e-4)
             order = np.argsort(s)
             s, v = s[order], v[:, order]
             s, v = s[1:], v[:, 1:]
@@ -489,7 +431,7 @@ class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
             dim = int(self.C * np.sqrt(N))
             dim = np.minimum(dim, N - 1)
 
-            s, v = sparse.linalg.eigs(B, k=dim + 1)
+            s, v = sparse.linalg.eigs(B, k=dim + 1, tol=1e-4)
 
             c = int(self.A.sum() / N)
             s, v = s[np.abs(s) > c], v[:, np.abs(s) > c]
@@ -525,8 +467,8 @@ class Node2VecMatrixFactorization(NodeEmbeddings):
         stationary_prob = self.deg / np.sum(self.deg)
         R = np.log(Ppow @ np.diag(1 / stationary_prob))
 
-        #u, s, v = rsvd.rSVD(R, dim=dim)
-        svd = TruncatedSVD(n_components=dim+1, n_iter=7, random_state=42)
+        # u, s, v = rsvd.rSVD(R, dim=dim)
+        svd = TruncatedSVD(n_components=dim + 1, n_iter=7, random_state=42)
         u = svd.fit_transform(R)
         s = svd.singular_values_
         self.in_vec = u @ sparse.diags(np.sqrt(s))
@@ -551,6 +493,128 @@ class NonBacktrackingNode2Vec(Node2Vec):
 
     def __init__(self, num_walks=10, walk_length=80, window_length=10, **params):
         Node2Vec.__init__(
+            self,
+            num_walks=num_walks,
+            walk_length=walk_length,
+            window_length=window_length,
+            **params
+        )
+        self.sampler = samplers.NonBacktrackingWalkSampler(
+            num_walks=10, walk_length=80, window_length=10
+        )
+
+
+class NonBacktrackingDeepWalk(DeepWalk):
+    """A python class for the node2vec.
+
+    Parameters
+    ----------
+    num_walks : int (optional, default 10)
+        Number of walks per node
+    walk_length : int (optional, default 40)
+        Length of walks
+    window_length : int (optional, default 10)
+    restart_prob : float (optional, default 0)
+        Restart probability of a random walker.
+    p : node2vec parameter (TODO: Write doc)
+    q : node2vec parameter (TODO: Write doc)
+    """
+
+    def __init__(self, num_walks=10, walk_length=80, window_length=10, **params):
+        DeepWalk.__init__(
+            self,
+            num_walks=num_walks,
+            walk_length=walk_length,
+            window_length=window_length,
+            **params
+        )
+        self.sampler = samplers.NonBacktrackingWalkSampler(
+            num_walks=10, walk_length=80, window_length=10
+        )
+
+
+class Glove(NodeEmbeddings):
+    def __init__(
+        self,
+        num_walks=10,
+        walk_length=40,
+        window_length=10,
+        restart_prob=0,
+        p=1.0,
+        q=1.0,
+        verbose=False,
+    ):
+        self.in_vec = None  # In-vector
+        self.out_vec = None  # Out-vector
+        self.sampler = samplers.SimpleWalkSampler(
+            num_walks,
+            walk_length,
+            window_length,
+            restart_prob,
+            p,
+            q,
+            sample_center_context_pairs=True,
+            verbose=False,
+        )
+        self.learning_rate = 0.05
+        self.w2vparams = {"epochs": 25, "no_threads": 4}
+
+    def fit(self, net):
+        A = utils.to_adjacency_matrix(net)
+        self.sampler.sampling(A)
+        center, context, freq = self.sampler.get_center_context_pairs()
+        center = center.astype(int)
+        context = context.astype(int)
+        N = self.sampler.num_nodes
+        self.cooccur = sparse.coo_matrix(
+            (freq, (center, context)), shape=(N, N), dtype="double"
+        )
+        return self
+
+    def transform(self, dim, return_out_vector=False):
+        # Update the in-vector and out-vector if
+        # (i) this is the first to compute the vectors or
+        # (ii) the dimension is different from that
+        # for the previous call of transform function
+        update_embedding = False
+        if self.out_vec is None:
+            update_embedding = True
+        elif self.out_vec.shape[1] != dim:
+            update_embedding = True
+
+        # Update the dimension and train the model
+        if update_embedding:
+            self.model = glove.Glove(
+                no_components=dim, learning_rate=self.learning_rate
+            )
+            self.model.fit(self.cooccur, **self.w2vparams)
+            self.in_vec = self.model.word_vectors
+            self.out_vec = self.model.word_vectors
+
+        if return_out_vector:
+            return self.out_vec
+        else:
+            return self.in_vec
+
+
+class NonBacktrackingGlove(Glove):
+    """A python class for the node2vec.
+
+    Parameters
+    ----------
+    num_walks : int (optional, default 10)
+        Number of walks per node
+    walk_length : int (optional, default 40)
+        Length of walks
+    window_length : int (optional, default 10)
+    restart_prob : float (optional, default 0)
+        Restart probability of a random walker.
+    p : node2vec parameter (TODO: Write doc)
+    q : node2vec parameter (TODO: Write doc)
+    """
+
+    def __init__(self, num_walks=10, walk_length=80, window_length=10, **params):
+        Glove.__init__(
             self,
             num_walks=num_walks,
             walk_length=walk_length,
