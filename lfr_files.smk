@@ -186,4 +186,3 @@ rule plot_lfr_performance_vs_mixing:
         time="00:50:00"
     script:
         "workflow/plot/plot-mixing-vs-performance-lfr.py"
-

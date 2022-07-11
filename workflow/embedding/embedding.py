@@ -69,7 +69,7 @@ elif model_name == "node2vec-qdouble":
 elif model_name == "deepwalk":
     model = fastnode2vec.DeepWalk(window_length=window_length, num_walks=num_walks)
 elif model_name == "line":
-    model = fastnode2vec.LINE(num_walks=num_walks, workers = 4)
+    model = fastnode2vec.LINE(num_walks=num_walks, workers=4)
 elif model_name == "glove":
     model = embcom.embeddings.Glove(
         window_length=window_length, restart_prob=0, num_walks=num_walks

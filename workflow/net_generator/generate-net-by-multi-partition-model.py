@@ -17,11 +17,11 @@ if "snakemake" in sys.modules:
     output_file = snakemake.output["output_file"]
     output_node_file = snakemake.output["output_node_file"]
 else:
-    n = 10000 
+    n = 10000
     K = 64
     cave = 10
     mu = 0.4
-    output_file = "" 
+    output_file = ""
 
 
 def generate_network(Cave, mixing_rate, N, q):
@@ -44,9 +44,9 @@ def generate_network(Cave, mixing_rate, N, q):
     gt_params = {
         "b": memberships,
         "probs": probs,
-        "micro_degs":True,
-        "in_degs": np.ones_like(memberships)*Cave,
-        "out_degs": np.ones_like(memberships)*Cave
+        "micro_degs": True,
+        "in_degs": np.ones_like(memberships) * Cave,
+        "out_degs": np.ones_like(memberships) * Cave,
     }
 
     # Generate the network until the degree sequence
@@ -55,7 +55,7 @@ def generate_network(Cave, mixing_rate, N, q):
         g = gt.generate_sbm(**gt_params)
 
         A = gt.adjacency(g).T
-        
+
         A.data = np.ones_like(A.data)
         # check if the graph is connected
         if connected_components(A)[0] == 1:

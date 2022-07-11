@@ -282,8 +282,7 @@ class LaplacianEigenMap(NodeEmbeddings):
 
 class AdjacencySpectralEmbedding(NodeEmbeddings):
     def __init__(
-        self,
-        verbose=False,
+        self, verbose=False,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -303,8 +302,7 @@ class AdjacencySpectralEmbedding(NodeEmbeddings):
 
 class ModularitySpectralEmbedding(NodeEmbeddings):
     def __init__(
-        self,
-        verbose=False,
+        self, verbose=False,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -329,9 +327,7 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
 
 class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
     def __init__(
-        self,
-        verbose=False,
-        window_length=10,
+        self, verbose=False, window_length=10,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -361,9 +357,7 @@ class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
 
 class LinearizedNode2Vec(NodeEmbeddings):
     def __init__(
-        self,
-        verbose=False,
-        window_length=10,
+        self, verbose=False, window_length=10,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -392,7 +386,7 @@ class LinearizedNode2Vec(NodeEmbeddings):
         # s = s[mask]
 
         if self.window_length > 1:
-            s = (s * (1 - s**self.window_length)) / (self.window_length * (1 - s))
+            s = (s * (1 - s ** self.window_length)) / (self.window_length * (1 - s))
 
         self.in_vec = u @ sparse.diags(s)
         self.out_vec = None
