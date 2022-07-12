@@ -4,7 +4,7 @@
 fig_params_perf_vs_mixing = {
     "q": [2, 50],
     "dim": [64],
-    "n": [1000, 10000],
+    "n": [1000, 10000, 100000],
     "metric": ["cosine"],
     "length": [10],
     "clustering": ["voronoi"],
@@ -25,8 +25,8 @@ FIG_PERFORMANCE_VS_MIXING = j(
 
 net_params = {
     #"n": [100000],  # Network size
-    "n": [1000, 10000],
-    #"n": [1000, 10000, 100000],
+    #"n": [1000, 10000],
+    "n": [1000, 10000, 100000],
     "K": [2, 50],  # Number of communities
     #"K": [2, 64],  # Number of communities
     "cave": [10, 50],  # average degree
