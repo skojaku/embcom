@@ -73,7 +73,7 @@ class Node2Vec(NodeEmbeddings):
     def __init__(
         self,
         num_walks=10,
-        walk_length=40,
+        walk_length=80,
         window_length=10,
         restart_prob=0,
         p=1.0,
@@ -167,7 +167,7 @@ class LevyWord2Vec(NodeEmbeddings):
     def __init__(
         self,
         num_walks=10,
-        walk_length=40,
+        walk_length=80,
         window_length=10,
         restart_prob=0,
         p=1.0,
@@ -494,7 +494,7 @@ class NonBacktrackingNode2Vec(Node2Vec):
             **params
         )
         self.sampler = samplers.NonBacktrackingWalkSampler(
-            num_walks=10, walk_length=80, window_length=10
+            num_walks=num_walks, walk_length=walk_length, window_length=window_length
         )
 
 
@@ -523,7 +523,7 @@ class NonBacktrackingDeepWalk(DeepWalk):
             **params
         )
         self.sampler = samplers.NonBacktrackingWalkSampler(
-            num_walks=10, walk_length=80, window_length=10
+            num_walks=num_walks, walk_length=walk_length, window_length=window_length
         )
 
 

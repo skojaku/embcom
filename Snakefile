@@ -53,8 +53,8 @@ emb_params = {
         "depthfirst-node2vec",
     ],
     "window_length": [10],
-    #"dim": [64,256],
-    "dim": [64],
+    "dim": [64,256],
+    #"dim": [64],
 }
 
 # Community detection
