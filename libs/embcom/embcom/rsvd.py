@@ -12,7 +12,7 @@ def rSVD(X, dim, **params):
         return _rSVD_matrix(X, r=dim, **params)
 
 
-def _rSVD_matrix(X, r, p=10, q=1):
+def _rSVD_matrix(X, r, p=10, q=5):
     """Randomized SVD.
 
     Parameters
@@ -49,7 +49,7 @@ def _rSVD_matrix(X, r, p=10, q=1):
     return U[:, selected], S[selected], VT[selected, :]
 
 
-def _rSVD_submatrices(mat_seq, r, p=10, q=1, fill_zero=1e-20):
+def _rSVD_submatrices(mat_seq, r, p=10, q=5, fill_zero=1e-20):
     """Randomized SVD for decomposable matrix. We assume that the matrix is
     given by mat_seq[0] + mat_seq[1],...
 

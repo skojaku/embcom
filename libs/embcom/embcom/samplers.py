@@ -139,7 +139,8 @@ class SimpleWalkSampler(NodeSampler):
 
     def _init_center_context_pairs(self, center, context, freq):
         self.W = sparse.csr_matrix(
-            (freq, (center, context)), shape=(self.num_nodes, self.num_nodes),
+            (freq, (center, context)),
+            shape=(self.num_nodes, self.num_nodes),
         )
         self.cum_trans_prob = calc_cum_trans_prob(self.W.copy())
         self.center_prob = np.array(self.W.sum(axis=1)).reshape(-1)
@@ -212,9 +213,11 @@ class SimpleWalkSampler(NodeSampler):
 
     def get_center_context_pairs(self):
         if self.W is None:
-            (center, context, freq,) = generate_center_context_pair(
-                self.walks, self.window_length
-            )
+            (
+                center,
+                context,
+                freq,
+            ) = generate_center_context_pair(self.walks, self.window_length)
             self._init_center_context_pairs(center, context, freq)
             return center, context, freq
         else:
@@ -245,14 +248,27 @@ class NonBacktrackingWalkSampler(NodeSampler):
         self.walk_length = walk_length
         self.window_length = window_length
         self.walks = None
+        self.W = None
 
     def sampling(self, net):
         self.num_nodes = net.shape[0]
         self.A = net
         self.walks = simulate_non_backtracking_walk(
-            self.A, self.num_walks, self.walk_length,
+            self.A,
+            self.num_walks,
+            self.walk_length,
         )
         self.walks = self.walks.astype(int)
+
+    def _init_center_context_pairs(self, center, context, freq):
+        self.W = sparse.csr_matrix(
+            (freq.astype(float), (center, context)),
+            shape=(self.num_nodes, self.num_nodes),
+        )
+        self.cum_trans_prob = calc_cum_trans_prob(self.W.copy())
+        self.center_prob = np.array(self.W.sum(axis=1)).reshape(-1)
+        if ~np.isclose(np.sum(self.center_prob), 0):
+            self.center_prob /= np.sum(self.center_prob)
 
     def get_trans_matrix(self, scale="normal"):
         """Construct the transition matrix for the node sequence.
@@ -265,11 +281,28 @@ class NonBacktrackingWalkSampler(NodeSampler):
         """
         raise NotImplementedError("")
 
-    def get_center_context_pairs(self, num_walks=5):
-        raise NotImplementedError("")
+    def get_center_context_pairs(self):
+        if self.W is None:
+            (
+                center,
+                context,
+                freq,
+            ) = generate_center_context_pair(self.walks, self.window_length)
+            self._init_center_context_pairs(center, context, freq)
+            return center, context, freq
+        else:
+            center, context, freq = sparse.find(self.W)
+            return center, context, freq
 
-    def sample_context(self, pos_pairs, sz):
-        raise NotImplementedError("")
+    def sample_context(self, center, sz):
+        context = sample_columns_from_cum_prob(
+            np.repeat(center, sz),
+            self.cum_trans_prob.indptr,
+            self.cum_trans_prob.indices,
+            self.cum_trans_prob.data,
+        )
+        context = context.reshape((len(center), sz))
+        return context
 
 
 def simulate_non_backtracking_walk(
@@ -317,7 +350,11 @@ def simulate_non_backtracking_walk(
 
 @njit(nogil=True)
 def _simulate_non_backtracking_walk(
-    A_indptr, A_indices, A_data, start_node_ids, walk_length,  # should be cumulative
+    A_indptr,
+    A_indices,
+    A_data,
+    start_node_ids,
+    walk_length,  # should be cumulative
 ):
     """Sampler based on a non-backtracking walk. A random walker chooses a
     neighbor with probability proportional to edge weights. For a fast
@@ -380,7 +417,10 @@ def calc_cum_trans_prob(A):
 
 @njit(nogil=True)
 def _calc_cum_trans_prob(
-    A_indptr, A_indices, A_data_, num_nodes,  # should be cumulative
+    A_indptr,
+    A_indices,
+    A_data_,
+    num_nodes,  # should be cumulative
 ):
     A_data = A_data_.copy()
     for i in range(num_nodes):
@@ -403,7 +443,9 @@ def sample_columns_from_cum_prob(rows, A_indptr, A_indices, A_data):
 
         # find a neighbor by a roulette selection
         _ind = np.searchsorted(
-            A_data[A_indptr[r] : A_indptr[r + 1]], np.random.rand(), side="right",
+            A_data[A_indptr[r] : A_indptr[r + 1]],
+            np.random.rand(),
+            side="right",
         )
         retvals[i] = A_indices[A_indptr[r] + _ind]
     return retvals
@@ -599,7 +641,7 @@ def sample_center_context_pair(
     ids = np.fromiter(pair_cnt.keys(), dtype=int)
     freq = np.fromiter(pair_cnt.values(), dtype=float)
     w = np.floor((np.sqrt(8 * ids + 1) - 1) * 0.5)
-    t = (w ** 2 + w) * 0.5
+    t = (w**2 + w) * 0.5
     context = ids - t
     center = w - context
     return center.astype(int), context.astype(int), freq
@@ -681,7 +723,7 @@ def _generate_center_context_pair(walks, window_length):
 
     # Deparing
     w = np.floor((np.sqrt(8 * ids + 1) - 1) * 0.5)
-    t = (w ** 2 + w) * 0.5
+    t = (w**2 + w) * 0.5
     context = ids - t
     center = w - context
     return center, context, freq

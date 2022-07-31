@@ -28,7 +28,8 @@ def KMeans(emb, group_ids, metric="euclidean"):
         X = np.einsum("ij,i->ij", emb, 1 / np.maximum(np.linalg.norm(emb, axis=1), 1e-24))
     else:
         X = emb
-    kmeans = cluster.MiniBatchKMeans(n_clusters=K, random_state=0).fit(X)
+    kmeans = cluster.KMeans(n_clusters=K, random_state=0).fit(X)
+    #kmeans = cluster.MiniBatchKMeans(n_clusters=K, random_state=0).fit(X)
     labels = kmeans.labels_
     return labels
 
