@@ -31,7 +31,7 @@ net_params = {
     #"K": [2, 64],  # Number of communities
     "cave": [10, 50],  # average degree
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
-    "sample": np.arange(3),  # Number of samples
+    "sample": np.arange(10),  # Number of samples
 }
 
 # Convert to a paramspace
