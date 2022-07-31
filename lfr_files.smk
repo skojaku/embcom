@@ -10,7 +10,7 @@ lfr_net_params = {
     "tau2": [1],  # community size exponent
     "minc": [50],  # min community size
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
-    "sample": np.arange(3),  # Number of samples
+    "sample": np.arange(10),  # Number of samples
 }
 
 # Convert to a paramspace
