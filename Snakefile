@@ -66,8 +66,6 @@ com_detect_params = {
 clustering_params = {
     "metric": ["cosine"],
     "clustering": ["voronoi", "kmeans"],
-    "normalize": [True, False],
-    "dimThreshold":[True, False]
 }
 
 # ============

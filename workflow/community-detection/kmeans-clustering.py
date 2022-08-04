@@ -12,19 +12,12 @@ if "snakemake" in sys.modules:
     output_file = snakemake.output["output_file"]
     params = snakemake.params["parameters"]
     metric = params["metric"]
-
-    normalize = params["normalize"]
-    dimThreshold = params["dimThreshold"]
     model_name = params["model_name"]
 
-    if isinstance(normalize, str):
-        normalize == normalize == "True"
-
-    if isinstance(dimThreshold, str):
-        dimThreshold == dimThreshold == "True"
 else:
-    emb_file = "../../data/multi_partition_model/embedding/n~2500_K~2_cave~50_mu~0.7_sample~1_model_name~leigenmap_window_length~10_dim~0.npz"
-    com_file = "../../data/multi_partition_model/networks/node_n~2500_K~2_cave~50_mu~0.7_sample~1.npz"
+    emb_file = "../../data/multi_partition_model/embedding/n~1000_K~2_cave~50_mu~0.70_sample~1_model_name~leigenmap_window_length~10_dim~64.npz"
+    com_file = "../../data/multi_partition_model/networks/node_n~2500_K~2_cave~50_mu~0.70_sample~1.npz"
+    model_name = "leigenmap"
     output_file = "unko"
     metric = "cosine"
 
@@ -51,28 +44,32 @@ emb = emb.copy(order="C").astype(np.float32)
 emb[np.isnan(emb)] = 0
 emb[np.isinf(emb)] = 0
 memberships = pd.read_csv(com_file)["membership"].values.astype(int)
-
+emb_copy = emb.copy()
 
 # Normalize the eigenvector by dimensions
-if dimThreshold:
-    if model_name == "nonbacktracking":
-        norm = np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
-        idx = np.argmax(norm)
-        threshold = np.sqrt(norm[idx])
-        keep = norm >= threshold
-        keep[idx] = False
-        emb = emb[:, keep]
+results = {}
+for dimThreshold in [True, False]:
+    for normalize in [True, False]:
+        emb = emb_copy.copy()
+        if model_name == "nonbacktracking":
+            norm = np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
+            idx = np.argmax(norm)
+            threshold = np.sqrt(norm[idx])
+            keep = norm >= threshold
+            keep[idx] = False
+            emb = emb[:, keep]
 
-if normalize:
-    norm = np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
-    emb = np.einsum("ij,j->ij", emb, 1 / np.maximum(norm, 1e-32))
+        if normalize:
+            norm = np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
+            emb = np.einsum("ij,j->ij", emb, 1 / np.maximum(norm, 1e-32))
 
+        # Evaluate
+        group_ids = KMeans(emb, memberships, metric=metric)
 
-# Evaluate
-# emb = emb @ np.diag(1 / np.linalg.norm(emb, axis=0))
-group_ids = KMeans(emb, memberships, metric=metric)
+        key = f"normalize~{normalize}_dimThreshold~{dimThreshold}"
+        results[key] = group_ids
 
 # %%
 # Save
 #
-np.savez(output_file, group_ids=group_ids)
+np.savez(output_file, **results)

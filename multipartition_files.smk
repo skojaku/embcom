@@ -31,7 +31,7 @@ net_params = {
     #"K": [2, 64],  # Number of communities
     "cave": [10, 50],  # average degree
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
-    "sample": np.arange(10),  # Number of samples
+    "sample": np.arange(3),  # Number of samples
 }
 
 # Convert to a paramspace
@@ -64,16 +64,8 @@ COM_DETECT_EMB_FILE = j(
 # ==========
 # Evaluation
 # ==========
-eval_params = {
-    "scoreType": ["esim", "nmi"],
-}
-eva_emb_paramspace = to_paramspace(
-    [eval_params, net_params, emb_params, clustering_params]
-)
-EVAL_EMB_FILE = j(EVA_DIR, f"score_clus_{eva_emb_paramspace.wildcard_pattern}.npz")
-
-eva_paramspace = to_paramspace([eval_params, net_params, com_detect_params])
-EVAL_FILE = j(EVA_DIR, f"score_{eva_paramspace.wildcard_pattern}.npz")
+EVAL_EMB_FILE = j(EVA_DIR, f"score_clus_{com_detect_emb_paramspace.wildcard_pattern}.npz")
+EVAL_FILE = j(EVA_DIR, f"score_{com_detect_paramspace.wildcard_pattern}.npz")
 
 
 # ===============================
@@ -192,8 +184,6 @@ rule evaluate_communities:
         com_file=NODE_FILE,
     output:
         output_file=EVAL_FILE,
-    params:
-        parameters=eva_paramspace.instance,
     resources:
         mem="12G",
         time="00:10:00"
@@ -207,8 +197,6 @@ rule evaluate_communities_for_embedding:
         com_file=NODE_FILE,
     output:
         output_file=EVAL_EMB_FILE,
-    params:
-        parameters=eva_paramspace.instance,
     resources:
         mem="12G",
         time="00:20:00"
@@ -223,14 +211,12 @@ rule concatenate_results_multipartition:
             data="multi_partition_model",
             **net_params,
             **com_detect_params,
-            **eval_params
         ) + expand(
             EVAL_EMB_FILE,
             data="multi_partition_model",
             **net_params,
             **emb_params,
             **clustering_params,
-            **eval_params
         ),
     output:
         output_file=EVAL_CONCAT_FILE,
