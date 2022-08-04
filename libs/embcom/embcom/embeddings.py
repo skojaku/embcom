@@ -1,20 +1,12 @@
 """Module for embedding."""
-import logging
-
-import faiss
+# %%
 import gensim
 import networkx as nx
-import numba
 import numpy as np
-import pandas as pd
-import scipy
-from scipy import sparse, stats
+from scipy import sparse
 from sklearn.decomposition import TruncatedSVD
 
 from embcom import rsvd, samplers, utils
-
-logger = logging.getLogger(__name__)
-
 
 try:
     import glove
@@ -200,26 +192,20 @@ class LevyWord2Vec(NodeEmbeddings):
         ------
         self : Node2Vec
         """
-        logger.debug("sampling - start")
         A = utils.to_adjacency_matrix(net)
         self.sampler.sampling(A)
-        logger.debug("sampling - finished")
         return self
 
     def update_embedding(self, dim):
         # Update the dimension and train the model
 
         # Sample the sequence of nodes using a random walk
-        logger.debug("retrieve center context pairs")
         center, context, freq = self.sampler.get_center_context_pairs()
         center = center.astype(int)
         context = context.astype(int)
-        logger.debug("{} pairs generated".format(len(center)))
 
-        logger.debug("count the frequency of words")
         Pi = np.bincount(center, weights=freq, minlength=self.sampler.A.shape[0])
         Pi = np.minimum(Pi, 1)
-        logger.debug("Calculate the Q matrix")
         Qij = (
             np.log(np.sum(freq))
             + np.log(freq)
@@ -230,7 +216,6 @@ class LevyWord2Vec(NodeEmbeddings):
         Q = sparse.csr_matrix(
             (freq[s], (center[s], context[s])), shape=self.sampler.A.shape
         )
-        logger.debug("SVD")
         svd = TruncatedSVD(n_components=dim, n_iter=7, random_state=42)
         in_vec = svd.fit_transform(Q)
         val = svd.singular_values_
@@ -282,7 +267,8 @@ class LaplacianEigenMap(NodeEmbeddings):
 
 class AdjacencySpectralEmbedding(NodeEmbeddings):
     def __init__(
-        self, verbose=False,
+        self,
+        verbose=False,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -302,7 +288,8 @@ class AdjacencySpectralEmbedding(NodeEmbeddings):
 
 class ModularitySpectralEmbedding(NodeEmbeddings):
     def __init__(
-        self, verbose=False,
+        self,
+        verbose=False,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -327,7 +314,9 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
 
 class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
     def __init__(
-        self, verbose=False, window_length=10,
+        self,
+        verbose=False,
+        window_length=10,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -357,7 +346,9 @@ class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
 
 class LinearizedNode2Vec(NodeEmbeddings):
     def __init__(
-        self, verbose=False, window_length=10,
+        self,
+        verbose=False,
+        window_length=10,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
@@ -386,7 +377,7 @@ class LinearizedNode2Vec(NodeEmbeddings):
         # s = s[mask]
 
         if self.window_length > 1:
-            s = (s * (1 - s ** self.window_length)) / (self.window_length * (1 - s))
+            s = (s * (1 - s**self.window_length)) / (self.window_length * (1 - s))
 
         self.in_vec = u @ sparse.diags(s)
         self.out_vec = None
@@ -414,13 +405,19 @@ class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
         B = sparse.bmat([[Z, D - I], [-I, self.A]], format="csr")
 
         if self.auto_dim is False:
-            s, v = sparse.linalg.eigs(B, k=dim + 1, tol=1e-4)
-            order = np.argsort(s)
+            s, v = sparse.linalg.eigs(B, k=dim, tol=1e-4)
+            s, v = np.real(s), np.real(v)
+            order = np.argsort(-np.abs(s))
             s, v = s[order], v[:, order]
-            s, v = s[1:], v[:, 1:]
             v = v[N:, :]
+
+            # Normalize the eigenvectors because we cut half the vec
+            # and omit the imaginary part.
             c = np.array(np.linalg.norm(v, axis=0)).reshape(-1)
             v = v @ np.diag(1 / c)
+
+            # Weight the dimension by the eigenvalues
+            v = v @ np.diag(np.sqrt(np.abs(s)))
         else:
             dim = int(self.C * np.sqrt(N))
             dim = np.minimum(dim, N - 1)

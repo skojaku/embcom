@@ -66,6 +66,8 @@ com_detect_params = {
 clustering_params = {
     "metric": ["cosine"],
     "clustering": ["voronoi", "kmeans"],
+    "normalize": [True, False],
+    "dimThreshold":[True, False]
 }
 
 # ============
@@ -83,7 +85,7 @@ include: "./lfr_files.smk"
 # RULES
 # ======
 
-#DATA_LIST = ["lfr"]
+DATA_LIST = ["lfr"]
 DATA_LIST = ["multi_partition_model", "lfr"]
 
 
