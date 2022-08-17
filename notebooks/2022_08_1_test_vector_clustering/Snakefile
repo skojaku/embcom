@@ -1,0 +1,116 @@
+import numpy as np
+from os.path import join as j
+import itertools
+import pandas as pd
+from snakemake.utils import Paramspace
+
+configfile: "../../workflow/config.yaml"
+
+# Module workflows
+DATA_DIR = "data"
+FIG_DIR = j("figs", "{data}")
+NET_DIR = j(DATA_DIR, "{data}", "networks")
+EMB_DIR = j(DATA_DIR, "{data}", "embedding")
+COM_DIR = j(DATA_DIR, "{data}", "communities")
+EVA_DIR = j(DATA_DIR, "{data}", "evaluations")
+VAL_SPEC_DIR = j(DATA_DIR, "{data}", "spectral_analysis")
+
+emb_params = {
+    "model_name": [
+        "node2vec",
+#        "deepwalk",
+#        #"glove",
+#        "line",
+#        "leigenmap",
+        "modspec",
+#        "linearized-node2vec",
+        "non-backtracking-node2vec",
+#        "non-backtracking-deepwalk",
+#        #"non-backtracking-glove",
+#        "nonbacktracking",
+#        "depthfirst-node2vec",
+    ],
+    "window_length": [10],
+    "dim": [64],
+    #"dim": [64],
+}
+
+
+include: "../../utils.smk"
+
+notebook_net_params = {
+    "n": [100000],  # Network size
+    "k": [10, 50],  # Average degree
+    "tau": [3],  # degree exponent
+    "tau2": [1],  # community size exponent
+    "minc": [50],  # min community size
+    "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
+    "sample": np.arange(3),  # Number of samples
+}
+emb_paramspace = to_paramspace([notebook_net_params, emb_params])
+net_paramspace = to_paramspace(notebook_net_params)
+EMB_FILE = j("../../data", "{data}", "embedding", f"{emb_paramspace.wildcard_pattern}.npz")
+NODE_FILE = j("../../data", "{data}", "networks", f"node_{net_paramspace.wildcard_pattern}.npz") 
+EVAL_EMB_FILE = j("data", "{data}", "results", f"{emb_paramspace.wildcard_pattern}.npz")
+EVAL_CONCAT_FILE = j("data", "{data}", "results", "all-result.csv")
+
+# =========
+# FIGURES
+# =========
+fig_lfr_params_perf_vs_mixing = {
+    "dim": [64],
+    "k": [10, 50],  # Average degree
+    "n": [100000],
+    "metric": ["cosine"],
+    "length": [10],
+    "score_type": ["esim", "nmi"],
+    "data": ["lfr"],
+}
+fig_lfr_perf_vs_mixing_paramspace = to_paramspace(fig_lfr_params_perf_vs_mixing)
+
+FIG_LFR_PERFORMANCE_VS_MIXING = j(
+    FIG_DIR,
+    "perf_vs_mixing",
+    f"fig_{fig_lfr_perf_vs_mixing_paramspace.wildcard_pattern}.pdf",
+)
+
+rule all:
+    input:
+        expand(EVAL_EMB_FILE, data="lfr", **emb_params, **notebook_net_params),
+        expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing)
+
+rule run_clustering:
+    input:
+        emb_file = EMB_FILE,
+        node_table_file = NODE_FILE,
+    output:
+        output_file = EVAL_EMB_FILE
+    script:
+        "workflow/clustering.py"
+
+
+rule concatenate_results_lfr:
+    input:
+        input_files = expand(EVAL_EMB_FILE, data="lfr", **emb_params, **notebook_net_params)
+    output:
+        output_file=EVAL_CONCAT_FILE
+    wildcard_constraints:
+        data="lfr"
+    params:
+        to_int=["n", "k", "tau", "tau2", "minc", "dim", "sample", "length", "dim"],
+        to_float=["mu"],
+    script:
+        "workflow/concatenate_results.py"
+
+rule plot_lfr_performance_vs_mixing:
+    input:
+        input_file=EVAL_CONCAT_FILE,
+    output:
+        output_file=FIG_LFR_PERFORMANCE_VS_MIXING,
+    params:
+        parameters=fig_lfr_perf_vs_mixing_paramspace.instance,
+    resources:
+        mem="4G",
+        time="00:50:00"
+    script:
+        "workflow/plot_lfr_result.py"

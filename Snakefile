@@ -83,7 +83,7 @@ include: "./lfr_files.smk"
 # RULES
 # ======
 
-#DATA_LIST = ["lfr"]
+DATA_LIST = ["lfr"]
 DATA_LIST = ["multi_partition_model", "lfr"]
 
 
