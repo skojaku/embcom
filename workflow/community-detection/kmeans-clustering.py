@@ -51,12 +51,14 @@ results = {}
 for dimThreshold in [True, False]:
     for normalize in [True, False]:
         emb = emb_copy.copy()
-        if model_name == "nonbacktracking":
+        if (model_name == "nonbacktracking") & dimThreshold:
             norm = np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
             idx = np.argmax(norm)
             threshold = np.sqrt(norm[idx])
             keep = norm >= threshold
             keep[idx] = False
+            if any(keep) is False:
+                keep[idx] = True
             emb = emb[:, keep]
 
         if normalize:

@@ -11,7 +11,7 @@ if "snakemake" in sys.modules:
     output_file = snakemake.output["output_file"]
     params = snakemake.params["parameters"]
 else:
-    input_file = "../../data/lfr/evaluations/all-result.csv"
+    input_file = "../data/lfr/results/all-result.csv"
     output_file = "../data/"
 
     params = {
@@ -20,14 +20,20 @@ else:
         "metric": "cosine",
         "length": 10,
         "k": 50,
-        "clustering": "voronoi",
-        "score_type": "nmi",
+        "score_type": "esim",
+        "clustering": [
+            "louvain",
+            "clustering~kmeans_normalize~True",
+            "clustering~voronoi_normalize~True",
+        ],
     }
 
 #
 # Load
 #
 data_table = pd.read_csv(input_file)
+
+# %%
 
 #
 plot_data = data_table.copy()
@@ -39,7 +45,7 @@ for k, v in params.items():
     plot_data = plot_data[(plot_data[k].isin(v)) | pd.isna(plot_data[k])]
 
 plot_data = plot_data[plot_data["name"] != "levy-word2vec"]
-
+plot_data
 # %%
 #
 # Plot
@@ -54,18 +60,17 @@ model_markers = cp.get_model_markers()
 model_linestyles = list(cp.get_model_linestyles().values())
 model_names = cp.get_model_names()
 
-fig, ax = plt.subplots(figsize=(5.5, 5.5))
+fig, ax = plt.subplots(figsize=(7, 5))
 
 ax = sns.lineplot(
     data=plot_data,
     x="mu",
     y="score",
-    hue="name",
-    style="name",
-    markers=model_markers,
-    style_order=model_list,
-    hue_order=model_list,
-    palette=model_color,
+    hue="clustering",
+    # markers=model_markers,
+    # style_order=model_list,
+    # hue_order=model_list,
+    # palette=model_color,
     markeredgecolor="k",
     ax=ax,
 )
@@ -78,26 +83,20 @@ elif params["score_type"] == "esim":
     ax.set_ylabel(r"Element-centric similarity")
 
 ax.set_ylim(-0.03, 1.05)
+ax.legend(bbox_to_anchor = (0.5, -0.15), loc = "upper center", frameon = False, ncol = 2)
 # mu_max = 1 - 1 / np.sqrt(params["cave"])
 # ax.axvline(mu_max, color="black", linestyle="--")
 
-current_handles, current_labels = ax.get_legend_handles_labels()
-new_labels = [model_names[l] for l in current_labels]
-lgd = ax.legend(
-    current_handles,
-    new_labels,
-    frameon=False,
-    loc="upper left",
-    bbox_to_anchor=(-0.15, -0.15),
-    ncol=3,
-    fontsize=7,
-    # labels=[model_names[m] for m in model_list],
-)
 sns.despine()
 
-fig.savefig(
-    output_file,
-    bbox_extra_artists=(lgd,),
-    bbox_inches="tight",
-    dpi=300,
-)
+# fig.savefig(
+#    output_file,
+#    bbox_extra_artists=(lgd,),
+#    bbox_inches="tight",
+#    dpi=300,
+# )
+
+# %%
+plot_data
+
+# %%

@@ -82,6 +82,8 @@ for dimThreshold in [True, False]:
             threshold = np.sqrt(norm[idx])
             keep = norm >= threshold
             keep[idx] = False
+            if any(keep) is False:
+                keep[idx] = True
             emb = emb[:, keep]
 
         if normalize:

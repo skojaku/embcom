@@ -14,6 +14,7 @@ class Louvain4Vectors:
 
     def clustering(self, Z, return_member_matrix=False):
         """A Louvain algorithm for the Potts model."""
+        Z = np.ascontiguousarray(Z, dtype=np.float32)
         if Z.shape[0] == 1:
             cids = np.array([0])
             if return_member_matrix:
@@ -57,6 +58,7 @@ class Louvain4Vectors:
         return cids
 
     def fit(self, emb):
+        emb = np.ascontiguousarray(emb, dtype=np.float32)
         rpos, cpos, vpos = find_knn_edges(
             emb, num_neighbors=self.num_neighbors, device=self.device
         )
