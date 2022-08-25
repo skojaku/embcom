@@ -44,7 +44,7 @@ def generate_network(Cave, mixing_rate, N, q):
     gt_params = {
         "b": memberships,
         "probs": probs,
-        "micro_degs": True,
+        "micro_degs": False,
         "in_degs": np.ones_like(memberships) * Cave,
         "out_degs": np.ones_like(memberships) * Cave,
     }
