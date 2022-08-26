@@ -18,6 +18,11 @@ FIG_PERFORMANCE_VS_MIXING = j(
     "perf_vs_mixing",
     f"fig_{fig_perf_vs_mixing_paramspace.wildcard_pattern}.pdf",
 )
+FIG_PERFORMANCE_VS_MIXING_NB = j(
+    FIG_DIR,
+    "perf_vs_mixing",
+    f"fig_nonbacktracking_{fig_perf_vs_mixing_paramspace.wildcard_pattern}.pdf",
+)
 
 # ================================
 # Networks and communities
@@ -31,7 +36,7 @@ net_params = {
     #"K": [2, 64],  # Number of communities
     "cave": [10, 50],  # average degree
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
-    "sample": np.arange(3),  # Number of samples
+    "sample": np.arange(10),  # Number of samples
 }
 
 # Convert to a paramspace
@@ -249,11 +254,28 @@ rule calc_spectral_density_linearized_node2vec:
 #
 rule plot_performance_vs_mixing:
     input:
-        input_file=EVAL_CONCAT_FILE,
+        #input_file=EVAL_CONCAT_FILE,
+        input_file="data/multi_partition_model/all-result.csv",
     output:
         output_file=FIG_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_perf_vs_mixing_paramspace.instance,
+        model_names = ["non-backtracking-node2vec", "nonbacktracking", "node2vec", "deepwalk", "line", "infomap", "flatsbm"]
+    resources:
+        mem="4G",
+        time="00:50:00"
+    script:
+        "workflow/plot/plot-mixing-vs-performance.py"
+
+rule plot_performance_vs_mixing_nb:
+    input:
+        input_file="data/multi_partition_model/all-result.csv",
+        #input_file=EVAL_CONCAT_FILE,
+    output:
+        output_file=FIG_PERFORMANCE_VS_MIXING_NB,
+    params:
+        parameters=fig_perf_vs_mixing_paramspace.instance,
+        model_names = ["non-backtracking-node2vec", "nonbacktracking", "depthfirst-node2vec", "non-backtracking-deepwalk"]
     resources:
         mem="4G",
         time="00:50:00"
