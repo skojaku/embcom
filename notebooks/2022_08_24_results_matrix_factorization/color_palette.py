@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 def get_model_order():
     return [
         "non-backtracking-node2vec",
-        "node2vec",
         "non-backtracking-deepwalk",
+        "nonbacktracking",
+        "node2vec",
         "depthfirst-node2vec",
         "deepwalk",
         "line",
         "linearized-node2vec",
         "modspec",
-        "nonbacktracking",
         "leigenmap",
         "infomap",
         "flatsbm",
@@ -52,8 +52,8 @@ def get_model_linestyles():
         "line": (2, 4),
         "linearized-node2vec": (0, 0),
         "modspec": (1, 1),
-        "nonbacktracking": (2, 2),
-        "leigenmap": (3, 3),
+        "nonbacktracking": (0, 0),
+        "leigenmap": (1, 1),
         "infomap": (0, 0),
         "flatsbm": (1, 1),
     }

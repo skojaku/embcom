@@ -52,23 +52,24 @@ sns.set(font_scale=1.3)
 sns.set_style("ticks")
 
 model_list = cp.get_model_order()
-model_list = plot_data["name"].unique().tolist()
+data_model_list = plot_data["name"].unique().tolist()
+model_list = [k for k in model_list if k in data_model_list]
 
-muted_colors = sns.color_palette(desat=0.8).as_hex()
+muted_colors = sns.color_palette().as_hex()
 colors = sns.color_palette("muted").as_hex()
 model_color = {
-    "nonbacktracking": colors[1],
-    "leigenmap": muted_colors[2],
+    "nonbacktracking": "#2d2d2d",
+    "leigenmap": muted_colors[3],
     "modspec": muted_colors[0],
-    "linearized-node2vec": muted_colors[4],
+    "linearized-node2vec": muted_colors[1],
 }
 
 model_markers = cp.get_model_markers()
-model_linestyles = list(cp.get_model_linestyles().values())
+model_linestyles = cp.get_model_linestyles()
 model_names = cp.get_model_names()
 
 model_markers = {k: model_markers[k] for k in model_list}
-model_linestyles = [model_linestyles[k] for k, _ in enumerate(model_list)]
+model_linestyles = {k: model_linestyles[k] for k in model_list}
 model_names = {k: model_names[k] for k in model_list}
 
 fig, axes = plt.subplots(figsize=(11, 5), ncols=2)
@@ -79,6 +80,7 @@ ax = sns.lineplot(
     y="score",
     hue="name",
     style="name",
+    # dashes=model_linestyles,
     markers=model_markers,
     style_order=model_list,
     hue_order=model_list,
@@ -122,6 +124,7 @@ ax.annotate(
     xycoords="axes fraction",
 )
 
+#
 ax = sns.lineplot(
     data=plot_data[plot_data["cave"] == 10],
     x="mu",
