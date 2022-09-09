@@ -8,6 +8,7 @@ import pandas as pd
 from scipy import sparse
 
 import embcom
+from scipy.sparse.csgraph import connected_components
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -28,12 +29,12 @@ if "snakemake" in sys.modules:
     model_name = params["model_name"]
     num_walks = 10
 else:
-    netfile = "../../data/multi_partition_model/networks/net_n~100000_K~1000_cave~20_mu~0.1_sample~0.npz"
-    com_file = "../../data/multi_partition_model/networks/node_n~100000_K~1000_cave~20_mu~0.1_sample~0.npz"
+    netfile = "../../data/multi_partition_model/networks/net_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
+    com_file = "../../data/multi_partition_model/networks/node_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
     embfile = "tmp.npz"
     dim = 64
     window_length = 10
-    model_name = "line"
+    model_name = "node2vec"
     num_walks = 10
 
 
@@ -55,10 +56,16 @@ if model_name == "levy-word2vec":
         window_length=window_length, restart_prob=0, num_walks=num_walks
     )
 elif model_name == "node2vec":
-    model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks)
+    # model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks)
+    model = embcom.embeddings.Node2Vec(
+        window_length=window_length, restart_prob=0, num_walks=num_walks
+    )
 elif model_name == "depthfirst-node2vec":
-    model = fastnode2vec.Node2Vec(
-        window_length=window_length, num_walks=num_walks, p=10, q=0.1
+    # model = fastnode2vec.Node2Vec(
+    #    window_length=window_length, num_walks=num_walks, p=10, q=0.1
+    # )
+    model = embcom.embeddings.Node2Vec(
+        window_length=window_length, restart_prob=0, num_walks=num_walks, p=100, q=1
     )
 elif model_name == "node2vec-qhalf":
     model = fastnode2vec.Node2Vec(
@@ -67,7 +74,10 @@ elif model_name == "node2vec-qhalf":
 elif model_name == "node2vec-qdouble":
     model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks, q=2)
 elif model_name == "deepwalk":
-    model = fastnode2vec.DeepWalk(window_length=window_length, num_walks=num_walks)
+    # model = fastnode2vec.DeepWalk(window_length=window_length, num_walks=num_walks)
+    model = embcom.embeddings.DeepWalk(
+        window_length=window_length, restart_prob=0, num_walks=num_walks
+    )
 elif model_name == "line":
     model = fastnode2vec.LINE(num_walks=num_walks, workers=4)
 elif model_name == "glove":
@@ -105,17 +115,37 @@ elif model_name == "non-backtracking-glove":
         window_length=window_length, num_walks=num_walks
     )
 
-#
+# %%
 # Embedding
 #
-model.fit(sparse.csr_matrix(net))
-emb = model.transform(dim=dim)
 
+# Get the largest connected component
+net = sparse.csr_matrix(net)
+component_ids = connected_components(net)[1]
+u_component_ids, freq = np.unique(component_ids, return_counts=True)
+ids = np.where(u_component_ids[np.argmax(freq)] == component_ids)[0]
+H = sparse.csr_matrix(
+    (np.ones_like(ids), (ids, np.arange(len(ids)))), shape=(net.shape[0], len(ids))
+)
+HT = sparse.csr_matrix(H.T)
+net_ = HT @ net @ H
+model.fit(net_)
+emb_ = model.transform(dim=dim)
+
+# Enlarge the embedding to the size of the original net
+# All nodes that do not belong to the largest connected component have nan
+ids = np.where(u_component_ids[np.argmax(freq)] != component_ids)[0]
+emb = H @ emb_
+emb[ids, :] = np.nan
+
+# %%
 #
 # Save
 #
 np.savez_compressed(
-    embfile, emb=emb, window_length=window_length, dim=dim, model_name=model_name,
+    embfile,
+    emb=emb,
+    window_length=window_length,
+    dim=dim,
+    model_name=model_name,
 )
-
-# %%

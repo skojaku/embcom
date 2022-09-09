@@ -168,12 +168,13 @@ rule concatenate_results_lfr:
 #
 rule plot_lfr_performance_vs_mixing:
     input:
-        #input_file="data/lfr/all-result.csv",
-        input_file=EVAL_CONCAT_FILE,
+        input_file="data/lfr/all-result.csv",
+        #input_file=EVAL_CONCAT_FILE,
     output:
         output_file=FIG_LFR_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_lfr_perf_vs_mixing_paramspace.instance,
+        model_names = ["non-backtracking-node2vec", "nonbacktracking", "depthfirst-node2vec", "non-backtracking-deepwalk", "node2vec", "deepwalk", "line", "infomap", "flatsbm"]
     resources:
         mem="4G",
         time="00:50:00"
