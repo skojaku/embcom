@@ -56,7 +56,6 @@ class Node2Vec(NodeEmbeddings):
     walk_length : int (optional, default 40)
         Length of walks
     window_length : int (optional, default 10)
-    restart_prob : float (optional, default 0)
         Restart probability of a random walker.
     p : node2vec parameter (TODO: Write doc)
     q : node2vec parameter (TODO: Write doc)
@@ -67,24 +66,18 @@ class Node2Vec(NodeEmbeddings):
         num_walks=10,
         walk_length=80,
         window_length=10,
-        restart_prob=0,
         p=1.0,
         q=1.0,
         verbose=False,
-        random_teleport=False,
     ):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
-        self.sampler = samplers.SimpleWalkSampler(
-            num_walks,
-            walk_length,
-            window_length,
-            restart_prob,
-            p,
-            q,
-            sample_center_context_pairs=False,
-            verbose=False,
-            random_teleport=random_teleport,
+        self.window_length = window_length
+        self.sampler = samplers.Node2VecWalkSampler(
+            num_walks = num_walks,
+            walk_length = walk_length,
+            p = p,
+            q = q,
         )
 
         self.sentences = None
@@ -118,24 +111,20 @@ class Node2Vec(NodeEmbeddings):
     def update_embedding(self, dim):
         # Update the dimension and train the model
         # Sample the sequence of nodes using a random walk
-        self.w2vparams["window"] = self.sampler.window_length
-
-        self.sentences = utils.walk2gensim_sentence(
-            self.sampler.walks, self.sampler.window_length
-        )
+        self.w2vparams["window"] = self.window_length
 
         self.w2vparams["vector_size"] = dim
-        self.model = gensim.models.Word2Vec(sentences=self.sentences, **self.w2vparams)
+        self.model = gensim.models.Word2Vec(sentences=self.sampler.walks, **self.w2vparams)
 
         num_nodes = len(self.model.wv.index_to_key)
         self.in_vec = np.zeros((num_nodes, dim))
         self.out_vec = np.zeros((num_nodes, dim))
         for i in range(num_nodes):
-            if "%d" % i not in self.model.wv:
+            if i not in self.model.wv:
                 continue
-            self.in_vec[i, :] = self.model.wv["%d" % i]
+            self.in_vec[i, :] = self.model.wv[i]
             self.out_vec[i, :] = self.model.syn1neg[
-                self.model.wv.key_to_index["%d" % i]
+                self.model.wv.key_to_index[i]
             ]
 
 
@@ -149,83 +138,6 @@ class DeepWalk(Node2Vec):
             "workers": 4,
         }
 
-
-class LevyWord2Vec(NodeEmbeddings):
-    """A python class for the Levy's matrix MF.
-
-    Equivalent to pResidual2Vec with the configuration sampler
-    """
-
-    def __init__(
-        self,
-        num_walks=10,
-        walk_length=80,
-        window_length=10,
-        restart_prob=0,
-        p=1.0,
-        q=1.0,
-        verbose=False,
-    ):
-        self.in_vec = None  # In-vector
-        self.out_vec = None  # Out-vector
-        self.sampler = samplers.SimpleWalkSampler(
-            num_walks,
-            walk_length,
-            window_length,
-            restart_prob,
-            p,
-            q,
-            sample_center_context_pairs=True,
-            verbose=False,
-        )
-
-    def fit(self, net):
-        """Estimating the parameters for embedding.
-
-        Parameters
-        ---------
-        net : nx.Graph object
-            Network to be embedded. The graph type can be anything if
-            the graph type is supported for the node samplers.
-
-        Return
-        ------
-        self : Node2Vec
-        """
-        A = utils.to_adjacency_matrix(net)
-        self.sampler.sampling(A)
-        return self
-
-    def update_embedding(self, dim):
-        # Update the dimension and train the model
-
-        # Sample the sequence of nodes using a random walk
-        center, context, freq = self.sampler.get_center_context_pairs()
-        center = center.astype(int)
-        context = context.astype(int)
-
-        Pi = np.bincount(center, weights=freq, minlength=self.sampler.A.shape[0])
-        Pi = np.minimum(Pi, 1)
-        Qij = (
-            np.log(np.sum(freq))
-            + np.log(freq)
-            - np.log(Pi[center])
-            - np.log(Pi[context])
-        )
-        s = Qij > 0
-        Q = sparse.csr_matrix(
-            (freq[s], (center[s], context[s])), shape=self.sampler.A.shape
-        )
-        svd = TruncatedSVD(n_components=dim, n_iter=7, random_state=42)
-        in_vec = svd.fit_transform(Q)
-        val = svd.singular_values_
-        out_vec = in_vec.copy()
-        # in_vec, val, out_vec = rsvd.rSVD(Q, dim)
-        order = np.argsort(val)[::-1]
-        val = val[order]
-        alpha = 0.5
-        self.in_vec = in_vec[:, order] @ np.diag(np.power(val, alpha))
-        self.out_vec = out_vec[order, :].T @ np.diag(np.power(val, 1 - alpha))
 
 
 class LaplacianEigenMap(NodeEmbeddings):
@@ -476,7 +388,6 @@ class NonBacktrackingNode2Vec(Node2Vec):
     walk_length : int (optional, default 40)
         Length of walks
     window_length : int (optional, default 10)
-    restart_prob : float (optional, default 0)
         Restart probability of a random walker.
     p : node2vec parameter (TODO: Write doc)
     q : node2vec parameter (TODO: Write doc)
@@ -491,7 +402,7 @@ class NonBacktrackingNode2Vec(Node2Vec):
             **params
         )
         self.sampler = samplers.NonBacktrackingWalkSampler(
-            num_walks=num_walks, walk_length=walk_length, window_length=window_length
+            num_walks=num_walks, walk_length=walk_length
         )
 
 
@@ -505,7 +416,6 @@ class NonBacktrackingDeepWalk(DeepWalk):
     walk_length : int (optional, default 40)
         Length of walks
     window_length : int (optional, default 10)
-    restart_prob : float (optional, default 0)
         Restart probability of a random walker.
     p : node2vec parameter (TODO: Write doc)
     q : node2vec parameter (TODO: Write doc)
@@ -520,98 +430,5 @@ class NonBacktrackingDeepWalk(DeepWalk):
             **params
         )
         self.sampler = samplers.NonBacktrackingWalkSampler(
-            num_walks=num_walks, walk_length=walk_length, window_length=window_length
-        )
-
-
-class Glove(NodeEmbeddings):
-    def __init__(
-        self,
-        num_walks=10,
-        walk_length=40,
-        window_length=10,
-        restart_prob=0,
-        p=1.0,
-        q=1.0,
-        verbose=False,
-    ):
-        self.in_vec = None  # In-vector
-        self.out_vec = None  # Out-vector
-        self.sampler = samplers.SimpleWalkSampler(
-            num_walks,
-            walk_length,
-            window_length,
-            restart_prob,
-            p,
-            q,
-            sample_center_context_pairs=True,
-            verbose=False,
-        )
-        self.learning_rate = 0.05
-        self.w2vparams = {"epochs": 25, "no_threads": 4}
-
-    def fit(self, net):
-        A = utils.to_adjacency_matrix(net)
-        self.sampler.sampling(A)
-        center, context, freq = self.sampler.get_center_context_pairs()
-        center = center.astype(int)
-        context = context.astype(int)
-        N = self.sampler.num_nodes
-        self.cooccur = sparse.coo_matrix(
-            (freq, (center, context)), shape=(N, N), dtype="double"
-        )
-        return self
-
-    def transform(self, dim, return_out_vector=False):
-        # Update the in-vector and out-vector if
-        # (i) this is the first to compute the vectors or
-        # (ii) the dimension is different from that
-        # for the previous call of transform function
-        update_embedding = False
-        if self.out_vec is None:
-            update_embedding = True
-        elif self.out_vec.shape[1] != dim:
-            update_embedding = True
-
-        # Update the dimension and train the model
-        if update_embedding:
-            self.model = glove.Glove(
-                no_components=dim, learning_rate=self.learning_rate
-            )
-            self.model.fit(self.cooccur, **self.w2vparams)
-            self.in_vec = self.model.word_vectors
-            self.out_vec = self.model.word_vectors
-
-        if return_out_vector:
-            return self.out_vec
-        else:
-            return self.in_vec
-
-
-class NonBacktrackingGlove(Glove):
-    """A python class for the node2vec.
-
-    Parameters
-    ----------
-    num_walks : int (optional, default 10)
-        Number of walks per node
-    walk_length : int (optional, default 40)
-        Length of walks
-    window_length : int (optional, default 10)
-    restart_prob : float (optional, default 0)
-        Restart probability of a random walker.
-    p : node2vec parameter (TODO: Write doc)
-    q : node2vec parameter (TODO: Write doc)
-    """
-
-    def __init__(self, num_walks=10, walk_length=80, window_length=10, **params):
-        Glove.__init__(
-            self,
-            num_walks=num_walks,
-            walk_length=walk_length,
-            window_length=window_length,
-            **params
-        )
-        self.sampler = samplers.NonBacktrackingWalkSampler(
-            num_walks=10, walk_length=80, window_length=10
+            num_walks=num_walks, walk_length=walk_length
         )

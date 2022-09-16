@@ -53,19 +53,19 @@ if dim == 0:
 #
 if model_name == "levy-word2vec":
     model = embcom.embeddings.LevyWord2Vec(
-        window_length=window_length, restart_prob=0, num_walks=num_walks
+        window_length=window_length, num_walks=num_walks
     )
 elif model_name == "node2vec":
     # model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks)
     model = embcom.embeddings.Node2Vec(
-        window_length=window_length, restart_prob=0, num_walks=num_walks
+        window_length=window_length, num_walks=num_walks
     )
 elif model_name == "depthfirst-node2vec":
     # model = fastnode2vec.Node2Vec(
     #    window_length=window_length, num_walks=num_walks, p=10, q=0.1
     # )
     model = embcom.embeddings.Node2Vec(
-        window_length=window_length, restart_prob=0, num_walks=num_walks, p=100, q=1
+        window_length=window_length, num_walks=num_walks, p=100, q=1
     )
 elif model_name == "node2vec-qhalf":
     model = fastnode2vec.Node2Vec(
@@ -76,13 +76,13 @@ elif model_name == "node2vec-qdouble":
 elif model_name == "deepwalk":
     # model = fastnode2vec.DeepWalk(window_length=window_length, num_walks=num_walks)
     model = embcom.embeddings.DeepWalk(
-        window_length=window_length, restart_prob=0, num_walks=num_walks
+        window_length=window_length, num_walks=num_walks
     )
 elif model_name == "line":
     model = fastnode2vec.LINE(num_walks=num_walks, workers=4)
 elif model_name == "glove":
     model = embcom.embeddings.Glove(
-        window_length=window_length, restart_prob=0, num_walks=num_walks
+        window_length=window_length, num_walks=num_walks
     )
 elif model_name == "leigenmap":
     model = embcom.embeddings.LaplacianEigenMap()

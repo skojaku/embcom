@@ -46,8 +46,8 @@ emb_params = {
         #"leigenmap",
         #"modspec",
         #"linearized-node2vec",
-        #"non-backtracking-node2vec",
-        #"non-backtracking-deepwalk",
+        "non-backtracking-node2vec",
+        "non-backtracking-deepwalk",
         #"non-backtracking-glove",
         #"nonbacktracking",
         "depthfirst-node2vec",
@@ -101,6 +101,6 @@ rule all:
 
 rule figs:
     input:
-        #expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
+        expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
         #expand(FIG_PERFORMANCE_VS_MIXING_NB, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
         #expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing)

@@ -4,12 +4,12 @@
 fig_params_perf_vs_mixing = {
     "q": [2, 50],
     "dim": [64],
-    "n": [1000, 10000, 100000],
+    "n": [100000],
     "metric": ["cosine"],
     "length": [10],
     "clustering": ["voronoi"],
-    "score_type": ["esim", "nmi"],
-    "cave": [10, 50, 100],
+    "score_type": ["esim"],
+    "cave": [5, 10, 50, 100],
     "data": ["multi_partition_model"],
 }
 fig_perf_vs_mixing_paramspace = to_paramspace(fig_params_perf_vs_mixing)
@@ -254,13 +254,13 @@ rule calc_spectral_density_linearized_node2vec:
 #
 rule plot_performance_vs_mixing:
     input:
-        #input_file=EVAL_CONCAT_FILE,
-        input_file="data/multi_partition_model/all-result.csv",
+        input_file=EVAL_CONCAT_FILE,
+        #input_file="data/multi_partition_model/all-result.csv",
     output:
         output_file=FIG_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_perf_vs_mixing_paramspace.instance,
-        model_names = ["non-backtracking-node2vec", "nonbacktracking", "node2vec", "deepwalk", "line", "infomap", "flatsbm"]
+        model_names = ["non-backtracking-node2vec", "nonbacktracking", "node2vec", "deepwalk", "depthfirst-node2vec", "non-backtracking-deepwalk", "line", "infomap", "flatsbm"]
     resources:
         mem="4G",
         time="00:50:00"
@@ -269,8 +269,8 @@ rule plot_performance_vs_mixing:
 
 rule plot_performance_vs_mixing_nb:
     input:
-        input_file="data/multi_partition_model/all-result.csv",
-        #input_file=EVAL_CONCAT_FILE,
+        #input_file="data/multi_partition_model/all-result.csv",
+        input_file=EVAL_CONCAT_FILE,
     output:
         output_file=FIG_PERFORMANCE_VS_MIXING_NB,
     params:

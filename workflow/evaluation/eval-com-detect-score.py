@@ -76,11 +76,13 @@ def get_params(keys, sep="~"):
 
 results = []
 for keys, group_ids in groups.items():
+    s = ~np.isnan(group_ids)
+    memberships_, group_ids_ = memberships[s], group_ids[s]
     for scoreType in ["nmi", "esim"]:
         if scoreType == "nmi":
-            score = normalized_mutual_info_score(memberships, group_ids)
+            score = normalized_mutual_info_score(memberships_, group_ids_)
         elif scoreType == "esim":
-            score = calc_esim(memberships, group_ids)
+            score = calc_esim(memberships_, group_ids_)
         else:
             raise ValueError("Unknown score type: {}".format(scoreType))
         params = get_params(keys)
