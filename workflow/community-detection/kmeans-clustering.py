@@ -61,11 +61,11 @@ for dimThreshold in [True, False]:
             norm = np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
             idx = np.argmax(norm)
             threshold = np.sqrt(norm[idx])
-            keep = norm >= threshold
-            keep[idx] = False
-            if any(keep) is False:
-                keep[idx] = True
-            emb = emb[:, keep]
+            keep_dims = norm >= threshold
+            keep_dims[idx] = False
+            if any(keep_dims) is False:
+                keep_dims[idx] = True
+            emb = emb[:, keep_dims]
 
         if normalize:
             norm = np.array(np.linalg.norm(emb, axis=0)).reshape(-1)

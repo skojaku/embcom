@@ -27,7 +27,7 @@ if "snakemake" in sys.modules:
     dim = int(params["dim"])
     window_length = int(params["window_length"])
     model_name = params["model_name"]
-    num_walks = 10
+    num_walks = 20
 else:
     netfile = "../../data/multi_partition_model/networks/net_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
     com_file = "../../data/multi_partition_model/networks/node_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
@@ -35,7 +35,7 @@ else:
     dim = 64
     window_length = 10
     model_name = "node2vec"
-    num_walks = 10
+    num_walks = 20
 
 
 net = sparse.load_npz(netfile)

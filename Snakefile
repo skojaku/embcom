@@ -45,11 +45,11 @@ emb_params = {
         #"line",
         #"leigenmap",
         #"modspec",
-        #"linearized-node2vec",
+        "linearized-node2vec",
         "non-backtracking-node2vec",
         "non-backtracking-deepwalk",
         #"non-backtracking-glove",
-        #"nonbacktracking",
+        "nonbacktracking",
         "depthfirst-node2vec",
     ],
     "window_length": [10],
@@ -83,8 +83,8 @@ include: "./lfr_files.smk"
 # RULES
 # ======
 
-DATA_LIST = ["multi_partition_model"]
-#DATA_LIST = ["multi_partition_model", "lfr"]
+#DATA_LIST = ["multi_partition_model"]
+DATA_LIST = ["multi_partition_model", "lfr"]
 
 
 rule all:

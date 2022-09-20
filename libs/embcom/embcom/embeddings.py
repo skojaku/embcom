@@ -283,10 +283,10 @@ class LinearizedNode2Vec(NodeEmbeddings):
         s = svd.singular_values_
         # u, s, v = rsvd.rSVD(Psym, dim=dim + 1)
         # sign = np.sign(np.diag(v @ u))
-        # s = s * sign
-        # mask = s < np.max(s)
-        # u = u[:, mask]
-        # s = s[mask]
+        s = np.abs(s)
+        mask = s < np.max(s)
+        u = u[:, mask]
+        s = s[mask]
 
         if self.window_length > 1:
             s = (s * (1 - s**self.window_length)) / (self.window_length * (1 - s))

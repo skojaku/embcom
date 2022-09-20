@@ -3,8 +3,8 @@
 # ================================
 
 lfr_net_params = {
-    #"n": [10000],  # Network size
-    "n": [1000, 10000, 100000],  # Network size
+    "n": [100000],  # Network size
+    #"n": [1000, 10000, 100000],  # Network size
     "k": [10, 50, 100],  # Average degree
     "tau": [3],  # degree exponent
     "tau2": [1],  # community size exponent
