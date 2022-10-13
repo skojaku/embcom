@@ -3,12 +3,13 @@ import logging
 import sys
 
 import fastnode2vec
+import GPUtil
 import numpy as np
 import pandas as pd
 from scipy import sparse
+from scipy.sparse.csgraph import connected_components
 
 import embcom
-from scipy.sparse.csgraph import connected_components
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -47,6 +48,17 @@ true_membership = pd.read_csv(com_file)["membership"].values.astype(int)
 if dim == 0:
     dim = len(set(true_membership)) - 1
     dim = np.minimum(net.shape[0] - 1, dim)
+
+
+device = GPUtil.getFirstAvailable(
+    order="random",
+    maxLoad=1,
+    maxMemory=0.3,
+    attempts=99999,
+    interval=60 * 1,
+    verbose=False,
+)[0]
+device = f"cuda:{device}"
 
 #
 # Embedding models
@@ -113,6 +125,14 @@ elif model_name == "non-backtracking-deepwalk":
 elif model_name == "non-backtracking-glove":
     model = embcom.embeddings.NonBacktrackingGlove(
         window_length=window_length, num_walks=num_walks
+    )
+elif model_name == "torch-node2vec":
+    model = embcom.TorchNode2Vec(
+        window=window_length, num_walks=num_walks, device = device
+    )
+elif model_name == "torch-modularity":
+    model = embcom.TorchModularityFactorization(
+        window=window_length, num_walks=num_walks, device=device
     )
 
 # %%

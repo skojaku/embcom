@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# @Author: Sadamori Kojaku
+# @Date:   2022-08-26 09:51:23
+# @Last Modified by:   Sadamori Kojaku
+# @Last Modified time: 2022-10-02 20:16:05
 """Module for embedding."""
 # %%
 import gensim
@@ -74,10 +79,10 @@ class Node2Vec(NodeEmbeddings):
         self.out_vec = None  # Out-vector
         self.window_length = window_length
         self.sampler = samplers.Node2VecWalkSampler(
-            num_walks = num_walks,
-            walk_length = walk_length,
-            p = p,
-            q = q,
+            num_walks=num_walks,
+            walk_length=walk_length,
+            p=p,
+            q=q,
         )
 
         self.sentences = None
@@ -114,7 +119,9 @@ class Node2Vec(NodeEmbeddings):
         self.w2vparams["window"] = self.window_length
 
         self.w2vparams["vector_size"] = dim
-        self.model = gensim.models.Word2Vec(sentences=self.sampler.walks, **self.w2vparams)
+        self.model = gensim.models.Word2Vec(
+            sentences=self.sampler.walks, **self.w2vparams
+        )
 
         num_nodes = len(self.model.wv.index_to_key)
         self.in_vec = np.zeros((num_nodes, dim))
@@ -123,9 +130,7 @@ class Node2Vec(NodeEmbeddings):
             if i not in self.model.wv:
                 continue
             self.in_vec[i, :] = self.model.wv[i]
-            self.out_vec[i, :] = self.model.syn1neg[
-                self.model.wv.key_to_index[i]
-            ]
+            self.out_vec[i, :] = self.model.syn1neg[self.model.wv.key_to_index[i]]
 
 
 class DeepWalk(Node2Vec):
@@ -137,7 +142,6 @@ class DeepWalk(Node2Vec):
             "min_count": 0,
             "workers": 4,
         }
-
 
 
 class LaplacianEigenMap(NodeEmbeddings):

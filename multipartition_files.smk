@@ -254,8 +254,8 @@ rule calc_spectral_density_linearized_node2vec:
 #
 rule plot_performance_vs_mixing:
     input:
-        input_file=EVAL_CONCAT_FILE,
-        #input_file="data/multi_partition_model/all-result.csv",
+        #input_file=EVAL_CONCAT_FILE,
+        input_file="data/multi_partition_model/all-result.csv",
     output:
         output_file=FIG_PERFORMANCE_VS_MIXING,
     params:
