@@ -15,10 +15,15 @@ if "snakemake" in sys.modules:
     model_name = params["model_name"]
 
 else:
-    emb_file = "../../data/multi_partition_model/embedding/n~100000_K~2_cave~50_mu~0.5_sample~0_model_name~leigenmap_window_length~10_dim~0.npz"
-    com_file = "../../data/multi_partition_model/networks/node_n~100000_K~2_cave~50_mu~0.5_sample~0.npz"
+
+    emb_file = "../../data/lfr/embedding/n~1000_k~100_tau~3_tau2~1_minc~50_mu~0.70_sample~9_model_name~linearized-node2vec_window_length~10_dim~64.npz"
+    com_file = "../../data/lfr/networks/node_n~1000_k~100_tau~3_tau2~1_minc~50_mu~0.70_sample~9.npz"
+    model_name = "linearized-node2vec"
     output_file = "unko"
     metric = "cosine"
+
+
+# %%
 
 
 def row_normalize(mat, mode="prob"):
@@ -67,9 +72,15 @@ def KMeans(emb, group_ids, metric="euclidean"):
 # Load emebdding
 emb = np.load(emb_file)["emb"]
 emb = emb.copy(order="C").astype(np.float32)
-emb[np.isnan(emb)] = 0
-emb[np.isinf(emb)] = 0
 memberships = pd.read_csv(com_file)["membership"].values.astype(int)
+print(emb.shape)
+# Remove nan embedding
+remove = np.isnan(np.array(np.sum(emb, axis=1)).reshape(-1))
+keep = np.where(~remove)[0]
+n_nodes = emb.shape[0]
+emb = emb[keep, :]
+memberships = memberships[keep]
+
 emb_copy = emb.copy()
 
 results = {}
@@ -80,11 +91,11 @@ for dimThreshold in [True, False]:
             norm = np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
             idx = np.argmax(norm)
             threshold = np.sqrt(norm[idx])
-            keep = norm >= threshold
-            keep[idx] = False
-            if any(keep) is False:
-                keep[idx] = True
-            emb = emb[:, keep]
+            keep_dims = norm >= threshold
+            keep_dims[idx] = False
+            if any(keep_dims) is False:
+                keep_dims[idx] = True
+            emb = emb[:, keep_dims]
 
         if normalize:
             norm = np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
@@ -94,8 +105,11 @@ for dimThreshold in [True, False]:
         group_ids = KMeans(emb, memberships, metric=metric)
 
         key = f"normalize~{normalize}_dimThreshold~{dimThreshold}"
-        results[key] = group_ids
 
+        # Set the group index to nan if the node has no embedding
+        group_ids_ = np.zeros(n_nodes) * np.nan
+        group_ids_[keep] = group_ids
+        results[key] = group_ids_
 
 # %%
 # Save

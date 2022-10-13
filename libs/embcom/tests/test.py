@@ -32,18 +32,8 @@ class TestCalc(unittest.TestCase):
         model.fit(self.A)
         vec = model.transform(dim=32)
 
-    def test_glove(self):
-        model = embcom.embeddings.Glove()
-        model.fit(self.A)
-        vec = model.transform(dim=32)
-
     def test_deepwalk(self):
         model = embcom.embeddings.DeepWalk()
-        model.fit(self.A)
-        vec = model.transform(dim=32)
-
-    def test_levy_walk(self):
-        model = embcom.embeddings.LevyWord2Vec()
         model.fit(self.A)
         vec = model.transform(dim=32)
 
@@ -76,9 +66,14 @@ class TestCalc(unittest.TestCase):
         model = embcom.embeddings.NonBacktrackingDeepWalk()
         model.fit(self.A)
         vec = model.transform(dim=32)
-    
-    def test_non_backtracking_glove(self):
-        model = embcom.embeddings.NonBacktrackingGlove()
+
+    def test_torch_node2vec(self):
+        model = embcom.TorchNode2Vec()
+        model.fit(self.A)
+        vec = model.transform(dim=32)
+
+    def test_torch_node2vec_linear(self):
+        model = embcom.TorchModularityFactorization()
         model.fit(self.A)
         vec = model.transform(dim=32)
 

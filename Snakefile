@@ -43,14 +43,16 @@ emb_params = {
         "deepwalk",
         #"glove",
         "line",
-        "leigenmap",
-        "modspec",
+        #"leigenmap",
+        #"modspec",
         "linearized-node2vec",
         "non-backtracking-node2vec",
         "non-backtracking-deepwalk",
         #"non-backtracking-glove",
-        "nonbacktracking",
+        #"nonbacktracking",
         "depthfirst-node2vec",
+        #"torch-modularity",
+        #"torch-node2vec",
     ],
     "window_length": [10],
     "dim": [64],
@@ -83,7 +85,7 @@ include: "./lfr_files.smk"
 # RULES
 # ======
 
-DATA_LIST = ["lfr"]
+#DATA_LIST = ["multi_partition_model"]
 DATA_LIST = ["multi_partition_model", "lfr"]
 
 
@@ -102,5 +104,5 @@ rule all:
 rule figs:
     input:
         expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
-        expand(FIG_PERFORMANCE_VS_MIXING_NB, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
-        #expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing)
+        #expand(FIG_PERFORMANCE_VS_MIXING_NB, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
+        expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing)

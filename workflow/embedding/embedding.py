@@ -3,9 +3,11 @@ import logging
 import sys
 
 import fastnode2vec
+import GPUtil
 import numpy as np
 import pandas as pd
 from scipy import sparse
+from scipy.sparse.csgraph import connected_components
 
 import embcom
 
@@ -26,15 +28,15 @@ if "snakemake" in sys.modules:
     dim = int(params["dim"])
     window_length = int(params["window_length"])
     model_name = params["model_name"]
-    num_walks = 10
+    num_walks = 20
 else:
-    netfile = "../../data/multi_partition_model/networks/net_n~100000_K~1000_cave~20_mu~0.1_sample~0.npz"
-    com_file = "../../data/multi_partition_model/networks/node_n~100000_K~1000_cave~20_mu~0.1_sample~0.npz"
+    netfile = "../../data/multi_partition_model/networks/net_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
+    com_file = "../../data/multi_partition_model/networks/node_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
     embfile = "tmp.npz"
     dim = 64
     window_length = 10
-    model_name = "line"
-    num_walks = 10
+    model_name = "node2vec"
+    num_walks = 20
 
 
 net = sparse.load_npz(netfile)
@@ -47,18 +49,35 @@ if dim == 0:
     dim = len(set(true_membership)) - 1
     dim = np.minimum(net.shape[0] - 1, dim)
 
+
+device = GPUtil.getFirstAvailable(
+    order="random",
+    maxLoad=1,
+    maxMemory=0.3,
+    attempts=99999,
+    interval=60 * 1,
+    verbose=False,
+)[0]
+device = f"cuda:{device}"
+
 #
 # Embedding models
 #
 if model_name == "levy-word2vec":
     model = embcom.embeddings.LevyWord2Vec(
-        window_length=window_length, restart_prob=0, num_walks=num_walks
+        window_length=window_length, num_walks=num_walks
     )
 elif model_name == "node2vec":
-    model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks)
+    # model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks)
+    model = embcom.embeddings.Node2Vec(
+        window_length=window_length, num_walks=num_walks
+    )
 elif model_name == "depthfirst-node2vec":
-    model = fastnode2vec.Node2Vec(
-        window_length=window_length, num_walks=num_walks, p=10, q=0.1
+    # model = fastnode2vec.Node2Vec(
+    #    window_length=window_length, num_walks=num_walks, p=10, q=0.1
+    # )
+    model = embcom.embeddings.Node2Vec(
+        window_length=window_length, num_walks=num_walks, p=100, q=1
     )
 elif model_name == "node2vec-qhalf":
     model = fastnode2vec.Node2Vec(
@@ -67,12 +86,15 @@ elif model_name == "node2vec-qhalf":
 elif model_name == "node2vec-qdouble":
     model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks, q=2)
 elif model_name == "deepwalk":
-    model = fastnode2vec.DeepWalk(window_length=window_length, num_walks=num_walks)
+    # model = fastnode2vec.DeepWalk(window_length=window_length, num_walks=num_walks)
+    model = embcom.embeddings.DeepWalk(
+        window_length=window_length, num_walks=num_walks
+    )
 elif model_name == "line":
     model = fastnode2vec.LINE(num_walks=num_walks, workers=4)
 elif model_name == "glove":
     model = embcom.embeddings.Glove(
-        window_length=window_length, restart_prob=0, num_walks=num_walks
+        window_length=window_length, num_walks=num_walks
     )
 elif model_name == "leigenmap":
     model = embcom.embeddings.LaplacianEigenMap()
@@ -104,18 +126,46 @@ elif model_name == "non-backtracking-glove":
     model = embcom.embeddings.NonBacktrackingGlove(
         window_length=window_length, num_walks=num_walks
     )
+elif model_name == "torch-node2vec":
+    model = embcom.TorchNode2Vec(
+        window=window_length, num_walks=num_walks, device = device
+    )
+elif model_name == "torch-modularity":
+    model = embcom.TorchModularityFactorization(
+        window=window_length, num_walks=num_walks, device=device
+    )
 
-#
+# %%
 # Embedding
 #
-model.fit(sparse.csr_matrix(net))
-emb = model.transform(dim=dim)
 
+# Get the largest connected component
+net = sparse.csr_matrix(net)
+component_ids = connected_components(net)[1]
+u_component_ids, freq = np.unique(component_ids, return_counts=True)
+ids = np.where(u_component_ids[np.argmax(freq)] == component_ids)[0]
+H = sparse.csr_matrix(
+    (np.ones_like(ids), (ids, np.arange(len(ids)))), shape=(net.shape[0], len(ids))
+)
+HT = sparse.csr_matrix(H.T)
+net_ = HT @ net @ H
+model.fit(net_)
+emb_ = model.transform(dim=dim)
+
+# Enlarge the embedding to the size of the original net
+# All nodes that do not belong to the largest connected component have nan
+ids = np.where(u_component_ids[np.argmax(freq)] != component_ids)[0]
+emb = H @ emb_
+emb[ids, :] = np.nan
+
+# %%
 #
 # Save
 #
 np.savez_compressed(
-    embfile, emb=emb, window_length=window_length, dim=dim, model_name=model_name,
+    embfile,
+    emb=emb,
+    window_length=window_length,
+    dim=dim,
+    model_name=model_name,
 )
-
-# %%

@@ -12,6 +12,7 @@ import infomap
 import numpy as np
 import pandas as pd
 from scipy import sparse
+from scipy.sparse.csgraph import connected_components
 
 if "snakemake" in sys.modules:
     netfile = snakemake.input["net_file"]
@@ -28,7 +29,7 @@ else:
 # %%
 # Load
 #
-A = sparse.load_npz(netfile)
+net = sparse.load_npz(netfile)
 
 memberships = pd.read_csv(com_file)["membership"].values.astype(int)
 K = len(set(memberships))
@@ -63,12 +64,27 @@ def detect_by_flatsbm(A, K):
     return np.unique(np.array(b.a), return_inverse=True)[1]
 
 
+# Get the largest connected component
+net = sparse.csr_matrix(net)
+component_ids = connected_components(net)[1]
+u_component_ids, freq = np.unique(component_ids, return_counts=True)
+ids = np.where(u_component_ids[np.argmax(freq)] == component_ids)[0]
+H = sparse.csr_matrix(
+    (np.ones_like(ids), (ids, np.arange(len(ids)))), shape=(net.shape[0], len(ids))
+)
+HT = sparse.csr_matrix(H.T)
+net_ = HT @ net @ H
+
 if model_name == "infomap":
-    group_ids = detect_by_infomap(A, K)
+    group_ids = detect_by_infomap(net_, K)
 elif model_name == "flatsbm":
-    group_ids = detect_by_flatsbm(A, K)
+    group_ids = detect_by_flatsbm(net_, K)
+
+n_nodes = net.shape[0]
+group_ids_ = np.zeros(n_nodes) * np.nan
+group_ids_[ids] = group_ids
 
 # %%
 # Save
 #
-np.savez(output_file, group_ids=group_ids)
+np.savez(output_file, group_ids=group_ids_)

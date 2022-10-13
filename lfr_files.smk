@@ -3,9 +3,9 @@
 # ================================
 
 lfr_net_params = {
-    #"n": [10000],  # Network size
-    "n": [1000, 10000, 100000],  # Network size
-    "k": [10, 50, 100],  # Average degree
+    "n": [100000],  # Network size
+    #"n": [1000, 10000, 100000],  # Network size
+    "k": [5, 10, 50, 100],  # Average degree
     "tau": [3],  # degree exponent
     "tau2": [1],  # community size exponent
     "minc": [50],  # min community size
@@ -51,7 +51,7 @@ LFR_EVAL_FILE = j(EVA_DIR, f"score_{lfr_com_detect_paramspace.wildcard_pattern}.
 # =========
 fig_lfr_params_perf_vs_mixing = {
     "dim": [64],
-    "k": [10, 50, 100],  # Average degree
+    "k": [5, 10, 50, 100],  # Average degree
     "n": [1000, 10000, 100000],
     #"dim":[64, 256],
     "metric": ["cosine"],
@@ -168,12 +168,13 @@ rule concatenate_results_lfr:
 #
 rule plot_lfr_performance_vs_mixing:
     input:
-        #input_file="data/lfr/all-result.csv",
-        input_file=EVAL_CONCAT_FILE,
+        input_file="data/lfr/all-result.csv",
+        #input_file=EVAL_CONCAT_FILE,
     output:
         output_file=FIG_LFR_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_lfr_perf_vs_mixing_paramspace.instance,
+        model_names = ["non-backtracking-node2vec", "nonbacktracking", "depthfirst-node2vec", "non-backtracking-deepwalk", "node2vec", "deepwalk", "line", "infomap", "flatsbm"]
     resources:
         mem="4G",
         time="00:50:00"

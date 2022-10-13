@@ -41,9 +41,15 @@ def KMeans(emb, group_ids, metric="euclidean"):
 # Load emebdding
 emb = np.load(emb_file)["emb"]
 emb = emb.copy(order="C").astype(np.float32)
-emb[np.isnan(emb)] = 0
-emb[np.isinf(emb)] = 0
 memberships = pd.read_csv(com_file)["membership"].values.astype(int)
+
+# Remove nan embedding
+remove = np.isnan(np.array(np.sum(emb, axis=1)).reshape(-1))
+keep = np.where(~remove)[0]
+n_nodes = emb.shape[0]
+emb = emb[keep, :]
+memberships = memberships[keep]
+
 emb_copy = emb.copy()
 
 # Normalize the eigenvector by dimensions
@@ -55,11 +61,11 @@ for dimThreshold in [True, False]:
             norm = np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
             idx = np.argmax(norm)
             threshold = np.sqrt(norm[idx])
-            keep = norm >= threshold
-            keep[idx] = False
-            if any(keep) is False:
-                keep[idx] = True
-            emb = emb[:, keep]
+            keep_dims = norm >= threshold
+            keep_dims[idx] = False
+            if any(keep_dims) is False:
+                keep_dims[idx] = True
+            emb = emb[:, keep_dims]
 
         if normalize:
             norm = np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
@@ -69,7 +75,9 @@ for dimThreshold in [True, False]:
         group_ids = KMeans(emb, memberships, metric=metric)
 
         key = f"normalize~{normalize}_dimThreshold~{dimThreshold}"
-        results[key] = group_ids
+        group_ids_ = np.zeros(n_nodes) * np.nan
+        group_ids_[keep] = group_ids
+        results[key] = group_ids_
 
 # %%
 # Save
