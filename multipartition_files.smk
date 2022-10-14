@@ -7,7 +7,7 @@ fig_params_perf_vs_mixing = {
     "n": [100000],
     "metric": ["cosine"],
     "length": [10],
-    "clustering": ["voronoi"],
+    "clustering": ["voronoi", "kmeans", "birch-best", "birch"],
     "score_type": ["esim"],
     "cave": [5, 10, 50, 100],
     "data": ["multi_partition_model"],
@@ -167,6 +167,40 @@ rule kmeans_clustering_multi_partition_model:
     script:
         "workflow/community-detection/kmeans-clustering.py"
 
+rule birch_best_clustering_multi_partition_model:
+    input:
+        emb_file=EMB_FILE,
+        com_file=NODE_FILE,
+    output:
+        output_file=COM_DETECT_EMB_FILE,
+    params:
+        parameters=com_detect_emb_paramspace.instance,
+        n_clusters = "true"
+    wildcard_constraints:
+        clustering="birch-best",
+    resources:
+        mem="12G",
+        time="01:00:00"
+    script:
+        "workflow/community-detection/birch-clustering.py"
+
+
+rule birch_clustering_multi_partition_model:
+    input:
+        emb_file=EMB_FILE,
+        com_file=NODE_FILE,
+    output:
+        output_file=COM_DETECT_EMB_FILE,
+    params:
+        parameters=com_detect_emb_paramspace.instance,
+        n_clusters = "data"
+    wildcard_constraints:
+        clustering="birch",
+    resources:
+        mem="12G",
+        time="01:00:00"
+    script:
+        "workflow/community-detection/birch-clustering.py"
 
 rule community_detection_multi_partition_model:
     input:

@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# @Author: Sadamori Kojaku
+# @Date:   2022-10-13 16:13:54
+# @Last Modified by:   Sadamori Kojaku
+# @Last Modified time: 2022-10-13 16:15:00
 """Evaluate the detected communities using the element-centric similarity."""
 
 # %%
@@ -53,12 +58,12 @@ def calc_esim(y, ypred):
     # Calc element-centric similarity
     Q = np.maximum(nA[:, None] @ np.ones((1, K)), np.ones((K, 1)) @ nB[None, :])
     Q = 1 / np.maximum(Q, 1)
-    S = np.sum(np.multiply(Q, (nAB ** 2))) / N
+    S = np.sum(np.multiply(Q, (nAB**2))) / N
 
     # Calc the expected element-centric similarity for random partitions
     Q = np.maximum(nA[:, None] @ np.ones((1, K)), np.ones((K, 1)) @ nB[None, :])
     Q = 1 / np.maximum(Q, 1)
-    Srand = np.sum(np.multiply(Q, (nAB_rand ** 2))) / N
+    Srand = np.sum(np.multiply(Q, (nAB_rand**2))) / N
     Scorrected = (S - Srand) / (1 - Srand)
     return Scorrected
 

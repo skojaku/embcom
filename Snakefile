@@ -42,7 +42,7 @@ emb_params = {
         "node2vec",
         "deepwalk",
         #"glove",
-        "line",
+        #"line",
         #"leigenmap",
         #"modspec",
         "linearized-node2vec",
@@ -67,7 +67,7 @@ com_detect_params = {
 # Clustering
 clustering_params = {
     "metric": ["cosine"],
-    "clustering": ["voronoi", "kmeans"],
+    "clustering": ["voronoi", "kmeans", "birch", "birch-best"],
 }
 
 # ============

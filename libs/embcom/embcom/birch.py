@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-08-28 14:29:28
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-13 16:12:09
+# @Last Modified time: 2022-10-14 06:48:18
 # This is a modification of Birch algorithm in the scikit-learn package
 # Authors: Manoj Kumar <manojkumarsivaraj334@gmail.com>
 #          Alexandre Gramfort <alexandre.gramfort@telecom-paristech.fr>
@@ -30,22 +30,23 @@ from sklearn.cluster import AgglomerativeClustering
 from sklearn._config import config_context
 
 
-def CosineBirch(emb, group_ids, n_clusters, metric="cosine"):
+def CosineBirch(emb, group_ids, n_clusters, metric="cosine", rho=0.5):
     K = np.max(group_ids) + 1
     X = np.einsum("ij,i->ij", emb, 1 / np.maximum(np.linalg.norm(emb, axis=1), 1e-24))
 
+    # R = np.array(np.mean(X, axis=0)).reshape(-1)
+    # rho = np.sum(R * R)
+    # rho = (1 + rho) / 2  # heuristics
     if n_clusters == "true":
         model = Birch(
             threshold=rho,
             n_clusters=AgglomerativeClustering(
                 affinity=metric,
                 n_clusters=K,
+                linkage="average",
             ),
         )
     elif n_clusters == "data":
-        R = np.array(np.mean(X, axis=0)).reshape(-1)
-        rho = np.sum(R * R)
-        rho = (1 + rho) / 2  # heuristics
         model = Birch(
             threshold=rho,
             n_clusters=AgglomerativeClustering(
@@ -340,7 +341,7 @@ class _CFSubcluster:
     def update(self, subcluster):
         self.n_samples_ += subcluster.n_samples_
         self.linear_sum_ += subcluster.linear_sum_
-        self.centroid_ = self.linear_sum_ / self.n_samples_
+        self.centroid_ = self.linear_sum_ / np.maximum(1, self.n_samples_)
 
     def merge_subcluster(self, nominee_cluster, threshold):
         """Check if a cluster is worthy enough to be merged. If
