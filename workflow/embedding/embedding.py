@@ -9,7 +9,7 @@ import pandas as pd
 from scipy import sparse
 from scipy.sparse.csgraph import connected_components
 
-import embcom
+import node2vecs 
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -127,11 +127,11 @@ elif model_name == "non-backtracking-glove":
         window_length=window_length, num_walks=num_walks
     )
 elif model_name == "torch-node2vec":
-    model = embcom.TorchNode2Vec(
+    model = node2vecs.torch.TorchNode2Vec(
         window=window_length, num_walks=num_walks, device = device
     )
 elif model_name == "torch-modularity":
-    model = embcom.TorchModularityFactorization(
+    model = node2vecs.torch.TorchModularity(
         window=window_length, num_walks=num_walks, device=device
     )
 

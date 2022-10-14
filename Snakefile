@@ -39,20 +39,20 @@ EVAL_CONCAT_FILE = j(EVA_DIR, f"all-result.csv")
 # Embedding
 emb_params = {
     "model_name": [
-        "node2vec",
-        "deepwalk",
+        #"node2vec",
+        #"deepwalk",
         #"glove",
-        "line",
+        #"line",
         #"leigenmap",
         #"modspec",
-        "linearized-node2vec",
-        "non-backtracking-node2vec",
-        "non-backtracking-deepwalk",
+        #"linearized-node2vec",
+        #"non-backtracking-node2vec",
+        #"non-backtracking-deepwalk",
         #"non-backtracking-glove",
         #"nonbacktracking",
-        "depthfirst-node2vec",
-        #"torch-modularity",
-        #"torch-node2vec",
+        #"depthfirst-node2vec",
+        "torch-modularity",
+        "torch-node2vec",
     ],
     "window_length": [10],
     "dim": [64],
@@ -86,7 +86,7 @@ include: "./lfr_files.smk"
 # ======
 
 #DATA_LIST = ["multi_partition_model"]
-DATA_LIST = ["multi_partition_model", "lfr"]
+DATA_LIST = ["multi_partition_model"]
 
 
 rule all:
