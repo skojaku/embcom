@@ -1,15 +1,19 @@
+# -*- coding: utf-8 -*-
+# @Author: Sadamori Kojaku
+# @Date:   2022-10-14 15:08:01
+# @Last Modified by:   Sadamori Kojaku
+# @Last Modified time: 2022-10-17 07:02:05
 #%%
 import logging
 import sys
-
-import fastnode2vec
+import embcom
 import GPUtil
 import numpy as np
 import pandas as pd
 from scipy import sparse
 from scipy.sparse.csgraph import connected_components
 
-import node2vecs 
+import node2vecs
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -49,7 +53,6 @@ if dim == 0:
     dim = len(set(true_membership)) - 1
     dim = np.minimum(net.shape[0] - 1, dim)
 
-
 device = GPUtil.getFirstAvailable(
     order="random",
     maxLoad=1,
@@ -57,6 +60,7 @@ device = GPUtil.getFirstAvailable(
     attempts=99999,
     interval=60 * 1,
     verbose=False,
+    excludeID=[7],
 )[0]
 device = f"cuda:{device}"
 
@@ -69,9 +73,7 @@ if model_name == "levy-word2vec":
     )
 elif model_name == "node2vec":
     # model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks)
-    model = embcom.embeddings.Node2Vec(
-        window_length=window_length, num_walks=num_walks
-    )
+    model = embcom.embeddings.Node2Vec(window_length=window_length, num_walks=num_walks)
 elif model_name == "depthfirst-node2vec":
     # model = fastnode2vec.Node2Vec(
     #    window_length=window_length, num_walks=num_walks, p=10, q=0.1
@@ -79,23 +81,13 @@ elif model_name == "depthfirst-node2vec":
     model = embcom.embeddings.Node2Vec(
         window_length=window_length, num_walks=num_walks, p=100, q=1
     )
-elif model_name == "node2vec-qhalf":
-    model = fastnode2vec.Node2Vec(
-        window_length=window_length, num_walks=num_walks, q=0.5
-    )
-elif model_name == "node2vec-qdouble":
-    model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks, q=2)
 elif model_name == "deepwalk":
     # model = fastnode2vec.DeepWalk(window_length=window_length, num_walks=num_walks)
-    model = embcom.embeddings.DeepWalk(
-        window_length=window_length, num_walks=num_walks
-    )
+    model = embcom.embeddings.DeepWalk(window_length=window_length, num_walks=num_walks)
 elif model_name == "line":
-    model = fastnode2vec.LINE(num_walks=num_walks, workers=4)
+    model = embcom.embeddings.Node2Vec(window_length=1, num_walks=num_walks, p=1, q=1)
 elif model_name == "glove":
-    model = embcom.embeddings.Glove(
-        window_length=window_length, num_walks=num_walks
-    )
+    model = embcom.embeddings.Glove(window_length=window_length, num_walks=num_walks)
 elif model_name == "leigenmap":
     model = embcom.embeddings.LaplacianEigenMap()
 elif model_name == "adjspec":
@@ -127,12 +119,22 @@ elif model_name == "non-backtracking-glove":
         window_length=window_length, num_walks=num_walks
     )
 elif model_name == "torch-node2vec":
-    model = node2vecs.torch.TorchNode2Vec(
-        window=window_length, num_walks=num_walks, device = device
+    model = node2vecs.TorchNode2Vec(
+        window=window_length,
+        num_walks=num_walks,
+        vector_size=dim,
+        batch_size=256 * 4,
+        device=device,
+        negative=1,
     )
 elif model_name == "torch-modularity":
-    model = node2vecs.torch.TorchModularity(
-        window=window_length, num_walks=num_walks, device=device
+    model = node2vecs.TorchModularity(
+        window=window_length,
+        num_walks=num_walks,
+        vector_size=dim,
+        batch_size=256 * 4,
+        device=device,
+        negative=1,
     )
 
 # %%
@@ -150,7 +152,11 @@ H = sparse.csr_matrix(
 HT = sparse.csr_matrix(H.T)
 net_ = HT @ net @ H
 model.fit(net_)
-emb_ = model.transform(dim=dim)
+
+if model_name in ["torch-node2vec", "torch-modularity"]:
+    emb_ = model.transform()
+else:
+    emb_ = model.transform(dim=dim)
 
 # Enlarge the embedding to the size of the original net
 # All nodes that do not belong to the largest connected component have nan

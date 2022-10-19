@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:41:52
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-14 14:51:11
+# @Last Modified time: 2022-10-18 09:24:05
 # %%
 import node2vecs
 import networkx as nx
@@ -14,31 +14,15 @@ labels = np.unique([d[1]["club"] for d in G.nodes(data=True)], return_inverse=Tr
 
 n_nodes = A.shape[0]
 dim = 32
-
-sampler = node2vecs.RandomWalkSampler(A, walk_length=80)
-
-# Word2Vec model
-model = node2vecs.Word2Vec(n_nodes=n_nodes, dim=dim, orthogonal_constraint=False)
-
-# Set up negative sampler
-dataset = node2vecs.NegativeSamplingDataset(
-    seqs=sampler, window=10, epochs=3, context_window_type="double"
+model = node2vecs.TorchNode2Vec(
+    num_walks=100, batch_size=1024, negative=1, epochs=10, device="cuda:1"
 )
-
-# Set up the loss function
-# loss_func = node2vecs.ModularityTripletLoss(model=model)
-loss_func = node2vecs.TripletLoss(model)
-
-# Train
-node2vecs.train(
-    model=model,
-    dataset=dataset,
-    loss_func=loss_func,
-    batch_size=1000,
-    device="cpu",
-    num_workers=5,
-)
-emb = model.embedding()
+# model = node2vecs.TorchModularity(num_walks=50, negative=1)
+model.fit(A)
+emb = model.transform()
+# model = node2vecs.GensimNode2Vec()
+# model.fit(A)
+# emb = model.transform()
 
 # %%
 import matplotlib.pyplot as plt
@@ -52,7 +36,7 @@ from sklearn.decomposition import PCA
 xy = PCA(n_components=2).fit_transform(emb)
 clf = LinearDiscriminantAnalysis(n_components=1)
 x = clf.fit_transform(emb, labels)
-xy[:, 0] = x.reshape(-1)
+# xy[:, 0] = x.reshape(-1)
 plot_data = pd.DataFrame(
     {"x": xy[:, 0], "y": xy[:, 1], "model": "non-linear", "label": labels}
 )
@@ -75,7 +59,8 @@ xy = clf.fit_transform(emb, labels)
 # xy = clf.fit_transform(emb_linear, labels)
 clf.score(emb, labels)
 # %%
+sns.heatmap(emb @ emb.T, cmap="coolwarm", center=0)
 
-emb.T @ emb
-
+# %%
+emb @ emb.T
 # %%

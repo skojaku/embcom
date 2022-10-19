@@ -51,8 +51,8 @@ emb_params = {
         #"non-backtracking-glove",
         #"nonbacktracking",
         #"depthfirst-node2vec",
-        "torch-modularity",
-        "torch-node2vec",
+       	"torch-modularity",
+       	"torch-node2vec",
     ],
     "window_length": [10],
     "dim": [64],
@@ -61,7 +61,8 @@ emb_params = {
 
 # Community detection
 com_detect_params = {
-    "model_name": ["infomap", "flatsbm"],
+    "model_name": ["infomap"],
+    #"model_name": ["infomap", "flatsbm"],
 }
 
 # Clustering
