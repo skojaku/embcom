@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-15 21:04:03
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-19 07:09:30
+# @Last Modified time: 2022-10-24 23:48:37
 import numpy as np
 from . import utils
 from node2vecs.node2vec import Node2Vec
@@ -27,7 +27,9 @@ class TorchNode2Vec(Node2Vec):
         miniters=200,
         num_workers=1,
         alpha=1e-3,
-        **params
+        noise_sampler=None,
+        learn_outvec=True,
+        **params,
     ):
         """Residual2Vec based on the stochastic gradient descent.
         :param noise_sampler: Noise sampler
@@ -52,7 +54,11 @@ class TorchNode2Vec(Node2Vec):
         :type miniter: int, optional
         """
         super().__init__(**params)
-        self.noise_sampler = ConfigModelNodeSampler(self.ns_exponent)
+        if noise_sampler is None:
+            self.noise_sampler = ConfigModelNodeSampler(self.ns_exponent)
+        else:
+            self.noise_sampler = noise_sampler
+
         self.device = device
         self.batch_size = batch_size
         self.buffer_size = buffer_size
@@ -60,6 +66,7 @@ class TorchNode2Vec(Node2Vec):
         self.context_window_type = context_window_type
         self.num_workers = num_workers
         self.alpha = alpha
+        self.learn_outvec = learn_outvec
 
     def fit(self, adjmat):
         """Learn the graph structure to generate the node embeddings.
@@ -90,7 +97,10 @@ class TorchNode2Vec(Node2Vec):
         # Set up the embedding model
         PADDING_IDX = self.n_nodes
         model = Word2Vec(
-            vocab_size=self.n_nodes + 1, embedding_size=dim, padding_idx=PADDING_IDX
+            vocab_size=self.n_nodes + 1,
+            embedding_size=dim,
+            padding_idx=PADDING_IDX,
+            learn_outvec=self.learn_outvec,
         )
         model = model.to(self.device)
         loss_func = Node2VecTripletLoss(n_neg=self.negative)
@@ -115,7 +125,7 @@ class TorchNode2Vec(Node2Vec):
             context_window_type=self.context_window_type,
             epochs=self.epochs,
             negative=self.negative,
-            **self.rw_params
+            **self.rw_params,
         )
 
         train(

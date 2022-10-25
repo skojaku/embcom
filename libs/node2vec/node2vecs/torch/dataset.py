@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:33:29
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-19 07:10:33
+# @Last Modified time: 2022-10-24 22:56:34
 import random
 
 import numpy as np
@@ -115,14 +115,17 @@ class TripletDataset(Dataset):
             window_length=self.window_length,
             padding_id=self.padding_id,
         )
+        s = self.centers != self.padding_id
+
+        self.centers, self.contexts = self.centers[s], self.contexts[s, :]
         self.random_contexts = np.hstack(
             [
                 self.noise_sampler.sampling(
                     center_nodes=self.centers,
-                    context_nodes=self.contexts,
+                    context_nodes=self.contexts[:, i],
                     # padding_id=self.padding_id,
                 ).reshape((-1, 1))
-                for _ in range(self.negative * self.contexts.shape[1])
+                for i in range(self.negative * self.contexts.shape[1])
             ]
         )
 

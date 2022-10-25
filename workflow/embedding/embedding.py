@@ -123,7 +123,7 @@ elif model_name == "torch-node2vec":
         window=window_length,
         num_walks=num_walks,
         vector_size=dim,
-        batch_size=256 * 4,
+        batch_size=256,
         device=device,
         negative=1,
     )
@@ -132,7 +132,7 @@ elif model_name == "torch-modularity":
         window=window_length,
         num_walks=num_walks,
         vector_size=dim,
-        batch_size=256 * 4,
+        batch_size=256,
         device=device,
         negative=1,
     )

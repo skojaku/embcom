@@ -5,12 +5,12 @@
 lfr_net_params = {
     "n": [100000],  # Network size
     #"n": [1000, 10000, 100000],  # Network size
-    "k": [5, 10, 50, 100],  # Average degree
+    "k": [5, 10, 50], # Average degree
     "tau": [3],  # degree exponent
     "tau2": [1],  # community size exponent
     "minc": [50],  # min community size
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
-    "sample": np.arange(10),  # Number of samples
+    "sample": np.arange(3),  # Number of samples
 }
 
 # Convert to a paramspace
@@ -51,13 +51,13 @@ LFR_EVAL_FILE = j(EVA_DIR, f"score_{lfr_com_detect_paramspace.wildcard_pattern}.
 # =========
 fig_lfr_params_perf_vs_mixing = {
     "dim": [64],
-    "k": [5, 10, 50, 100],  # Average degree
-    "n": [1000, 10000, 100000],
+    "k": [5, 10, 50],  # Average degree
+    "n": [100000],
     #"dim":[64, 256],
     "metric": ["cosine"],
     "length": [10],
     "clustering": ["voronoi", "kmeans"],
-    "score_type": ["esim", "nmi"],
+    "score_type": ["esim"],
     "data": ["lfr"],
 }
 fig_lfr_perf_vs_mixing_paramspace = to_paramspace(fig_lfr_params_perf_vs_mixing)
@@ -174,7 +174,8 @@ rule plot_lfr_performance_vs_mixing:
         output_file=FIG_LFR_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_lfr_perf_vs_mixing_paramspace.instance,
-        model_names = ["non-backtracking-node2vec", "nonbacktracking", "depthfirst-node2vec", "non-backtracking-deepwalk", "node2vec", "deepwalk", "line", "infomap", "flatsbm"]
+        #model_names = ["non-backtracking-node2vec", "nonbacktracking", "depthfirst-node2vec", "non-backtracking-deepwalk", "node2vec", "deepwalk", "line", "infomap", "flatsbm"]
+        model_names = ["non-backtracking-node2vec", "nonbacktracking", "node2vec", "deepwalk", "depthfirst-node2vec", "non-backtracking-deepwalk", "line", "infomap", "flatsbm", "torch-node2vec", "torch-modularity", "modspec", "linearized-node2vec"]
     resources:
         mem="4G",
         time="00:50:00"

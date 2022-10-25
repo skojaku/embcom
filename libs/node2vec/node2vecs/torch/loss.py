@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:33:29
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-19 07:11:07
+# @Last Modified time: 2022-10-19 12:59:28
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -44,19 +44,18 @@ class ModularityTripletLoss(nn.Module):
         base_ivectors = model.forward_i(base_iwords).unsqueeze(2)
         base_ovectors = model.forward_o(base_owords)
 
-        oloss = self.logsigmoid(torch.bmm(ovectors, ivectors).squeeze()).mean(dim=1)
+        oloss = torch.bmm(ovectors, ivectors).squeeze().mean(dim=1)
         nloss = (
-            self.logsigmoid(torch.bmm(nvectors, ivectors).squeeze())
+            torch.bmm(nvectors, ivectors)
+            .squeeze()
             .view(-1, owords.size()[1], self.n_neg)
             .sum(dim=2)
             .mean(dim=1)
         )
 
-        base_loss = self.logsigmoid(
-            torch.bmm(base_ovectors, base_ivectors).squeeze()
-        ).mean(dim=1)
+        base_loss = torch.bmm(base_ovectors, base_ivectors).squeeze().mean(dim=1)
 
-        loss = -(oloss + nloss - 0.5 * base_loss).mean()
+        loss = -(oloss + nloss - 0.5 * torch.pow(base_loss, 2)).mean()
 
         return loss
 
