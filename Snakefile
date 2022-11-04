@@ -42,20 +42,20 @@ emb_params = {
         "node2vec",
         "deepwalk",
         #"glove",
-        #"line",
-        #"leigenmap",
-        #"modspec",
+        "line",
+        "leigenmap",
+        "modspec",
         "linearized-node2vec",
-        "non-backtracking-node2vec",
-        "non-backtracking-deepwalk",
+        #"non-backtracking-node2vec",
+        #"non-backtracking-deepwalk",
         #"non-backtracking-glove",
-        #"nonbacktracking",
+        "nonbacktracking",
         "depthfirst-node2vec",
         #"torch-modularity",
         #"torch-node2vec",
     ],
     "window_length": [10],
-    "dim": [64],
+    "dim": [16, 64],
     #"dim": [64],
 }
 
@@ -67,13 +67,17 @@ com_detect_params = {
 # Clustering
 clustering_params = {
     "metric": ["cosine"],
-    "clustering": ["voronoi", "kmeans", "birch", "birch-best"],
+    "clustering": ["voronoi", "kmeans", "birch"],
 }
 
 # ============
 # Data specific
 # ============
 
+FIG_PERFORMANCE_VS_MIXING_ALL = j(
+    FIG_DIR,
+    "all_perf_vs_mixing.pdf",
+)
 
 include: "./multipartition_files.smk"
 
@@ -103,6 +107,7 @@ rule all:
 
 rule figs:
     input:
-        expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
+        #expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing),# expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
         #expand(FIG_PERFORMANCE_VS_MIXING_NB, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
-        expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing)
+        expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing),
+        expand(FIG_PERFORMANCE_VS_MIXING_ALL, data = DATA_LIST)

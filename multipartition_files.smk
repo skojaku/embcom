@@ -7,9 +7,10 @@ fig_params_perf_vs_mixing = {
     "n": [100000],
     "metric": ["cosine"],
     "length": [10],
-    "clustering": ["voronoi", "kmeans", "birch-best", "birch"],
+    #"clustering": ["voronoi"],
+    "clustering": ["voronoi", "kmeans", "birch"],
     "score_type": ["esim"],
-    "cave": [5, 10, 50, 100],
+    "cave": [10, 50, 100],
     "data": ["multi_partition_model"],
 }
 fig_perf_vs_mixing_paramspace = to_paramspace(fig_params_perf_vs_mixing)
@@ -294,7 +295,11 @@ rule plot_performance_vs_mixing:
         output_file=FIG_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_perf_vs_mixing_paramspace.instance,
-        model_names = ["non-backtracking-node2vec", "nonbacktracking", "node2vec", "deepwalk", "depthfirst-node2vec", "non-backtracking-deepwalk", "line", "infomap", "flatsbm"]
+        #model_names = ["non-backtracking-node2vec", "nonbacktracking", "node2vec", "deepwalk", "depthfirst-node2vec", "non-backtracking-deepwalk", "line", "infomap", "flatsbm"]
+        model_names = ["node2vec", "deepwalk", "line", "infomap", "flatsbm", "modspec", "leigenmap"],
+        #model_names = ["node2vec", "deepwalk", "line", "infomap", "flatsbm", "modspec", "leigenmap", "nonbacktracking"]
+        #model_names = ["node2vec", "deepwalk", "depthfirst-node2vec", "line", "infomap", "flatsbm", "modspec", "eigenmap", "nonbacktracking"]
+        title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()])
     resources:
         mem="4G",
         time="00:50:00"
@@ -327,3 +332,11 @@ rule plot_spectral_density:
         time="00:50:00"
     script:
         "workflow/plot/plot-spectral-density.py"
+
+rule plot_performance_vs_mixing_all:
+    input:
+        expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing),
+    output:
+        output_file=FIG_PERFORMANCE_VS_MIXING_ALL.format(data="multi_partition_model"),
+    run:
+        shell("pdfjam {input} --nup 3x4 --suffix 3up --outfile {output}")

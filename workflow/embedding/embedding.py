@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# @Author: Sadamori Kojaku
+# @Date:   2022-10-13 16:13:54
+# @Last Modified by:   Sadamori Kojaku
+# @Last Modified time: 2022-10-28 20:43:13
 #%%
 import logging
 import sys
@@ -69,9 +74,7 @@ if model_name == "levy-word2vec":
     )
 elif model_name == "node2vec":
     # model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks)
-    model = embcom.embeddings.Node2Vec(
-        window_length=window_length, num_walks=num_walks
-    )
+    model = embcom.embeddings.Node2Vec(window_length=window_length, num_walks=num_walks)
 elif model_name == "depthfirst-node2vec":
     # model = fastnode2vec.Node2Vec(
     #    window_length=window_length, num_walks=num_walks, p=10, q=0.1
@@ -87,15 +90,11 @@ elif model_name == "node2vec-qdouble":
     model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks, q=2)
 elif model_name == "deepwalk":
     # model = fastnode2vec.DeepWalk(window_length=window_length, num_walks=num_walks)
-    model = embcom.embeddings.DeepWalk(
-        window_length=window_length, num_walks=num_walks
-    )
+    model = embcom.embeddings.DeepWalk(window_length=window_length, num_walks=num_walks)
 elif model_name == "line":
     model = fastnode2vec.LINE(num_walks=num_walks, workers=4)
 elif model_name == "glove":
-    model = embcom.embeddings.Glove(
-        window_length=window_length, num_walks=num_walks
-    )
+    model = embcom.embeddings.Glove(window_length=window_length, num_walks=num_walks)
 elif model_name == "leigenmap":
     model = embcom.embeddings.LaplacianEigenMap()
 elif model_name == "adjspec":
@@ -128,7 +127,7 @@ elif model_name == "non-backtracking-glove":
     )
 elif model_name == "torch-node2vec":
     model = embcom.TorchNode2Vec(
-        window=window_length, num_walks=num_walks, device = device
+        window=window_length, num_walks=num_walks, device=device
     )
 elif model_name == "torch-modularity":
     model = embcom.TorchModularityFactorization(

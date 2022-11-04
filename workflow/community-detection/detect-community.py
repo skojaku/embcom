@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 from scipy import sparse
 from scipy.sparse.csgraph import connected_components
+import belief_propagation as bp
 
 if "snakemake" in sys.modules:
     netfile = snakemake.input["net_file"]
@@ -63,6 +64,9 @@ def detect_by_flatsbm(A, K):
     b = state.get_blocks()
     return np.unique(np.array(b.a), return_inverse=True)[1]
 
+def detect_by_belief_propagation(A, K):
+    return bp.detect(A, q=K)
+
 
 # Get the largest connected component
 net = sparse.csr_matrix(net)
@@ -79,6 +83,8 @@ if model_name == "infomap":
     group_ids = detect_by_infomap(net_, K)
 elif model_name == "flatsbm":
     group_ids = detect_by_flatsbm(net_, K)
+elif model_name == "bp":
+    group_ids = detect_by_belief_propagation(net_, K)
 
 n_nodes = net.shape[0]
 group_ids_ = np.zeros(n_nodes) * np.nan

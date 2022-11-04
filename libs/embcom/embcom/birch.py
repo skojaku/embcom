@@ -37,27 +37,33 @@ def CosineBirch(emb, group_ids, n_clusters, metric="cosine", rho=0.5):
     # R = np.array(np.mean(X, axis=0)).reshape(-1)
     # rho = np.sum(R * R)
     # rho = (1 + rho) / 2  # heuristics
-    if n_clusters == "true":
-        model = Birch(
-            threshold=rho,
-            n_clusters=AgglomerativeClustering(
-                affinity=metric,
-                n_clusters=K,
-                linkage="average",
-            ),
-        )
-    elif n_clusters == "data":
-        model = Birch(
-            threshold=rho,
-            n_clusters=AgglomerativeClustering(
-                affinity=metric,
-                distance_threshold=1 - rho,
-                n_clusters=None,
-                linkage="average",
-            ),
-        )
-    else:
-        model = Birch(threshold=rho, n_clusters=n_clusters)
+    try:
+        if n_clusters == "true":
+            model = Birch(
+                threshold=rho,
+                n_clusters=AgglomerativeClustering(
+                    affinity=metric,
+                    n_clusters=K,
+                    linkage="average",
+                ),
+            )
+        elif n_clusters == "data":
+            model = Birch(
+                threshold=rho,
+                n_clusters=AgglomerativeClustering(
+                    affinity=metric,
+                    distance_threshold=1 - rho,
+                    n_clusters=None,
+                    linkage="average",
+                ),
+            )
+        else:
+            model = Birch(threshold=rho, n_clusters=n_clusters)
+    except ValueError:
+        try:
+            model = Birch(threshold=rho, n_clusters=None)
+        except ValueError:
+            return np.zeros(X.shape[0])
     return model.fit_predict(X)
 
 
