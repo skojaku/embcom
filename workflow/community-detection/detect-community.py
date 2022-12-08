@@ -1,8 +1,14 @@
+# -*- coding: utf-8 -*-
+# @Author: Sadamori Kojaku
+# @Date:   2022-11-03 22:30:08
+# @Last Modified by:   Sadamori Kojaku
+# @Last Modified time: 2022-11-04 00:01:06
 """Community detection algorithms.
 
 - "infomap": Infomap
 - "flatsbm": Degree-corrected SBM
 - "nestedsbm": Degree-corrected SBM with nested structure (not implemented)
+- "bp": Belief propagation
 """
 # %%
 import sys
@@ -22,12 +28,13 @@ if "snakemake" in sys.modules:
     model_name = params["model_name"]
     output_file = snakemake.output["output_file"]
 else:
-    netfile = "../../data/multi_partition_model/networks/net_n~2500_K~2_cave~20_mu~0.85_sample~2.npz"
-    com_file = "../../data/multi_partition_model/networks/node_n~2500_K~2_cave~20_mu~0.85_sample~2.npz"
-    model_name = "flatsbm"
+    netfile = "../../data/multi_partition_model/networks/net_n~10000_K~50_cave~50_mu~0.30_sample~0.npz"
+    com_file = "../../data/multi_partition_model/networks/node_n~10000_K~50_cave~50_mu~0.30_sample~0.npz"
+    model_name = "bp"
+
     output_file = "../data/"
 
-# %%
+#
 # Load
 #
 net = sparse.load_npz(netfile)
@@ -64,6 +71,7 @@ def detect_by_flatsbm(A, K):
     b = state.get_blocks()
     return np.unique(np.array(b.a), return_inverse=True)[1]
 
+
 def detect_by_belief_propagation(A, K):
     return bp.detect(A, q=K)
 
@@ -89,8 +97,10 @@ elif model_name == "bp":
 n_nodes = net.shape[0]
 group_ids_ = np.zeros(n_nodes) * np.nan
 group_ids_[ids] = group_ids
-
+print(group_ids)
 # %%
 # Save
 #
 np.savez(output_file, group_ids=group_ids_)
+
+# %%

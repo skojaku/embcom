@@ -61,13 +61,14 @@ emb_params = {
 
 # Community detection
 com_detect_params = {
-    "model_name": ["infomap", "flatsbm"],
+    "model_name": ["infomap", "flatsbm", "bp"],
 }
 
 # Clustering
 clustering_params = {
     "metric": ["cosine"],
-    "clustering": ["voronoi", "kmeans", "birch"],
+    "clustering": ["voronoi", "kmeans"],
+    #"clustering": ["voronoi", "kmeans", "birch"],
 }
 
 # ============
@@ -107,7 +108,7 @@ rule all:
 
 rule figs:
     input:
-        #expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing),# expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
+        expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing),# expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
         #expand(FIG_PERFORMANCE_VS_MIXING_NB, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
         expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing),
         expand(FIG_PERFORMANCE_VS_MIXING_ALL, data = DATA_LIST)

@@ -59,14 +59,14 @@ if "snakemake" in sys.modules:
 else:
     input_files = "../../data/multi_partition_model/evaluations/score*.npz"
     output_file = "../../data/multi_partition_model/evaluations/all-result.csv"
-    # input_files = "../../data/lfr/evaluations/score*.npz"
-    # output_file = "../../data/lfr/evaluations/all-result.csv"
+    #input_files = "../../data/lfr/evaluations/score*.npz"
+    #output_file = "../../data/lfr/evaluations/all-result.csv"
     # mlt
     to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
     to_float = ["mu"]
     # lfr
-    # to_int=["n", "k", "tau", "tau2", "minc", "dim", "sample", "length", "dim"]
-    # to_float=["mu"]
+    #to_int=["n", "k", "tau", "tau2", "minc", "dim", "sample", "length", "dim"]
+    #to_float=["mu"]
 
 #%% Load
 data_table = load_files(input_files).fillna("")
