@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:33:29
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-19 12:59:28
+# @Last Modified time: 2022-12-09 15:55:30
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -56,6 +56,30 @@ class ModularityTripletLoss(nn.Module):
         base_loss = torch.bmm(base_ovectors, base_ivectors).squeeze().mean(dim=1)
 
         loss = -(oloss + nloss - 0.5 * torch.pow(base_loss, 2)).mean()
+
+        return loss
+
+
+class LaplacianEigenMapTripletLoss(nn.Module):
+    def __init__(self, n_neg):
+        super(LaplacianEigenMapTripletLoss, self).__init__()
+        self.n_neg = n_neg
+
+    def forward(self, model, iwords, owords, nwords):
+        ivectors = model.forward_i(iwords).unsqueeze(2)
+        ovectors = model.forward_o(owords)
+        nvectors = model.forward_o(nwords).neg()
+
+        oloss = torch.bmm(ovectors, ivectors).squeeze().mean(dim=1)
+        nloss = (
+            torch.bmm(nvectors, ivectors)
+            .squeeze()
+            .view(-1, owords.size()[1], self.n_neg)
+            .sum(dim=2)
+            .mean(dim=1)
+        )
+
+        loss = -(oloss - 0.5 * torch.pow(nloss, 2)).mean()
 
         return loss
 

@@ -2,9 +2,11 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:41:52
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-18 09:24:05
+# @Last Modified time: 2022-12-09 15:58:09
 # %%
 import node2vecs
+node2vecs.__path__
+# %%
 import networkx as nx
 import numpy as np
 
@@ -17,6 +19,7 @@ dim = 32
 model = node2vecs.TorchNode2Vec(
     num_walks=100, batch_size=1024, negative=1, epochs=10, device="cuda:1"
 )
+model = node2vecs.TorchLaplacianEigenMap(num_walks=50, negative=1)
 # model = node2vecs.TorchModularity(num_walks=50, negative=1)
 model.fit(A)
 emb = model.transform()

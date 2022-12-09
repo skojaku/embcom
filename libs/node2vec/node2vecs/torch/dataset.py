@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:33:29
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-24 22:56:34
+# @Last Modified time: 2022-12-09 15:51:09
 import random
 
 import numpy as np
@@ -141,6 +141,21 @@ class TripletDataset(Dataset):
         #    self.contexts[ids],
         #    self.random_contexts[ids],
         # )
+
+
+class LaplacianEigenMapDataset(TripletDataset):
+    def __init__(self, **params):
+        super().__init__(**params)
+
+    def __getitem__(self, idx):
+        if self.sample_id == self.n_sampled:
+            self._generate_samples()
+
+        center = self.centers[self.sample_id].astype(np.int64)
+        cont = self.contexts[self.sample_id, :].astype(np.int64)
+        rand_cont = self.random_contexts[self.sample_id, :].astype(np.int64)
+        self.sample_id += 1
+        return center, cont, rand_cont
 
 
 class ModularityDataset(TripletDataset):
