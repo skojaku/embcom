@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:07
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-28 14:38:54
+# @Last Modified time: 2022-12-11 16:37:36
 # %%
 import numpy as np
 import pandas as pd
@@ -21,20 +21,37 @@ if "snakemake" in sys.modules:
     title = (
         snakemake.params["title"] if "title" in list(snakemake.params.keys()) else None
     )
+    with_legend = (
+        str(snakemake.params["with_legend"]) == "True"
+        if "with_legend" in list(snakemake.params.keys())
+        else "True"
+    )
 else:
     input_file = "../../data/lfr/evaluations/all-result.csv"
     output_file = "../data/"
-
+    with_legend = True
     params = {
         "dim": 64,
-        "n": 100000,
+        "n": 10000,
         "metric": "cosine",
         "length": 10,
-        "k": 50,
-        "clustering": "kmeans",
+        "k": 10,
+        "clustering": "voronoi",
         "score_type": "esim",
         "dimThreshold": True,
-        # "normalize": True,
+        "name": [
+            "node2vec",
+            "deepwalk",
+            "line",
+            "linearized-node2vec",
+            "nonbacktracking",
+            "infomap",
+            "flatsbm",
+            "modspec",
+            "leigenmap",
+            "bp",
+        ],
+        "normalize": True,
     }
 
 #
@@ -69,34 +86,53 @@ data_model_list = plot_data["name"].unique().tolist()
 model_list = [k for k in model_list if k in data_model_list]
 
 model_color = cp.get_model_colors()
-
-c1 = sns.color_palette("Set2")
-c2 = sns.color_palette("Set1")
-c3 = sns.color_palette(desat=0.6)
-
 model_markers = cp.get_model_markers()
 model_linestyles = cp.get_model_linestyles()
 model_names = cp.get_model_names()
-
-model_markers = {k: model_markers[k] for k in model_list}
-model_linestyles = [model_linestyles[k] for k in model_list]
-model_names = {k: model_names[k] for k in model_list}
+model_edge_color = cp.get_model_edge_colors()
+model_groups = cp.get_model_groups()
 
 fig, ax = plt.subplots(figsize=(5.5, 5.5))
 
-ax = sns.lineplot(
-    data=plot_data,
-    x="mu",
-    y="score",
-    hue="name",
-    style="name",
-    markers=model_markers,
-    style_order=model_list,
-    hue_order=model_list,
-    palette=model_color,
-    markeredgecolor="k",
-    ax=ax,
-)
+for name in model_list[::-1]:
+    color = model_color[name]
+    markeredgecolor = model_edge_color[name]
+    if color == "white":
+        ax = sns.lineplot(
+            data=plot_data[plot_data["name"] == name],
+            x="mu",
+            y="score",
+            dashes=model_linestyles[name],
+            color="black",
+            ax=ax,
+        )
+
+    ax = sns.lineplot(
+        data=plot_data[plot_data["name"] == name],
+        x="mu",
+        y="score",
+        marker=model_markers[name],
+        dashes=model_linestyles[name],
+        color=color,
+        markeredgecolor=markeredgecolor,
+        markersize=6,
+        label=name,
+        ax=ax,
+    )
+(dummy,) = ax.plot([0.5], [0.5], marker="None", linestyle="None", label="dummy-tophead")
+# ax = sns.lineplot(
+#    data=plot_data,
+#    x="mu",
+#    y="score",
+#    hue="name",
+#    style="name",
+#    markers=model_markers,
+#    style_order=model_list,
+#    hue_order=model_list,
+#    palette=model_color,
+#    markeredgecolor="k",
+#    ax=ax,
+# )
 
 ax.set_xlabel(r"Mixing rate, $\mu$")
 
@@ -110,17 +146,33 @@ ax.set_ylim(-0.03, 1.05)
 # ax.axvline(mu_max, color="black", linestyle="--")
 
 current_handles, current_labels = ax.get_legend_handles_labels()
-new_labels = [model_names[l] for l in current_labels]
-lgd = ax.legend(
-    current_handles,
-    new_labels,
-    frameon=False,
-    loc="upper left",
-    bbox_to_anchor=(-0.15, -0.15),
-    ncol=3,
-    fontsize=7,
-    # labels=[model_names[m] for m in model_list],
-)
+new_handles = []
+new_labels = []
+prev_group = model_groups[current_labels[0]]
+for i, l in enumerate(current_labels):
+    if l not in model_groups:
+        continue
+
+    curr_group = model_groups[l]
+    if prev_group != curr_group:
+        new_handles.append(dummy)
+        new_labels.append("")
+    new_handles.append(current_handles[i])
+    new_labels.append(model_names[l] if l in model_names else l)
+    prev_group = curr_group
+
+if with_legend:
+    lgd = ax.legend(
+        new_handles[::-1],
+        new_labels[::-1],
+        frameon=False,
+        loc="upper right",
+        bbox_to_anchor=(1.05, 1),
+        ncol=1,
+        fontsize=9,
+    )
+else:
+    ax.legend().remove()
 sns.despine()
 
 if title is not None:
@@ -128,8 +180,6 @@ if title is not None:
 
 fig.savefig(
     output_file,
-    bbox_extra_artists=(lgd,),
     bbox_inches="tight",
     dpi=300,
 )
-# %%

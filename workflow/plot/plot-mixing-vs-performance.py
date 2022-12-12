@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:10
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-11-10 21:16:01
+# @Last Modified time: 2022-12-11 16:46:44
 # %%
 import numpy as np
 import pandas as pd
@@ -23,10 +23,15 @@ if "snakemake" in sys.modules:
     title = (
         snakemake.params["title"] if "title" in list(snakemake.params.keys()) else None
     )
+    with_legend = (
+        str(snakemake.params["with_legend"]) == "True"
+        if "with_legend" in list(snakemake.params.keys())
+        else "True"
+    )
 else:
     input_file = "../../data/multi_partition_model/all-result.csv"
     output_file = "../data/"
-
+    with_legend = True
     params = {
         "q": 2,
         "dim": 64,
@@ -37,6 +42,8 @@ else:
             "node2vec",
             "deepwalk",
             "line",
+            "linearized-node2vec",
+            "nonbacktracking",
             "infomap",
             "flatsbm",
             "modspec",
@@ -45,7 +52,7 @@ else:
         ],
         "clustering": "voronoi",
         "score_type": "esim",
-        "cave": 10,
+        "cave": 5,
         "dimThreshold": False,
         "normalize": False,
     }
@@ -66,15 +73,13 @@ for k, v in params.items():
 plot_data = plot_data[plot_data["name"] != "levy-word2vec"]
 # plot_data = plot_data[plot_data["dimThreshold"] == False]
 # lot_data = plot_data[plot_data["normalize"] == False]
-# %%
-data_table[data_table["name"] == "bp"]
-# %%
-plot_data[plot_data["name"] == "bp"]
 
 # %%
 #
 # Plot
 #
+
+
 sns.set_style("white")
 sns.set(font_scale=1.3)
 sns.set_style("ticks")
@@ -84,31 +89,40 @@ data_model_list = plot_data["name"].unique().tolist()
 model_list = [k for k in model_list if k in data_model_list]
 
 model_color = cp.get_model_colors()
-
 model_markers = cp.get_model_markers()
 model_linestyles = cp.get_model_linestyles()
 model_names = cp.get_model_names()
+model_edge_color = cp.get_model_edge_colors()
+model_groups = cp.get_model_groups()
 
-model_markers = {k: model_markers[k] for k in model_list}
-model_linestyles = [model_linestyles[k] for k in model_list]
-model_names = {k: model_names[k] for k in model_list}
 
-fig, ax = plt.subplots(figsize=(5.5, 5.5))
+fig, ax = plt.subplots(figsize=(6, 5))
+for name in model_list[::-1]:
+    color = model_color[name]
+    markeredgecolor = model_edge_color[name]
+    if color == "white":
+        ax = sns.lineplot(
+            data=plot_data[plot_data["name"] == name],
+            x="mu",
+            y="score",
+            dashes=model_linestyles[name],
+            color="black",
+            ax=ax,
+        )
 
-ax = sns.lineplot(
-    data=plot_data,
-    x="mu",
-    y="score",
-    hue="name",
-    style="name",
-    markers=model_markers,
-    style_order=model_list,
-    hue_order=model_list[::-1],
-    palette=model_color,
-    markeredgecolor="#4d4d4d",
-    markersize=6,
-    ax=ax,
-)
+    ax = sns.lineplot(
+        data=plot_data[plot_data["name"] == name],
+        x="mu",
+        y="score",
+        marker=model_markers[name],
+        dashes=model_linestyles[name],
+        color=color,
+        markeredgecolor=markeredgecolor,
+        markersize=6,
+        label=name,
+        ax=ax,
+    )
+(dummy,) = ax.plot([0.5], [0.5], marker="None", linestyle="None", label="dummy-tophead")
 
 ax.set_xlabel(r"Mixing rate, $\mu$")
 if params["score_type"] == "nmi":
@@ -117,28 +131,42 @@ else:
     ax.set_ylabel(r"Element-centric similarity")
 
 mu_max = 1 - 1 / np.sqrt(params["cave"])
-ax.axvline(mu_max, color="black", linestyle="--")
+ax.axvline(mu_max, color="black", linestyle="--", zorder=1)
 
 current_handles, current_labels = ax.get_legend_handles_labels()
-new_labels = [model_names[l] for l in current_labels]
-# handles, labels = ax.get_legend_handles_labels()
-# ax.legend(handles[::-1], labels[::-1], title='Line', loc='upper left')
-lgd = ax.legend(
-    current_handles[::-1],
-    new_labels[::-1],
-    frameon=False,
-    loc="upper left",
-    bbox_to_anchor=(-0.15, -0.15),
-    ncol=3,
-    fontsize=7,
-)
+new_handles = []
+new_labels = []
+prev_group = model_groups[current_labels[0]]
+for i, l in enumerate(current_labels):
+    if l not in model_groups:
+        continue
+
+    curr_group = model_groups[l]
+    if prev_group != curr_group:
+        new_handles.append(dummy)
+        new_labels.append("")
+    new_handles.append(current_handles[i])
+    new_labels.append(model_names[l] if l in model_names else l)
+    prev_group = curr_group
+
+if with_legend:
+    lgd = ax.legend(
+        new_handles[::-1],
+        new_labels[::-1],
+        frameon=False,
+        loc="upper right",
+        bbox_to_anchor=(1, 1),
+        ncol=1,
+        fontsize=9,
+    )
+else:
+    ax.legend().remove()
 sns.despine()
 if title is not None:
     ax.set_title(textwrap.fill(title, width=42))
 
 fig.savefig(
     output_file,
-    bbox_extra_artists=(lgd,),
     bbox_inches="tight",
     dpi=300,
 )
