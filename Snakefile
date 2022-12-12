@@ -61,7 +61,8 @@ emb_params = {
 
 # Community detection
 com_detect_params = {
-    "model_name": ["infomap", "flatsbm", "bp"],
+    "model_name": ["bp"],
+    #"model_name": ["infomap", "flatsbm", "bp"],
 }
 
 # Clustering
@@ -96,13 +97,12 @@ DATA_LIST = ["multi_partition_model", "lfr"]
 
 rule all:
     input:
-        expand(EVAL_CONCAT_FILE, data=DATA_LIST),
-
-
+        expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
+        expand(LFR_COM_DETECT_FILE, data="lfr", **lfr_net_params, **com_detect_params)
+        #expand(EVAL_CONCAT_FILE, data=DATA_LIST),
 #        expand(EVAL_FILE, data="multi_partition_model", **net_params, **com_detect_params, **eval_params),
 #        expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params, **eval_params),
 #        expand(EMB_FILE, data="multi_partition_model", **net_params, **emb_params),
-#        expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
 #        expand(COM_DETECT_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params)
 
 
