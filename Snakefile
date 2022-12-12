@@ -98,7 +98,7 @@ DATA_LIST = ["multi_partition_model", "lfr"]
 rule all:
     input:
         expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
-        expand(LFR_COM_DETECT_FILE, data="lfr", **lfr_net_params, **com_detect_params)
+        #expand(LFR_COM_DETECT_FILE, data="lfr", **lfr_net_params, **com_detect_params)
         #expand(EVAL_CONCAT_FILE, data=DATA_LIST),
 #        expand(EVAL_FILE, data="multi_partition_model", **net_params, **com_detect_params, **eval_params),
 #        expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params, **eval_params),
@@ -110,5 +110,5 @@ rule figs:
     input:
         expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing),# expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
         #expand(FIG_PERFORMANCE_VS_MIXING_NB, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
-        expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing),
+        #expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing),
         expand(FIG_PERFORMANCE_VS_MIXING_ALL, data = DATA_LIST)
