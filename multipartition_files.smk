@@ -5,7 +5,7 @@ fig_params_perf_vs_mixing = {
     "q": [2, 50],
     "dim": [64],
     #"n": [1000],
-    "n": [100000],
+    "n": [10000],
     "metric": ["cosine"],
     "length": [10],
     #"clustering": ["voronoi"],
@@ -301,11 +301,12 @@ rule plot_performance_vs_mixing:
         dimThreshold= False,
         normalize= False,
         #model_names = ["non-backtracking-node2vec", "nonbacktracking", "node2vec", "deepwalk", "depthfirst-node2vec", "non-backtracking-deepwalk", "line", "infomap", "flatsbm"]
-        model_names = ["node2vec", "deepwalk", "line", "modspec", "leigenmap", "non-backtracking", "infomap", "flatsbm" ],
+        model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
         #model_names = ["node2vec", "deepwalk", "line", "infomap", "flatsbm", "modspec", "leigenmap", "bp"],
         #model_names = ["node2vec", "deepwalk", "line", "infomap", "flatsbm", "modspec", "leigenmap", "nonbacktracking"]
         #model_names = ["node2vec", "deepwalk", "depthfirst-node2vec", "line", "infomap", "flatsbm", "modspec", "eigenmap", "nonbacktracking"]
-        title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()])
+        title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
+        with_legend = lambda wildcards: "True" if str(wildcards.cave)=="5" else "False"
     resources:
         mem="4G",
         time="00:50:00"
