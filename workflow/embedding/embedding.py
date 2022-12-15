@@ -40,7 +40,7 @@ else:
     embfile = "tmp.npz"
     dim = 64
     window_length = 10
-    model_name = "node2vec"
+    model_name = "torch-modularity"
     num_walks = 20
 
 
@@ -55,15 +55,16 @@ if dim == 0:
     dim = np.minimum(net.shape[0] - 1, dim)
 
 
-device = GPUtil.getFirstAvailable(
-    order="random",
-    maxLoad=1,
-    maxMemory=0.3,
-    attempts=99999,
-    interval=60 * 1,
-    verbose=False,
-)[0]
-device = f"cuda:{device}"
+#device = GPUtil.getFirstAvailable(
+#    order="random",
+#    maxLoad=1,
+#    maxMemory=0.3,
+#    attempts=99999,
+#    interval=60 * 1,
+#    verbose=False,
+#)[0]
+#device = f"cuda:{device}"
+device = "cpu"
 
 #
 # Embedding models
@@ -92,7 +93,8 @@ elif model_name == "deepwalk":
     # model = fastnode2vec.DeepWalk(window_length=window_length, num_walks=num_walks)
     model = embcom.embeddings.DeepWalk(window_length=window_length, num_walks=num_walks)
 elif model_name == "line":
-    model = fastnode2vec.LINE(num_walks=num_walks, workers=4)
+    model = embcom.embeddings.Node2Vec(window_length=1, num_walks=num_walks)
+    #model = fastnode2vec.LINE(num_walks=num_walks, workers=4)
 elif model_name == "glove":
     model = embcom.embeddings.Glove(window_length=window_length, num_walks=num_walks)
 elif model_name == "leigenmap":

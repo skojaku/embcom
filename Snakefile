@@ -50,12 +50,12 @@ emb_params = {
         #"non-backtracking-deepwalk",
         #"non-backtracking-glove",
         "nonbacktracking",
-        "depthfirst-node2vec",
+        #"depthfirst-node2vec",
         #"torch-modularity",
         #"torch-node2vec",
     ],
     "window_length": [10],
-    "dim": [16, 64],
+    "dim": [16],
     #"dim": [64],
 }
 
@@ -97,10 +97,13 @@ DATA_LIST = ["multi_partition_model", "lfr"]
 
 rule all:
     input:
-        expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
+#        expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
         #expand(LFR_COM_DETECT_FILE, data="lfr", **lfr_net_params, **com_detect_params)
         #expand(EVAL_CONCAT_FILE, data=DATA_LIST),
-#        expand(EVAL_FILE, data="multi_partition_model", **net_params, **com_detect_params, **eval_params),
+        expand(EVAL_FILE, data="multi_partition_model", **net_params, **com_detect_params),
+        expand(LFR_EVAL_FILE, data="lfr", **lfr_net_params, **com_detect_params),
+        expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params),
+        expand(LFR_EVAL_EMB_FILE, data="lfr", **lfr_net_params, **emb_params, **clustering_params ),
 #        expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params, **eval_params),
 #        expand(EMB_FILE, data="multi_partition_model", **net_params, **emb_params),
 #        expand(COM_DETECT_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params)
