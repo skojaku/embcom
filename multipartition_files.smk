@@ -4,15 +4,23 @@
 fig_params_perf_vs_mixing = {
     "q": [2, 50],
     "dim": [64],
+<<<<<<< HEAD
     #"n": [1000],
     "n": [10000, 100000],
+=======
+    "n": [10000],
+>>>>>>> origin/linear-vs-non-linear
     "metric": ["cosine"],
     "length": [10],
     #"clustering": ["voronoi"],
     "clustering": ["voronoi"],
     #""clustering": ["voronoi", "kmeans", "birch"],
     "score_type": ["esim"],
+<<<<<<< HEAD
     "cave": [5, 10, 50],
+=======
+    "cave": [5],
+>>>>>>> origin/linear-vs-non-linear
     "data": ["multi_partition_model"],
 }
 fig_perf_vs_mixing_paramspace = to_paramspace(fig_params_perf_vs_mixing)
@@ -32,14 +40,19 @@ FIG_PERFORMANCE_VS_MIXING_NB = j(
 # ================================
 
 net_params = {
+<<<<<<< HEAD
     #"n": [1000],  # Network size
     "n": [10000, 100000],  # Network size
     #"n": [1000, 10000],
+=======
+    "n": [10000, 100000],  # Network size
+    #"n": [100000, 10000],
+>>>>>>> origin/linear-vs-non-linear
     #"n": [1000, 10000, 100000],
     "K": [2, 50],  # Number of communities
     #"K": [2, 50],  # Number of communities
     #"K": [2, 64],  # Number of communities
-    "cave": [5, 10, 50, 100],  # average degree
+    "cave": [5, 10],  # average degree
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
     "sample": np.arange(3),  # Number of samples
 }
@@ -299,6 +312,7 @@ rule plot_performance_vs_mixing:
         output_file=FIG_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_perf_vs_mixing_paramspace.instance,
+<<<<<<< HEAD
         dimThreshold= False,
         normalize= False,
         #model_names = ["non-backtracking-node2vec", "nonbacktracking", "node2vec", "deepwalk", "depthfirst-node2vec", "non-backtracking-deepwalk", "line", "infomap", "flatsbm"]
@@ -308,6 +322,9 @@ rule plot_performance_vs_mixing:
         #model_names = ["node2vec", "deepwalk", "depthfirst-node2vec", "line", "infomap", "flatsbm", "modspec", "eigenmap", "nonbacktracking"]
         title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
         with_legend = lambda wildcards: "True" if str(wildcards.cave)=="5" else "False"
+=======
+        model_names = ["non-backtracking-node2vec", "nonbacktracking", "node2vec", "deepwalk", "depthfirst-node2vec", "non-backtracking-deepwalk", "line", "infomap", "flatsbm", "torch-node2vec", "torch-modularity", "modspec", "linearized-node2vec"]
+>>>>>>> origin/linear-vs-non-linear
     resources:
         mem="4G",
         time="00:50:00"

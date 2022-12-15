@@ -39,8 +39,8 @@ EVAL_CONCAT_FILE = j(EVA_DIR, f"all-result.csv")
 # Embedding
 emb_params = {
     "model_name": [
-        "node2vec",
-        "deepwalk",
+        #"node2vec",
+        #"deepwalk",
         #"glove",
         "line",
         "leigenmap",
