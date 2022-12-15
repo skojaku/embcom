@@ -55,7 +55,9 @@ class ModularityTripletLoss(nn.Module):
 
         base_loss = torch.bmm(base_ovectors, base_ivectors).squeeze().mean(dim=1)
 
-        loss = -(oloss + nloss - 0.5 * torch.pow(base_loss, 2)).mean()
+        n_nodes = model.vocab_size 
+        loss = -(oloss + nloss - 0.5 * n_nodes * n_nodes* torch.pow(base_loss, 2)).mean()
+        #loss = -(oloss + nloss - 0.5 * torch.pow(base_loss, 2)).mean()
 
         return loss
 

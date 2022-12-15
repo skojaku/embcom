@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 15:08:01
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-17 07:02:05
+# @Last Modified time: 2022-12-12 06:49:07
 #%%
 import logging
 import sys
@@ -136,6 +136,15 @@ elif model_name == "torch-modularity":
         device=device,
         negative=1,
     )
+elif model_name == "torch-laplacian-eigenmap":
+    model = node2vecs.TorchLaplacianEigenMap(
+        window=window_length,
+        num_walks=num_walks,
+        vector_size=dim,
+        batch_size=256,
+        device=device,
+        negative=1,
+    )
 
 # %%
 # Embedding
@@ -153,7 +162,7 @@ HT = sparse.csr_matrix(H.T)
 net_ = HT @ net @ H
 model.fit(net_)
 
-if model_name in ["torch-node2vec", "torch-modularity"]:
+if model_name in ["torch-node2vec", "torch-modularity", "torch-laplacian-eigenmap"]:
     emb_ = model.transform()
 else:
     emb_ = model.transform(dim=dim)

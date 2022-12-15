@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:41:52
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-12-09 15:58:09
+# @Last Modified time: 2022-12-09 16:00:00
 # %%
 import node2vecs
 node2vecs.__path__
