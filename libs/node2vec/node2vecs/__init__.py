@@ -13,5 +13,4 @@ from .torch.torch_node2vec import TorchNode2Vec
 from .torch.torch_laplacian_eigenmap import TorchLaplacianEigenMap
 from .torch.torch_modularity import TorchModularity
 from .gensim.gensim_node2vec import GensimNode2Vec
-from .pytorch_geometric.pyg_node2vec import PYGNode2Vec
 from .utils.node_sampler import *

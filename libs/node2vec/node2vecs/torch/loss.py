@@ -39,7 +39,7 @@ class ModularityTripletLoss(nn.Module):
     def forward(self, model, iwords, owords, nwords, base_iwords, base_owords):
         ivectors = model.forward_i(iwords).unsqueeze(2)
         ovectors = model.forward_o(owords)
-        nvectors = model.forward_o(nwords).neg()
+        nvectors = model.forward_o(nwords)
 
         base_ivectors = model.forward_i(base_iwords).unsqueeze(2)
         base_ovectors = model.forward_o(base_owords)
@@ -53,10 +53,11 @@ class ModularityTripletLoss(nn.Module):
             .mean(dim=1)
         )
 
-        base_loss = torch.bmm(base_ovectors, base_ivectors).squeeze().mean(dim=1)
-
         n_nodes = model.vocab_size 
-        loss = -(oloss + nloss - 0.5 * n_nodes * n_nodes* torch.pow(base_loss, 2)).mean()
+        base_loss = torch.bmm(base_ovectors, base_ivectors).squeeze()
+        base_loss = torch.pow(base_loss, 2).mean(dim=1)
+        
+        loss = -oloss.mean() + nloss.mean() + 0.5 * n_nodes * base_loss.mean()
         #loss = -(oloss + nloss - 0.5 * torch.pow(base_loss, 2)).mean()
 
         return loss
