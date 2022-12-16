@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:33:29
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-12-09 15:55:30
+# @Last Modified time: 2022-12-16 06:56:28
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -39,7 +39,7 @@ class ModularityTripletLoss(nn.Module):
     def forward(self, model, iwords, owords, nwords, base_iwords, base_owords):
         ivectors = model.forward_i(iwords).unsqueeze(2)
         ovectors = model.forward_o(owords)
-        nvectors = model.forward_o(nwords).neg()
+        nvectors = model.forward_o(nwords)
 
         base_ivectors = model.forward_i(base_iwords).unsqueeze(2)
         base_ovectors = model.forward_o(base_owords)
@@ -53,12 +53,12 @@ class ModularityTripletLoss(nn.Module):
             .mean(dim=1)
         )
 
-        base_loss = torch.bmm(base_ovectors, base_ivectors).squeeze().mean(dim=1)
+        n_nodes = model.vocab_size
+        base_loss = torch.bmm(base_ovectors, base_ivectors).squeeze()
+        base_loss = torch.pow(base_loss, 2).mean(dim=1)
 
-        n_nodes = model.vocab_size 
-        loss = -(oloss + nloss - 0.5 * n_nodes * n_nodes* torch.pow(base_loss, 2)).mean()
-        #loss = -(oloss + nloss - 0.5 * torch.pow(base_loss, 2)).mean()
-
+        loss = -oloss.mean() + nloss.mean() + 0.5 * n_nodes * base_loss.mean()
+        # loss = -(oloss + nloss - 0.5 * torch.pow(base_loss, 2)).mean()
         return loss
 
 
