@@ -1,15 +1,23 @@
+# -*- coding: utf-8 -*-
+# @Author: Sadamori Kojaku
+# @Date:   2022-10-14 15:08:01
+# @Last Modified by:   Sadamori Kojaku
+<<<<<<< HEAD
+# @Last Modified time: 2022-12-13 16:22:53
+=======
+# @Last Modified time: 2022-12-12 06:49:07
+>>>>>>> 4d4631fad35c6a63f1b11eff2583dbf517dd0cd1
 #%%
 import logging
 import sys
-
-import fastnode2vec
+import embcom
 import GPUtil
 import numpy as np
 import pandas as pd
 from scipy import sparse
 from scipy.sparse.csgraph import connected_components
 
-import embcom
+import node2vecs
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -35,7 +43,7 @@ else:
     embfile = "tmp.npz"
     dim = 64
     window_length = 10
-    model_name = "node2vec"
+    model_name = "torch-modularity"
     num_walks = 20
 
 
@@ -49,16 +57,31 @@ if dim == 0:
     dim = len(set(true_membership)) - 1
     dim = np.minimum(net.shape[0] - 1, dim)
 
-
-device = GPUtil.getFirstAvailable(
-    order="random",
-    maxLoad=1,
-    maxMemory=0.3,
-    attempts=99999,
-    interval=60 * 1,
-    verbose=False,
-)[0]
-device = f"cuda:{device}"
+<<<<<<< HEAD
+if "touch" in model_name:
+    device = GPUtil.getFirstAvailable(
+        order="random",
+        maxLoad=1,
+        maxMemory=0.3,
+        attempts=99999,
+        interval=60 * 1,
+        verbose=False,
+    )[0]
+    device = f"cuda:{device}"
+else:
+    device = "cpu"
+=======
+#device = GPUtil.getFirstAvailable(
+#    order="random",
+#    maxLoad=1,
+#    maxMemory=0.3,
+#    attempts=99999,
+#    interval=60 * 1,
+#    verbose=False,
+#)[0]
+#device = f"cuda:{device}"
+device = "cpu"
+>>>>>>> 4d4631fad35c6a63f1b11eff2583dbf517dd0cd1
 
 #
 # Embedding models
@@ -69,9 +92,7 @@ if model_name == "levy-word2vec":
     )
 elif model_name == "node2vec":
     # model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks)
-    model = embcom.embeddings.Node2Vec(
-        window_length=window_length, num_walks=num_walks
-    )
+    model = embcom.embeddings.Node2Vec(window_length=window_length, num_walks=num_walks)
 elif model_name == "depthfirst-node2vec":
     # model = fastnode2vec.Node2Vec(
     #    window_length=window_length, num_walks=num_walks, p=10, q=0.1
@@ -79,23 +100,13 @@ elif model_name == "depthfirst-node2vec":
     model = embcom.embeddings.Node2Vec(
         window_length=window_length, num_walks=num_walks, p=100, q=1
     )
-elif model_name == "node2vec-qhalf":
-    model = fastnode2vec.Node2Vec(
-        window_length=window_length, num_walks=num_walks, q=0.5
-    )
-elif model_name == "node2vec-qdouble":
-    model = fastnode2vec.Node2Vec(window_length=window_length, num_walks=num_walks, q=2)
 elif model_name == "deepwalk":
     # model = fastnode2vec.DeepWalk(window_length=window_length, num_walks=num_walks)
-    model = embcom.embeddings.DeepWalk(
-        window_length=window_length, num_walks=num_walks
-    )
+    model = embcom.embeddings.DeepWalk(window_length=window_length, num_walks=num_walks)
 elif model_name == "line":
-    model = fastnode2vec.LINE(num_walks=num_walks, workers=4)
+    model = embcom.embeddings.Node2Vec(window_length=1, num_walks=num_walks, p=1, q=1)
 elif model_name == "glove":
-    model = embcom.embeddings.Glove(
-        window_length=window_length, num_walks=num_walks
-    )
+    model = embcom.embeddings.Glove(window_length=window_length, num_walks=num_walks)
 elif model_name == "leigenmap":
     model = embcom.embeddings.LaplacianEigenMap()
 elif model_name == "adjspec":
@@ -127,12 +138,31 @@ elif model_name == "non-backtracking-glove":
         window_length=window_length, num_walks=num_walks
     )
 elif model_name == "torch-node2vec":
-    model = embcom.TorchNode2Vec(
-        window=window_length, num_walks=num_walks, device = device
+    model = node2vecs.TorchNode2Vec(
+        window=window_length,
+        num_walks=num_walks,
+        vector_size=dim,
+        batch_size=256,
+        device=device,
+        negative=1,
     )
 elif model_name == "torch-modularity":
-    model = embcom.TorchModularityFactorization(
-        window=window_length, num_walks=num_walks, device=device
+    model = node2vecs.TorchModularity(
+        window=window_length,
+        num_walks=num_walks,
+        vector_size=dim,
+        batch_size=256,
+        device=device,
+        negative=1,
+    )
+elif model_name == "torch-laplacian-eigenmap":
+    model = node2vecs.TorchLaplacianEigenMap(
+        window=window_length,
+        num_walks=num_walks,
+        vector_size=dim,
+        batch_size=256,
+        device=device,
+        negative=1,
     )
 
 # %%
@@ -150,7 +180,11 @@ H = sparse.csr_matrix(
 HT = sparse.csr_matrix(H.T)
 net_ = HT @ net @ H
 model.fit(net_)
-emb_ = model.transform(dim=dim)
+
+if model_name in ["torch-node2vec", "torch-modularity", "torch-laplacian-eigenmap"]:
+    emb_ = model.transform()
+else:
+    emb_ = model.transform(dim=dim)
 
 # Enlarge the embedding to the size of the original net
 # All nodes that do not belong to the largest connected component have nan

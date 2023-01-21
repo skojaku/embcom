@@ -3,14 +3,15 @@
 # ================================
 
 lfr_net_params = {
-    "n": [100000],  # Network size
+    #"n": [1000],  # Network size
+    "n": [10000],  # Network size
     #"n": [1000, 10000, 100000],  # Network size
-    "k": [5, 10, 50, 100],  # Average degree
+    "k": [5, 10, 50],  # Average degree
     "tau": [3],  # degree exponent
     "tau2": [1],  # community size exponent
     "minc": [50],  # min community size
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
-    "sample": np.arange(10),  # Number of samples
+    "sample": np.arange(3),  # Number of samples
 }
 
 # Convert to a paramspace
@@ -51,13 +52,15 @@ LFR_EVAL_FILE = j(EVA_DIR, f"score_{lfr_com_detect_paramspace.wildcard_pattern}.
 # =========
 fig_lfr_params_perf_vs_mixing = {
     "dim": [64],
-    "k": [5, 10, 50, 100],  # Average degree
-    "n": [1000, 10000, 100000],
+    "k": [5, 10, 50],  # Average degree
+    #"n": [1000],
+    "n": [10000],
     #"dim":[64, 256],
     "metric": ["cosine"],
     "length": [10],
-    "clustering": ["voronoi", "kmeans"],
-    "score_type": ["esim", "nmi"],
+    "clustering": ["voronoi"],
+    #"clustering": ["voronoi", "kmeans", "birch"],
+    "score_type": ["esim"],
     "data": ["lfr"],
 }
 fig_lfr_perf_vs_mixing_paramspace = to_paramspace(fig_lfr_params_perf_vs_mixing)
@@ -112,6 +115,25 @@ use rule voronoi_clustering_multi_partition_model as voronoi_clustering_lfr with
     params:
         parameters=lfr_com_detect_emb_paramspace.instance,
 
+use rule birch_best_clustering_multi_partition_model as birch_best_clustering_lfr with:
+    input:
+        emb_file=LFR_EMB_FILE,
+        com_file=LFR_NODE_FILE,
+    output:
+        output_file=LFR_COM_DETECT_EMB_FILE,
+    params:
+        parameters=lfr_com_detect_emb_paramspace.instance,
+        n_clusters = "true"
+
+use rule birch_clustering_multi_partition_model as birch_clustering_lfr with:
+    input:
+        emb_file=LFR_EMB_FILE,
+        com_file=LFR_NODE_FILE,
+    output:
+        output_file=LFR_COM_DETECT_EMB_FILE,
+    params:
+        parameters=lfr_com_detect_emb_paramspace.instance,
+        n_clusters = "data"
 
 use rule kmeans_clustering_multi_partition_model as kmeans_clustering_lfr with:
     input:
@@ -174,9 +196,19 @@ rule plot_lfr_performance_vs_mixing:
         output_file=FIG_LFR_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_lfr_perf_vs_mixing_paramspace.instance,
-        model_names = ["non-backtracking-node2vec", "nonbacktracking", "depthfirst-node2vec", "non-backtracking-deepwalk", "node2vec", "deepwalk", "line", "infomap", "flatsbm"]
+        title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
+        model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "non-backtracking", "bp", "infomap", "flatsbm","torch-modularity", "torch-laplacian-eigenmap"],
+        with_legend = lambda wildcards: "True" if str(wildcards.k)=="5" else "False"
     resources:
         mem="4G",
         time="00:50:00"
     script:
         "workflow/plot/plot-mixing-vs-performance-lfr.py"
+
+rule plot_lfr_performance_vs_mixing_all:
+    input:
+        expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing),
+    output:
+        output_file=FIG_PERFORMANCE_VS_MIXING_ALL.format(data="lfr"),
+    run:
+        shell("pdfjam {input} --nup 3x4 --suffix 3up --outfile {output}")

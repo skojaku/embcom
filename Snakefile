@@ -39,41 +39,47 @@ EVAL_CONCAT_FILE = j(EVA_DIR, f"all-result.csv")
 # Embedding
 emb_params = {
     "model_name": [
-        "node2vec",
-        "deepwalk",
+        #"node2vec",
+        #"deepwalk",
         #"glove",
         "line",
-        #"leigenmap",
-        #"modspec",
+        "leigenmap",
+        "modspec",
         "linearized-node2vec",
-        "non-backtracking-node2vec",
-        "non-backtracking-deepwalk",
-        #"non-backtracking-glove",
-        #"nonbacktracking",
-        "depthfirst-node2vec",
+        "nonbacktracking",
         #"torch-modularity",
         #"torch-node2vec",
+        #"non-backtracking-node2vec",
+        #"non-backtracking-deepwalk",
+        #"non-backtracking-glove",
+        #"depthfirst-node2vec",
     ],
     "window_length": [10],
+    #"dim": [16],
     "dim": [64],
-    #"dim": [64],
 }
 
 # Community detection
 com_detect_params = {
-    "model_name": ["infomap", "flatsbm"],
+    "model_name": ["bp"],
+    #"model_name": ["infomap", "flatsbm", "bp"],
 }
 
 # Clustering
 clustering_params = {
     "metric": ["cosine"],
     "clustering": ["voronoi", "kmeans"],
+    #"clustering": ["voronoi", "kmeans", "birch"],
 }
 
 # ============
 # Data specific
 # ============
 
+FIG_PERFORMANCE_VS_MIXING_ALL = j(
+    FIG_DIR,
+    "all_perf_vs_mixing.pdf",
+)
 
 include: "./multipartition_files.smk"
 
@@ -91,18 +97,18 @@ DATA_LIST = ["multi_partition_model", "lfr"]
 
 rule all:
     input:
-        expand(EVAL_CONCAT_FILE, data=DATA_LIST),
-
-
 #        expand(EVAL_FILE, data="multi_partition_model", **net_params, **com_detect_params, **eval_params),
-#        expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params, **eval_params),
-#        expand(EMB_FILE, data="multi_partition_model", **net_params, **emb_params),
+        expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params),
+        expand(EMB_FILE, data="multi_partition_model", **net_params, **emb_params),
 #        expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
 #        expand(COM_DETECT_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params)
 
 
 rule figs:
     input:
-        expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
+        expand(FIG_PERFORMANCE_VS_MIXING, **fig_params_perf_vs_mixing),# expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
+        expand(FIG_PERFORMANCE_VS_MIXING_SPEC_VS_SGD, **fig_params_perf_vs_mixing),# expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
         #expand(FIG_PERFORMANCE_VS_MIXING_NB, **fig_params_perf_vs_mixing), #expand(FIG_SPECTRAL_DENSITY_FILE, **bipartition_params)
-        expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing)
+        expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing),
+        expand(FIG_PERFORMANCE_VS_MIXING_ALL, data = DATA_LIST),
+        expand(FIG_LOSS_LANDSCAPE, model = LOSS_LANDSCAPE_MODEL_LIST, )
