@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-13 16:13:54
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-28 20:43:13
+# @Last Modified time: 2022-12-13 16:22:53
 #%%
 import logging
 import sys
@@ -54,16 +54,18 @@ if dim == 0:
     dim = len(set(true_membership)) - 1
     dim = np.minimum(net.shape[0] - 1, dim)
 
-
-device = GPUtil.getFirstAvailable(
-    order="random",
-    maxLoad=1,
-    maxMemory=0.3,
-    attempts=99999,
-    interval=60 * 1,
-    verbose=False,
-)[0]
-device = f"cuda:{device}"
+if "touch" in model_name:
+    device = GPUtil.getFirstAvailable(
+        order="random",
+        maxLoad=1,
+        maxMemory=0.3,
+        attempts=99999,
+        interval=60 * 1,
+        verbose=False,
+    )[0]
+    device = f"cuda:{device}"
+else:
+    device = "cpu"
 
 #
 # Embedding models

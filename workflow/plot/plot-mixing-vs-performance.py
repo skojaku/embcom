@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:10
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-12-11 16:46:44
+# @Last Modified time: 2023-01-12 16:07:17
 # %%
 import numpy as np
 import pandas as pd
@@ -42,6 +42,8 @@ else:
             "node2vec",
             "deepwalk",
             "line",
+            "torch-modularity",
+            "torch-laplacian-eigenmap",
             "linearized-node2vec",
             "nonbacktracking",
             "infomap",
@@ -90,6 +92,7 @@ model_list = [k for k in model_list if k in data_model_list]
 
 model_color = cp.get_model_colors()
 model_markers = cp.get_model_markers()
+model_marker_size = cp.get_model_marker_size()
 model_linestyles = cp.get_model_linestyles()
 model_names = cp.get_model_names()
 model_edge_color = cp.get_model_edge_colors()
@@ -118,7 +121,7 @@ for name in model_list[::-1]:
         dashes=model_linestyles[name],
         color=color,
         markeredgecolor=markeredgecolor,
-        markersize=6,
+        markersize=model_marker_size[name],
         label=name,
         ax=ax,
     )
@@ -132,6 +135,8 @@ else:
 
 mu_max = 1 - 1 / np.sqrt(params["cave"])
 ax.axvline(mu_max, color="black", linestyle="--", zorder=1)
+ax.set_ylim(-0.03, 1.05)
+ax.set_xlim(0.05, 1)
 
 current_handles, current_labels = ax.get_legend_handles_labels()
 new_handles = []

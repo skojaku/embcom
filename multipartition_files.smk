@@ -11,7 +11,7 @@ fig_params_perf_vs_mixing = {
     #"clustering": ["voronoi"],
     "clustering": ["voronoi"],
     #""clustering": ["voronoi", "kmeans", "birch"],
-    "score_type": ["esim"],
+    "score_type": ["esim", "nmi"],
     "cave": [5, 10, 50],
     "data": ["multi_partition_model"],
 }
@@ -21,10 +21,10 @@ FIG_PERFORMANCE_VS_MIXING = j(
     "perf_vs_mixing",
     f"fig_{fig_perf_vs_mixing_paramspace.wildcard_pattern}.pdf",
 )
-FIG_PERFORMANCE_VS_MIXING_NB = j(
+FIG_PERFORMANCE_VS_MIXING_SPEC_VS_SGD = j(
     FIG_DIR,
     "perf_vs_mixing",
-    f"fig_nonbacktracking_{fig_perf_vs_mixing_paramspace.wildcard_pattern}.pdf",
+    f"fig_spec_vs_sgd_{fig_perf_vs_mixing_paramspace.wildcard_pattern}.pdf",
 )
 
 # ================================
@@ -33,7 +33,7 @@ FIG_PERFORMANCE_VS_MIXING_NB = j(
 
 net_params = {
     #"n": [1000],  # Network size
-    "n": [10000],  # Network size
+    "n": [10000, 100000],  # Network size
     #"n": [1000, 10000],
     #"n": [1000, 10000, 100000],
     "K": [2, 50],  # Number of communities
@@ -73,6 +73,14 @@ COM_DETECT_EMB_FILE = j(
 # ==========
 # Evaluation
 # ==========
+params_loss_landscape = {
+    "n":10000,
+    "K":50,
+    "cave":10,
+    "mu":0.2,
+    "sample":0,
+    "data":"multi_partition_model"
+}
 EVAL_EMB_FILE = j(EVA_DIR, f"score_clus_{com_detect_emb_paramspace.wildcard_pattern}.npz")
 EVAL_FILE = j(EVA_DIR, f"score_{com_detect_paramspace.wildcard_pattern}.npz")
 
@@ -98,6 +106,11 @@ FIG_SPECTRAL_DENSITY_FILE = j(
     FIG_DIR, "spectral-density", f"{bipartition_paramspace.wildcard_pattern}.pdf"
 )
 
+#
+# Loss landscape
+#
+LOSS_LANDSCAPE_MODEL_LIST = ["modularity", "laplacian"]
+FIG_LOSS_LANDSCAPE = j("figs", "loss_landscape", "loss_landscape_model~{model}.pdf")
 
 # ======
 # RULES
@@ -300,11 +313,7 @@ rule plot_performance_vs_mixing:
         parameters=fig_perf_vs_mixing_paramspace.instance,
         dimThreshold= False,
         normalize= False,
-        #model_names = ["non-backtracking-node2vec", "nonbacktracking", "node2vec", "deepwalk", "depthfirst-node2vec", "non-backtracking-deepwalk", "line", "infomap", "flatsbm"]
         model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
-        #model_names = ["node2vec", "deepwalk", "line", "infomap", "flatsbm", "modspec", "leigenmap", "bp"],
-        #model_names = ["node2vec", "deepwalk", "line", "infomap", "flatsbm", "modspec", "leigenmap", "nonbacktracking"]
-        #model_names = ["node2vec", "deepwalk", "depthfirst-node2vec", "line", "infomap", "flatsbm", "modspec", "eigenmap", "nonbacktracking"]
         title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
         with_legend = lambda wildcards: "True" if str(wildcards.cave)=="5" else "False"
     resources:
@@ -313,15 +322,19 @@ rule plot_performance_vs_mixing:
     script:
         "workflow/plot/plot-mixing-vs-performance.py"
 
-rule plot_performance_vs_mixing_nb:
+rule plot_performance_vs_mixing_mod_vs_spec:
     input:
         input_file="data/multi_partition_model/all-result.csv",
         #input_file=EVAL_CONCAT_FILE,
     output:
-        output_file=FIG_PERFORMANCE_VS_MIXING_NB,
+        output_file=FIG_PERFORMANCE_VS_MIXING_SPEC_VS_SGD,
     params:
         parameters=fig_perf_vs_mixing_paramspace.instance,
-        model_names = ["non-backtracking-node2vec", "nonbacktracking", "depthfirst-node2vec", "non-backtracking-deepwalk"]
+        dimThreshold= False,
+        normalize= False,
+        model_names = ["node2vec", "modspec", "leigenmap", "torch-modularity", "torch-laplacian-eigenmap", "bp"],
+        title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
+        with_legend = lambda wildcards: "True" if str(wildcards.cave)=="5" else "False"
     resources:
         mem="4G",
         time="00:50:00"
@@ -347,3 +360,29 @@ rule plot_performance_vs_mixing_all:
         output_file=FIG_PERFORMANCE_VS_MIXING_ALL.format(data="multi_partition_model"),
     run:
         shell("pdfjam {input} --nup 3x4 --suffix 3up --outfile {output}")
+
+rule plot_loss_landscape_modularity:
+    input:
+        net_file = NET_FILE.format(**params_loss_landscape),
+        node_table_file = NODE_FILE.format(**params_loss_landscape)
+    output:
+        output_file = FIG_LOSS_LANDSCAPE,
+    params:
+        **params_loss_landscape
+    wildcard_constraints:
+        model = "modularity"
+    script:
+        "workflow/plot/plot_modularity_loss_landscape.py"
+
+rule plot_loss_landscape_laplacian:
+    input:
+        net_file = NET_FILE.format(**params_loss_landscape),
+        node_table_file = NODE_FILE.format(**params_loss_landscape)
+    output:
+        output_file = FIG_LOSS_LANDSCAPE,
+    params:
+        **params_loss_landscape
+    wildcard_constraints:
+        model = "laplacian"
+    script:
+        "workflow/plot/plot_laplacian_loss_landscape.py"
