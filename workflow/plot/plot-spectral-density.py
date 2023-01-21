@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# @Author: Sadamori Kojaku
+# @Date:   2022-10-17 06:56:49
+# @Last Modified by:   Sadamori Kojaku
+# @Last Modified time: 2022-10-17 06:56:55
 # %%
 import sys
 
@@ -32,7 +37,8 @@ analytical_random_comp = data_table[data_table["dataType"] == "analytical"]
 analytical_random_comp = analytical_random_comp.sort_values(by="eigs")
 
 analytical_random_comp["prob_mass"] = analytical_random_comp["prob_mass"] / metrics.auc(
-    analytical_random_comp["eigs"].values, analytical_random_comp["prob_mass"].values,
+    analytical_random_comp["eigs"].values,
+    analytical_random_comp["prob_mass"].values,
 )
 support = analytical_random_comp["eigs"].max()
 # ax.plot(zs, density / metrics.auc(zs, density), color="red")
@@ -52,5 +58,6 @@ ax.set_xlabel("Eigenvalue")
 ax.set_ylabel("Probability")
 sns.despine()
 fig.savefig(
-    output_file, bbox_inches="tight",
+    output_file,
+    bbox_inches="tight",
 )

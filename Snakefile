@@ -39,8 +39,8 @@ EVAL_CONCAT_FILE = j(EVA_DIR, f"all-result.csv")
 # Embedding
 emb_params = {
     "model_name": [
-        "node2vec",
-        "deepwalk",
+        #"node2vec",
+        #"deepwalk",
         #"glove",
         "line",
         "leigenmap",
@@ -55,13 +55,14 @@ emb_params = {
         #"depthfirst-node2vec",
     ],
     "window_length": [10],
-    "dim": [16, 64],
-    #"dim": [64],
+    #"dim": [16],
+    "dim": [64],
 }
 
 # Community detection
 com_detect_params = {
-    "model_name": ["infomap", "flatsbm", "bp"],
+    "model_name": ["bp"],
+    #"model_name": ["infomap", "flatsbm", "bp"],
 }
 
 # Clustering

@@ -26,8 +26,8 @@ if "snakemake" in sys.modules:
     com_file = snakemake.input["com_file"]
     params = snakemake.params["parameters"]
     model_name = params["model_name"]
-    mu = params["mu"] if "mu" in params["mu"] else None
-    ave_deg = params["cave"] if "cave" in params["cave"] else None
+    #mu = params["mu"] if "mu" in params["mu"] else None
+    #ave_deg = params["cave"] if "cave" in params["cave"] else None
     output_file = snakemake.output["output_file"]
 else:
     netfile = "../../data/multi_partition_model/networks/net_n~10000_K~50_cave~50_mu~0.30_sample~0.npz"
@@ -43,6 +43,7 @@ net = sparse.load_npz(netfile)
 
 memberships = pd.read_csv(com_file)["membership"].values.astype(int)
 K = len(set(memberships))
+
 
 # %%
 #
@@ -73,15 +74,8 @@ def detect_by_flatsbm(A, K):
     b = state.get_blocks()
     return np.unique(np.array(b.a), return_inverse=True)[1]
 
-
-def detect_by_belief_propagation(A, K, mu, ave_deg):
-    if (mu is not None) and (ave_deg is not None):
-        cout = mu * ave_deg
-        cin = K * ave_deg - (K - 1) * cout
-        cab = np.ones((K, K)) * cout + np.eye(K) * (cin - cout)
-        return bp.detect(A, q=K, cab_init=cab)
-    else:
-        return bp.detect(A, q=K)
+def detect_by_belief_propagation(A, K, memberships):
+    return bp.detect(A, q=int(K), init_memberships = memberships)
 
 
 # Get the largest connected component
@@ -100,7 +94,7 @@ if model_name == "infomap":
 elif model_name == "flatsbm":
     group_ids = detect_by_flatsbm(net_, K)
 elif model_name == "bp":
-    group_ids = detect_by_belief_propagation(net_, K, mu, ave_deg)
+    group_ids = detect_by_belief_propagation(net_, K, memberships[ids])
 
 n_nodes = net.shape[0]
 group_ids_ = np.zeros(n_nodes) * np.nan

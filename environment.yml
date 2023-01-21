@@ -1,6 +1,5 @@
 name: embcom 
 channels:
-  - pyg
   - bioconda
   - pytorch
   - conda-forge
