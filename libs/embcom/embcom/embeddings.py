@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-08-26 09:51:23
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-12-23 05:30:29
+# @Last Modified time: 2023-01-21 22:50:49
 """Module for embedding."""
 # %%
 import gensim
@@ -145,7 +145,7 @@ class DeepWalk(Node2Vec):
 
 
 class LaplacianEigenMap(NodeEmbeddings):
-    def __init__(self, p=10, q=5, reconstruction_vector=False):
+    def __init__(self, p=100, q=40, reconstruction_vector=False):
         self.in_vec = None
         self.L = None
         self.deg = None
@@ -218,7 +218,7 @@ class AdjacencySpectralEmbedding(NodeEmbeddings):
 
 
 class ModularitySpectralEmbedding(NodeEmbeddings):
-    def __init__(self, verbose=False, reconstruction_vector=False, p=10, q=5):
+    def __init__(self, verbose=False, reconstruction_vector=False, p=100, q=40):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
         self.reconstruction_vector = reconstruction_vector
@@ -283,11 +283,7 @@ class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
 
 
 class LinearizedNode2Vec(NodeEmbeddings):
-    def __init__(
-        self,
-        verbose=False,
-        window_length=10,
-    ):
+    def __init__(self, verbose=False, window_length=10, p=100, q=40):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
         self.window_length = window_length
@@ -304,10 +300,10 @@ class LinearizedNode2Vec(NodeEmbeddings):
         Dinvsqrt = sparse.diags(1 / np.sqrt(np.maximum(1, self.deg)))
         Psym = Dinvsqrt @ self.A @ Dinvsqrt
 
-        svd = TruncatedSVD(n_components=dim + 1, n_iter=7, random_state=42)
-        u = svd.fit_transform(Psym)
-        s = svd.singular_values_
-        # u, s, v = rsvd.rSVD(Psym, dim=dim + 1)
+        # svd = TruncatedSVD(n_components=dim + 1, n_iter=7, random_state=42)
+        # u = svd.fit_transform(Psym)
+        # s = svd.singular_values_
+        u, s, v = rsvd.rSVD(Psym, dim=dim + 1, p=self.p, q=self.q)
         # sign = np.sign(np.diag(v @ u))
         s = np.abs(s)
         mask = s < np.max(s)
