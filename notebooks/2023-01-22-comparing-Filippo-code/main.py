@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2023-01-21 17:11:56
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-23 02:01:01
+# @Last Modified time: 2023-01-23 02:08:19
 # %%
 import filippo_code_base as fb
 import numpy as np
@@ -32,7 +32,7 @@ K = 2  # Number of communities
 # Load
 # ========================
 # Get a network generated with the SBM.
-from embcom import ModularitySpectralEmbedding
+from embcom import ModularitySpectralEmbedding, LinearizedNode2Vec
 
 net_list = {}
 memberships_list = {}
@@ -46,7 +46,8 @@ for mu in mu_list:
     node_table = pd.read_csv(node_table_file)
     memberships = node_table["membership"].values
 
-    emb = ModularitySpectralEmbedding(p=100, q=40).fit(net).transform(dim=5)
+    # emb = ModularitySpectralEmbedding(p=100, q=40).fit(net).transform(dim=5)
+    emb = LinearizedNode2Vec(p=100, q=40).fit(net).transform(dim=5)
     emb = np.real(emb[:, 0]).reshape(-1)
 
     vec_pred_list[mu] = emb
@@ -165,3 +166,5 @@ sns.despine()
 
 # %%
 # fig.savefig(output_file, bbox_extra_artists=(lgd,), bbox_inches='tight', dpi=300)
+
+# %%

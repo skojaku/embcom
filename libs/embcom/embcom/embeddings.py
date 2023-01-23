@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-08-26 09:51:23
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-23 02:00:35
+# @Last Modified time: 2023-01-23 02:06:59
 """Module for embedding."""
 # %%
 import gensim
@@ -309,7 +309,8 @@ class LinearizedNode2Vec(NodeEmbeddings):
         # svd = TruncatedSVD(n_components=dim + 1, n_iter=7, random_state=42)
         # u = svd.fit_transform(Psym)
         # s = svd.singular_values_
-        u, s, v = rsvd.rSVD(Psym, dim=dim + 1, p=self.p, q=self.q)
+        s, u = sparse.linalg.eigs(Psym, k=dim + 1, which="LR")
+        # u, s, v = rsvd.rSVD(Psym, dim=dim + 1, p=self.p, q=self.q)
         # sign = np.sign(np.diag(v @ u))
         s = np.abs(s)
         mask = s < np.max(s)
