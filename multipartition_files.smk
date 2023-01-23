@@ -39,7 +39,7 @@ net_params = {
     "K": [2, 50],  # Number of communities
     #"K": [2, 50],  # Number of communities
     #"K": [2, 64],  # Number of communities
-    "cave": [5, 10],  # average degree
+    "cave": [5, 10, 50],  # average degree
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
     "sample": np.arange(3),  # Number of samples
 }

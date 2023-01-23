@@ -2,11 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 15:08:01
 # @Last Modified by:   Sadamori Kojaku
-<<<<<<< HEAD
-# @Last Modified time: 2022-12-13 16:22:53
-=======
-# @Last Modified time: 2022-12-12 06:49:07
->>>>>>> 4d4631fad35c6a63f1b11eff2583dbf517dd0cd1
+# @Last Modified time: 2023-01-21 23:05:19
 #%%
 import logging
 import sys
@@ -17,7 +13,7 @@ import pandas as pd
 from scipy import sparse
 from scipy.sparse.csgraph import connected_components
 
-import node2vecs
+# import node2vecs
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -57,7 +53,6 @@ if dim == 0:
     dim = len(set(true_membership)) - 1
     dim = np.minimum(net.shape[0] - 1, dim)
 
-<<<<<<< HEAD
 if "touch" in model_name:
     device = GPUtil.getFirstAvailable(
         order="random",
@@ -70,18 +65,6 @@ if "touch" in model_name:
     device = f"cuda:{device}"
 else:
     device = "cpu"
-=======
-#device = GPUtil.getFirstAvailable(
-#    order="random",
-#    maxLoad=1,
-#    maxMemory=0.3,
-#    attempts=99999,
-#    interval=60 * 1,
-#    verbose=False,
-#)[0]
-#device = f"cuda:{device}"
-device = "cpu"
->>>>>>> 4d4631fad35c6a63f1b11eff2583dbf517dd0cd1
 
 #
 # Embedding models

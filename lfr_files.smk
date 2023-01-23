@@ -4,7 +4,7 @@
 
 lfr_net_params = {
     #"n": [1000],  # Network size
-    "n": [10000],  # Network size
+    "n": [10000, 100000],  # Network size
     #"n": [1000, 10000, 100000],  # Network size
     "k": [5, 10, 50],  # Average degree
     "tau": [3],  # degree exponent

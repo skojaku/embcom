@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-08-26 09:51:23
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-21 22:50:49
+# @Last Modified time: 2023-01-23 02:00:35
 """Module for embedding."""
 # %%
 import gensim
@@ -174,23 +174,29 @@ class LaplacianEigenMap(NodeEmbeddings):
 
     def update_embedding(self, dim):
         if self.reconstruction_vector:
-            u, s, v = rsvd.rSVD(
-                self.L, dim, p=self.p, q=self.q
-            )  # add one for the trivial solution
-            sign = np.sign(np.diag(v @ u))
-            s = s * sign
+            #            u, s, v = rsvd.rSVD(
+            #                self.L, dim, p=self.p, q=self.q
+            #            )  # add one for the trivial solution
+            #            sign = np.sign(np.diag(v @ u))
+            #            s = s * sign
+            #            order = np.argsort(s)[::-1]
+            #            u = u[:, order] @ np.diag(np.sqrt(np.maximum(0, s[order])))
+            s, u = sparse.linalg.eigs(self.L, k=dim)
+            s, u = np.real(s), np.real(u)
             order = np.argsort(s)[::-1]
-            u = u[:, order] @ np.diag(np.sqrt(np.maximum(0, s[order])))
-            self.in_vec = u
-            self.out_vec = u
+            self.in_vec = u[:, order]
+            self.out_vec = u[:, order]
         else:
-            u, s, v = rsvd.rSVD(
-                self.L, dim + 1, p=self.p, q=self.q
-            )  # add one for the trivial solution
-            sign = np.sign(np.diag(v @ u))
-            s = s * sign
+            s, u = sparse.linalg.eigs(self.L, k=dim + 1)
+            s, u = np.real(s), np.real(u)
+            #            u, s, v = rsvd.rSVD(
+            #                self.L, dim + 1, p=self.p, q=self.q
+            #            )  # add one for the trivial solution
+            #            sign = np.sign(np.diag(v @ u))
+            #            s = s * sign
+            #            order = np.argsort(s)[::-1][1:]
+            #            u = u[:, order]
             order = np.argsort(s)[::-1][1:]
-            u = u[:, order]
             Dsqrt = sparse.diags(1 / np.maximum(np.sqrt(self.deg), 1e-12), format="csr")
             self.in_vec = Dsqrt @ u
             self.out_vec = u
@@ -232,14 +238,12 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
         return self
 
     def update_embedding(self, dim):
-        Q = [
-            [self.A],
-            [-self.deg.reshape((-1, 1)) / np.sum(self.deg), self.deg.reshape((1, -1))],
-        ]
-        u, s, v = rsvd.rSVD(Q, dim=dim, p=self.p, q=self.q)
-        sign = np.sign(np.diag(v @ u))
-        s = s * sign
-        v = np.diag(sign) @ v
+
+        s, u = sparse.linalg.eigs(self.A, k=dim + 1, which="LR")
+        s, u = np.real(s), np.real(u)
+        s = s[1:]
+        u = u[:, 1:]
+
         if self.reconstruction_vector:
             is_positive = s > 0
             u[:, ~is_positive] = 0
@@ -247,7 +251,7 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
             self.in_vec = u @ sparse.diags(np.sqrt(s))
         else:
             self.in_vec = u @ sparse.diags(s)
-        self.out_vec = v.T
+        self.out_vec = u
 
 
 class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
@@ -287,6 +291,8 @@ class LinearizedNode2Vec(NodeEmbeddings):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
         self.window_length = window_length
+        self.p = p
+        self.q = q
 
     def fit(self, net):
         A = utils.to_adjacency_matrix(net)

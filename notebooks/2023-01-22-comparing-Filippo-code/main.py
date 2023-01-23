@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2023-01-21 17:11:56
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-21 22:34:22
+# @Last Modified time: 2023-01-23 02:01:01
 # %%
 import filippo_code_base as fb
 import numpy as np
@@ -24,7 +24,7 @@ else:
 # ==============
 # Parameters
 # ==============
-n_nodes = 100000  # number of nodes
+n_nodes = 10000  # number of nodes
 cave = 5  # Average degree
 K = 2  # Number of communities
 
