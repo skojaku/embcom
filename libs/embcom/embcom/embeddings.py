@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-08-26 09:51:23
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-26 22:53:13
+# @Last Modified time: 2023-01-26 22:54:26
 """Module for embedding."""
 # %%
 import gensim
@@ -181,13 +181,13 @@ class LaplacianEigenMap(NodeEmbeddings):
             #            s = s * sign
             #            order = np.argsort(s)[::-1]
             #            u = u[:, order] @ np.diag(np.sqrt(np.maximum(0, s[order])))
-            s, u = sparse.linalg.eigs(self.L, k=dim)
+            s, u = sparse.linalg.eigs(self.L, k=dim, which="LR")
             s, u = np.real(s), np.real(u)
             order = np.argsort(s)[::-1]
             self.in_vec = u[:, order]
             self.out_vec = u[:, order]
         else:
-            s, u = sparse.linalg.eigs(self.L, k=dim + 1)
+            s, u = sparse.linalg.eigs(self.L, k=dim + 1, which="LR")
             s, u = np.real(s), np.real(u)
             order = np.argsort(-s)[1:]
             s, u = s[order], u[:, order]
