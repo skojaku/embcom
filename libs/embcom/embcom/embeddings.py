@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-08-26 09:51:23
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-23 02:14:40
+# @Last Modified time: 2023-01-26 22:53:13
 """Module for embedding."""
 # %%
 import gensim
@@ -199,7 +199,7 @@ class LaplacianEigenMap(NodeEmbeddings):
             #            order = np.argsort(s)[::-1][1:]
             #            u = u[:, order]
             Dsqrt = sparse.diags(1 / np.maximum(np.sqrt(self.deg), 1e-12), format="csr")
-            self.in_vec = Dsqrt @ u
+            self.in_vec = Dsqrt @ u @ sparse.diags(np.sqrt(np.abs(s)))
             self.out_vec = u
 
 
@@ -251,7 +251,7 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
             s[~is_positive] = 0
             self.in_vec = u @ sparse.diags(np.sqrt(s))
         else:
-            self.in_vec = u @ sparse.diags(s)
+            self.in_vec = u @ sparse.diags(np.sqrt(np.abs(s)))
         self.out_vec = u
 
 
@@ -326,7 +326,7 @@ class LinearizedNode2Vec(NodeEmbeddings):
         if self.window_length > 1:
             s = (s * (1 - s**self.window_length)) / (self.window_length * (1 - s))
 
-        self.in_vec = u @ sparse.diags(s)
+        self.in_vec = u @ sparse.diags(np.sqrt(np.abs(s)))
         self.out_vec = None
 
 
