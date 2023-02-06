@@ -32,7 +32,7 @@ if "snakemake" in sys.modules:
     dim = int(params["dim"])
     window_length = int(params["window_length"])
     model_name = params["model_name"]
-    num_walks = 20
+    num_walks = 50
 else:
     netfile = "../../data/multi_partition_model/networks/net_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
     com_file = "../../data/multi_partition_model/networks/node_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
@@ -40,7 +40,7 @@ else:
     dim = 64
     window_length = 10
     model_name = "node2vec"
-    num_walks = 20
+    num_walks = 50
 
 
 net = sparse.load_npz(netfile)
@@ -63,7 +63,7 @@ device = GPUtil.getFirstAvailable(
     excludeID=[7],
 )[0]
 device = f"cuda:{device}"
-
+device= "cpu"
 #
 # Embedding models
 #
@@ -130,7 +130,7 @@ elif model_name == "torch-node2vec":
 elif model_name == "torch-modularity":
     model = node2vecs.TorchModularity(
         window=window_length,
-        num_walks=num_walks,
+        num_walks=num_walks * 4,
         vector_size=dim,
         batch_size=256,
         device=device,
@@ -139,7 +139,7 @@ elif model_name == "torch-modularity":
 elif model_name == "torch-laplacian-eigenmap":
     model = node2vecs.TorchLaplacianEigenMap(
         window=window_length,
-        num_walks=num_walks,
+        num_walks=num_walks * 4,
         vector_size=dim,
         batch_size=256,
         device=device,

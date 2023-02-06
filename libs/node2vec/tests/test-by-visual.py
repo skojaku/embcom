@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:41:52
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-12-16 06:37:32
+# @Last Modified time: 2022-12-19 22:23:52
 # %%
 import node2vecs
 
@@ -26,6 +26,9 @@ import matplotlib.pyplot as plt
 G = nx.karate_club_graph()
 A = nx.adjacency_matrix(G)
 labels = np.unique([d[1]["club"] for d in G.nodes(data=True)], return_inverse=True)[1]
+
+# %%
+A.data
 
 # %%
 n_nodes = A.shape[0]
@@ -98,6 +101,7 @@ net = sparse.csr_matrix(
 s = ~pd.isna(node_table["region"])
 labels = node_table[s]["region"].values
 net = net[s, :][:, s]
+net.data = net.data * 0 + 1
 # %%
 model = node2vecs.TorchModularity(
     num_walks=25, negative=1, num_workers=5, device="cuda:1"
@@ -120,3 +124,4 @@ sns.scatterplot(data = plot_data, x = "x", y = "y", hue = "label")
 print(clf.score(emb, labels))
 
 # %%
+emb @ emb.T / np.sqrt(net.sum())

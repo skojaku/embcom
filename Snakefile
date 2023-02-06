@@ -53,7 +53,7 @@ emb_params = {
         #"depthfirst-node2vec",
        	"torch-laplacian-eigenmap",
        	"torch-modularity",
-       	"torch-node2vec",
+       	#"torch-node2vec",
     ],
     "window_length": [10],
     "dim": [64],

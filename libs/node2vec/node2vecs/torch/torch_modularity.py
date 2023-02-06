@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:38:28
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-19 07:09:39
+# @Last Modified time: 2022-12-19 22:14:45
 import numpy as np
 from . import utils
 from node2vecs.node2vec import Node2Vec
@@ -75,6 +75,7 @@ class TorchModularity(Node2Vec):
         # Set up the graph object for efficient sampling
         self.adjmat = adjmat
         self.n_nodes = adjmat.shape[0]
+        self.n_edges = np.sum(adjmat.data)
         self.noise_sampler.fit(adjmat)
         return self
 
@@ -90,10 +91,13 @@ class TorchModularity(Node2Vec):
         # Set up the embedding model
         PADDING_IDX = self.n_nodes
         model = Word2Vec(
-            vocab_size=self.n_nodes + 1, embedding_size=dim, padding_idx=PADDING_IDX
+            vocab_size=self.n_nodes + 1,
+            embedding_size=dim,
+            learn_outvec=False,
+            padding_idx=PADDING_IDX,
         )
         model = model.to(self.device)
-        loss_func = ModularityTripletLoss(n_neg=self.negative)
+        loss_func = ModularityTripletLoss(n_neg=self.negative, n_edges=self.n_edges)
 
         # Set up the Training dataset
         adjusted_num_walks = np.ceil(
@@ -125,7 +129,7 @@ class TorchModularity(Node2Vec):
             batch_size=self.batch_size,
             device=self.device,
             learning_rate=self.alpha,
-            num_workers=4,
+            num_workers=self.num_workers,
         )
         model.eval()
         self.in_vec = model.ivectors.weight.data.cpu().numpy()[:PADDING_IDX, :]

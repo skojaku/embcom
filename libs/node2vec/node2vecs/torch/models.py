@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:33:29
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-24 23:47:35
+# @Last Modified time: 2022-12-19 22:15:57
 """Word2Vec.
 This module is a modified version of the Word2Vec module in
 https://github.com/theeluwin/pytorch-sgn
@@ -37,10 +37,14 @@ class Word2Vec(nn.Module):
             sparse=True,
         )
         torch.nn.init.uniform_(
-            self.ovectors.weight, -0.5 / embedding_size, 0.5 / embedding_size
+            self.ovectors.weight,
+            -0.5 / embedding_size,
+            0.5 / embedding_size,
         )
         torch.nn.init.uniform_(
-            self.ivectors.weight, -0.5 / embedding_size, 0.5 / embedding_size
+            self.ivectors.weight,
+            -0.5 / embedding_size,
+            0.5 / embedding_size,
         )
         # nn.init.xavier_uniform_(self.ivectors.weight)
         # nn.init.xavier_uniform_(self.ovectors.weight)
