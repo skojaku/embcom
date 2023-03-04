@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2023-01-21 17:11:56
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-26 22:39:43
+# @Last Modified time: 2023-01-26 23:08:34
 # %%
 import filippo_code_base as fb
 import numpy as np
@@ -19,6 +19,49 @@ if "snakemake" in sys.modules:
 else:
     input_file = "../data/"
     output_file = "../data/"
+
+
+def row_normalize(mat, mode="prob"):
+    """Normalize a sparse CSR matrix row-wise (each row sums to 1) If a row is
+    all 0's, it remains all 0's.
+
+    Parameters
+    ----------
+    mat : scipy.sparse.csr matrix
+        Matrix in CSR sparse format
+    Returns
+    -------
+    out : scipy.sparse.csr matrix
+        Normalized matrix in CSR sparse format
+    """
+    if mode == "prob":
+        denom = np.array(mat.sum(axis=1)).reshape(-1).astype(float)
+        return sparse.diags(1.0 / np.maximum(denom, 1e-32), format="csr") @ mat
+    elif mode == "norm":
+        denom = np.sqrt(np.array(mat.multiply(mat).sum(axis=1)).reshape(-1))
+        return sparse.diags(1.0 / np.maximum(denom, 1e-32), format="csr") @ mat
+    return np.nan
+
+
+def KMeans(emb, group_ids, metric="cosine"):
+    N = emb.shape[0]
+    K = np.max(group_ids) + 1
+    U = sparse.csr_matrix(
+        (np.ones_like(group_ids), (np.arange(group_ids.size), group_ids)), shape=(N, K)
+    )
+    U = row_normalize(U)
+    centers = U.T @ emb
+    if metric == "cosine":
+        nemb = np.einsum("ij,i->ij", emb, 1 / np.linalg.norm(emb, axis=1))
+        ncenters = np.einsum("ij,i->ij", centers, 1 / np.linalg.norm(centers, axis=1))
+        return np.argmax(nemb @ ncenters.T, axis=1)
+    elif metric == "dotsim":
+        return np.argmax(emb @ centers.T, axis=1)
+    elif metric == "euclidean":
+        norm_emb = np.linalg.norm(emb, axis=1) ** 2
+        norm_cent = np.linalg.norm(centers, axis=1) ** 2
+        dist = np.add.outer(norm_emb, norm_cent) - 2 * emb @ centers.T
+        return np.argmin(dist, axis=1)
 
 
 # ==============
@@ -49,7 +92,6 @@ for mu in mu_list:
     emb = ModularitySpectralEmbedding(p=100, q=40).fit(net).transform(dim=5)
     # emb = LaplacianEigenMap(p=100, q=40).fit(net).transform(dim=5)
     # emb = LinearizedNode2Vec(p=100, q=40).fit(net).transform(dim=5)
-    emb = np.real(emb[:, 0]).reshape(-1)
 
     vec_pred_list[mu] = emb
     net_list[mu] = net
@@ -120,27 +162,24 @@ def calc_esim(y, ypred):
     return Scorrected
 
 
-def get_partition(vec):
-    return np.array(vec > 0).astype(int)
+def get_partition(vec, memberships=None):
+    return KMeans(vec.reshape((len(memberships), -1)), memberships)
+
+    # return np.array(vec > 0).astype(int)
 
 
 results = []
 for mu in tqdm(mu_list):
     vec = vec_list[mu]
-    cids = get_partition(vec)
+    cids = get_partition(vec, memberships)
     memberships = memberships_list[mu]
     nmi = normalized_mutual_info_score(memberships, cids)
     esim = calc_esim(memberships, cids)
     results.append({"nmi": nmi, "esim": esim, "mu": mu, "model": "Filippo"})
 
     vec = vec_pred_list[mu]
-    cids = get_partition(vec)
+    cids = get_partition(vec, memberships)
     memberships = memberships_list[mu]
-
-    s = ~np.isnan(vec)
-    vec = vec[s]
-    cids = cids[s]
-    memberships = memberships[s]
 
     nmi = normalized_mutual_info_score(memberships, cids)
     esim = calc_esim(memberships, cids)

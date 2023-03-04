@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-08-26 09:51:23
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-26 22:54:26
+# @Last Modified time: 2023-02-19 15:33:48
 """Module for embedding."""
 # %%
 import gensim
@@ -20,7 +20,7 @@ except ImportError:
         "Ignore this message if you do not use Glove. Otherwise, install glove python package by 'pip install glove_python_binary' "
     )
 
-#
+
 # Base class
 #
 class NodeEmbeddings:

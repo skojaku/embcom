@@ -314,7 +314,8 @@ rule plot_performance_vs_mixing:
         parameters=fig_perf_vs_mixing_paramspace.instance,
         dimThreshold= False,
         normalize= False,
-        model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
+        model_names = ["node2vec", "deepwalk", "line", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
+        #model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
         title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
         with_legend = lambda wildcards: "True" if str(wildcards.cave)=="5" else "False"
     resources:
