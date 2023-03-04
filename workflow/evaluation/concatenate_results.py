@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-13 16:13:54
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-10-27 22:04:12
+# @Last Modified time: 2023-02-02 03:50:54
 """Putting together results into a data table."""
 # %%
 import glob
@@ -58,15 +58,15 @@ if "snakemake" in sys.modules:
     to_float = snakemake.params["to_float"]
 else:
     # mlt
-    #input_files = "../../data/multi_partition_model/evaluations/score*.npz"
-    #output_file = "../../data/multi_partition_model/all-result.csv"
-    #to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
-    #to_float = ["mu"]
+    input_files = "../../data/multi_partition_model/evaluations/score*.npz"
+    output_file = "../../data/multi_partition_model/all-result.csv"
+    to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
+    to_float = ["mu"]
     # lfr
-    input_files = "../../data/lfr/evaluations/score*.npz"
-    output_file = "../../data/lfr/all-result.csv"
-    to_int=["n", "k", "tau", "tau2", "minc", "dim", "sample", "length", "dim"]
-    to_float=["mu"]
+    # input_files = "../../data/lfr/evaluations/score*.npz"
+    # output_file = "../../data/lfr/all-result.csv"
+    # to_int=["n", "k", "tau", "tau2", "minc", "dim", "sample", "length", "dim"]
+    # to_float=["mu"]
 
 #%% Load
 data_table = load_files(input_files).fillna("")

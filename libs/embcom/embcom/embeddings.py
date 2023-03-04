@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-08-26 09:51:23
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-12-23 05:30:29
+# @Last Modified time: 2023-02-19 15:33:48
 """Module for embedding."""
 # %%
 import gensim
@@ -20,7 +20,7 @@ except ImportError:
         "Ignore this message if you do not use Glove. Otherwise, install glove python package by 'pip install glove_python_binary' "
     )
 
-#
+
 # Base class
 #
 class NodeEmbeddings:
@@ -145,7 +145,7 @@ class DeepWalk(Node2Vec):
 
 
 class LaplacianEigenMap(NodeEmbeddings):
-    def __init__(self, p=10, q=5, reconstruction_vector=False):
+    def __init__(self, p=100, q=40, reconstruction_vector=False):
         self.in_vec = None
         self.L = None
         self.deg = None
@@ -174,25 +174,32 @@ class LaplacianEigenMap(NodeEmbeddings):
 
     def update_embedding(self, dim):
         if self.reconstruction_vector:
-            u, s, v = rsvd.rSVD(
-                self.L, dim, p=self.p, q=self.q
-            )  # add one for the trivial solution
-            sign = np.sign(np.diag(v @ u))
-            s = s * sign
+            #            u, s, v = rsvd.rSVD(
+            #                self.L, dim, p=self.p, q=self.q
+            #            )  # add one for the trivial solution
+            #            sign = np.sign(np.diag(v @ u))
+            #            s = s * sign
+            #            order = np.argsort(s)[::-1]
+            #            u = u[:, order] @ np.diag(np.sqrt(np.maximum(0, s[order])))
+            s, u = sparse.linalg.eigs(self.L, k=dim, which="LR")
+            s, u = np.real(s), np.real(u)
             order = np.argsort(s)[::-1]
-            u = u[:, order] @ np.diag(np.sqrt(np.maximum(0, s[order])))
-            self.in_vec = u
-            self.out_vec = u
+            self.in_vec = u[:, order]
+            self.out_vec = u[:, order]
         else:
-            u, s, v = rsvd.rSVD(
-                self.L, dim + 1, p=self.p, q=self.q
-            )  # add one for the trivial solution
-            sign = np.sign(np.diag(v @ u))
-            s = s * sign
-            order = np.argsort(s)[::-1][1:]
-            u = u[:, order]
+            s, u = sparse.linalg.eigs(self.L, k=dim + 1, which="LR")
+            s, u = np.real(s), np.real(u)
+            order = np.argsort(-s)[1:]
+            s, u = s[order], u[:, order]
+            #            u, s, v = rsvd.rSVD(
+            #                self.L, dim + 1, p=self.p, q=self.q
+            #            )  # add one for the trivial solution
+            #            sign = np.sign(np.diag(v @ u))
+            #            s = s * sign
+            #            order = np.argsort(s)[::-1][1:]
+            #            u = u[:, order]
             Dsqrt = sparse.diags(1 / np.maximum(np.sqrt(self.deg), 1e-12), format="csr")
-            self.in_vec = Dsqrt @ u
+            self.in_vec = Dsqrt @ u @ sparse.diags(np.sqrt(np.abs(s)))
             self.out_vec = u
 
 
@@ -218,7 +225,7 @@ class AdjacencySpectralEmbedding(NodeEmbeddings):
 
 
 class ModularitySpectralEmbedding(NodeEmbeddings):
-    def __init__(self, verbose=False, reconstruction_vector=False, p=10, q=5):
+    def __init__(self, verbose=False, reconstruction_vector=False, p=100, q=40):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
         self.reconstruction_vector = reconstruction_vector
@@ -232,22 +239,20 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
         return self
 
     def update_embedding(self, dim):
-        Q = [
-            [self.A],
-            [-self.deg.reshape((-1, 1)) / np.sum(self.deg), self.deg.reshape((1, -1))],
-        ]
-        u, s, v = rsvd.rSVD(Q, dim=dim, p=self.p, q=self.q)
-        sign = np.sign(np.diag(v @ u))
-        s = s * sign
-        v = np.diag(sign) @ v
+
+        s, u = sparse.linalg.eigs(self.A, k=dim + 1, which="LR")
+        s, u = np.real(s), np.real(u)
+        s = s[1:]
+        u = u[:, 1:]
+
         if self.reconstruction_vector:
             is_positive = s > 0
             u[:, ~is_positive] = 0
             s[~is_positive] = 0
             self.in_vec = u @ sparse.diags(np.sqrt(s))
         else:
-            self.in_vec = u @ sparse.diags(s)
-        self.out_vec = v.T
+            self.in_vec = u @ sparse.diags(np.sqrt(np.abs(s)))
+        self.out_vec = u
 
 
 class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
@@ -283,14 +288,12 @@ class HighOrderModularitySpectralEmbedding(NodeEmbeddings):
 
 
 class LinearizedNode2Vec(NodeEmbeddings):
-    def __init__(
-        self,
-        verbose=False,
-        window_length=10,
-    ):
+    def __init__(self, verbose=False, window_length=10, p=100, q=40):
         self.in_vec = None  # In-vector
         self.out_vec = None  # Out-vector
         self.window_length = window_length
+        self.p = p
+        self.q = q
 
     def fit(self, net):
         A = utils.to_adjacency_matrix(net)
@@ -304,11 +307,17 @@ class LinearizedNode2Vec(NodeEmbeddings):
         Dinvsqrt = sparse.diags(1 / np.sqrt(np.maximum(1, self.deg)))
         Psym = Dinvsqrt @ self.A @ Dinvsqrt
 
-        svd = TruncatedSVD(n_components=dim + 1, n_iter=7, random_state=42)
-        u = svd.fit_transform(Psym)
-        s = svd.singular_values_
-        # u, s, v = rsvd.rSVD(Psym, dim=dim + 1)
+        # svd = TruncatedSVD(n_components=dim + 1, n_iter=7, random_state=42)
+        # u = svd.fit_transform(Psym)
+        # s = svd.singular_values_
+        s, u = sparse.linalg.eigs(Psym, k=dim + 1, which="LR")
+        s, u = np.real(s), np.real(u)
+        order = np.argsort(-s)
+        s, u = s[order], u[:, order]
+
+        # u, s, v = rsvd.rSVD(Psym, dim=dim + 1, p=self.p, q=self.q)
         # sign = np.sign(np.diag(v @ u))
+
         s = np.abs(s)
         mask = s < np.max(s)
         u = u[:, mask]
@@ -317,7 +326,7 @@ class LinearizedNode2Vec(NodeEmbeddings):
         if self.window_length > 1:
             s = (s * (1 - s**self.window_length)) / (self.window_length * (1 - s))
 
-        self.in_vec = u @ sparse.diags(s)
+        self.in_vec = u @ sparse.diags(np.sqrt(np.abs(s)))
         self.out_vec = None
 
 

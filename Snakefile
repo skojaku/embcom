@@ -39,14 +39,14 @@ EVAL_CONCAT_FILE = j(EVA_DIR, f"all-result.csv")
 # Embedding
 emb_params = {
     "model_name": [
-        #"node2vec",
+        "node2vec",
         #"deepwalk",
         #"glove",
-        "line",
+        #"line",
         "leigenmap",
         "modspec",
         "linearized-node2vec",
-        "nonbacktracking",
+        #"nonbacktracking",
         #"torch-modularity",
         #"torch-node2vec",
         #"non-backtracking-node2vec",
@@ -100,6 +100,8 @@ rule all:
 #        expand(EVAL_FILE, data="multi_partition_model", **net_params, **com_detect_params, **eval_params),
         expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params),
         expand(EMB_FILE, data="multi_partition_model", **net_params, **emb_params),
+        expand(LFR_EVAL_EMB_FILE, data="lfr", **lfr_net_params, **emb_params, **clustering_params),
+        expand(LFR_EMB_FILE, data="lfr", **lfr_net_params, **emb_params),
 #        expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
 #        expand(COM_DETECT_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params)
 
