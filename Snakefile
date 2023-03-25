@@ -81,10 +81,10 @@ FIG_PERFORMANCE_VS_MIXING_ALL = j(
     "all_perf_vs_mixing.pdf",
 )
 
-include: "./multipartition_files.smk"
+include: "./Snakefile_multipartition_files.smk"
 
 
-include: "./lfr_files.smk"
+include: "./Snakefile_lfr_files.smk"
 
 
 # ======

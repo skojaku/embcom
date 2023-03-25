@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:07
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-12 16:07:11
+# @Last Modified time: 2023-03-16 18:19:54
 # %%
 import numpy as np
 import pandas as pd
@@ -36,6 +36,7 @@ else:
         "metric": "cosine",
         "length": 10,
         "k": 10,
+        "tau": 2.1,
         "clustering": "voronoi",
         "score_type": "esim",
         "dimThreshold": True,
@@ -71,7 +72,7 @@ for k, v in params.items():
 plot_data = plot_data[plot_data["name"] != "levy-word2vec"]
 
 # %%
-plot_data
+plot_data["name"].unique()
 
 # %%
 #
@@ -150,7 +151,7 @@ ax.set_xlim(0.05, 1)
 current_handles, current_labels = ax.get_legend_handles_labels()
 new_handles = []
 new_labels = []
-prev_group = model_groups[current_labels[0]]
+prev_group = model_groups.get(current_labels[0], "dummy-tophead")
 for i, l in enumerate(current_labels):
     if l not in model_groups:
         continue

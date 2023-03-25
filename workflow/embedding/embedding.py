@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 15:08:01
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-21 23:05:19
+# @Last Modified time: 2023-03-24 20:38:55
 #%%
 import logging
 import sys
@@ -32,7 +32,7 @@ if "snakemake" in sys.modules:
     dim = int(params["dim"])
     window_length = int(params["window_length"])
     model_name = params["model_name"]
-    num_walks = 40
+    num_walks = int(params["num_walks"]) if "num_walks" in params else 40
 else:
     netfile = "../../data/multi_partition_model/networks/net_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
     com_file = "../../data/multi_partition_model/networks/node_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"

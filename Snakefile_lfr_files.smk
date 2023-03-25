@@ -58,6 +58,7 @@ fig_lfr_params_perf_vs_mixing = {
     #"dim":[64, 256],
     "metric": ["cosine"],
     "length": [10],
+    "tau":[2.1],
     "clustering": ["voronoi"],
     #"clustering": ["voronoi", "kmeans", "birch"],
     "score_type": ["esim"],
@@ -199,7 +200,7 @@ rule plot_lfr_performance_vs_mixing:
         title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
         #model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "non-backtracking", "bp", "infomap", "flatsbm"],
         #model_names = ["node2vec", "deepwalk", "line", "modspec", "leigenmap", "non-backtracking", "bp", "infomap", "flatsbm"],
-        model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "non-backtracking", "bp", "infomap", "flatsbm"],
+        model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm"],
         with_legend = lambda wildcards: "True" if str(wildcards.k)=="5" else "False"
     resources:
         mem="4G",
