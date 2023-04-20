@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:08
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-12-14 07:26:13
+# @Last Modified time: 2023-04-20 11:47:25
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -15,10 +15,10 @@ def get_model_order():
         "line",
         "torch-modularity",
         "torch-laplacian-eigenmap",
+        "nonbacktracking",
         "linearized-node2vec",
         "modspec",
         "leigenmap",
-        "nonbacktracking",
         "bp",
         "infomap",
         "flatsbm",
@@ -30,8 +30,8 @@ def get_model_order():
 
 def get_model_names():
     return {
-        "bp": "BP",
-        "node2vec": "Neural node2vec",
+        "bp": "Belief Propagation",
+        "node2vec": "node2vec",
         "linearized-node2vec": "Spectral node2vec",
         "modspec": "Modularity",
         "leigenmap": "L-EigenMap",
@@ -50,26 +50,26 @@ def get_model_names():
 
 def get_model_colors():
     cmap = sns.color_palette().as_hex()
-    bcmap = sns.color_palette("bright").as_hex()
+    bcmap = sns.color_palette("muted").as_hex()
     mcmap = sns.color_palette("colorblind").as_hex()
 
-    neural_emb_color = bcmap[1]
+    neural_emb_color = bcmap[3]
     spec_emb_color = bcmap[0]
-    com_color = mcmap[4]
-    neural_emb_color_2 = mcmap[2]
+    com_color = bcmap[1]
+    neural_emb_color_2 = bcmap[2]
     return {
-        "node2vec": neural_emb_color,
-        "deepwalk": sns.desaturate(neural_emb_color, 0.6),
+        "node2vec": "red",
+        "deepwalk": sns.desaturate(neural_emb_color, 0.8),
         "line": sns.desaturate(neural_emb_color, 0.2),
         "linearized-node2vec": spec_emb_color,
         "torch-modularity": neural_emb_color_2,
         "torch-laplacian-eigenmap": sns.desaturate(neural_emb_color_2, 0.2),
-        "modspec": sns.desaturate(spec_emb_color, 0.4),
-        "leigenmap": sns.desaturate(spec_emb_color, 0.1),
+        "modspec": sns.desaturate(spec_emb_color, 0.8),
+        "leigenmap": sns.desaturate(spec_emb_color, 0.2),
         "bp": "k",
-        "infomap": sns.desaturate(com_color, 1),
-        "flatsbm": sns.desaturate(com_color, 0.2),
-        "nonbacktracking": "white",
+        "infomap": "#4d4d4d",
+        "flatsbm": "#8d8d8d",
+        "nonbacktracking": "blue",
         "non-backtracking-node2vec": "red",
         "non-backtracking-deepwalk": "blue",
         "depthfirst-node2vec": sns.desaturate(neural_emb_color, 0.1),
@@ -86,7 +86,7 @@ def get_model_edge_colors():
         "linearized-node2vec": "black",
         "modspec": "white",
         "leigenmap": "white",
-        "bp": "white",
+        "bp": "k",
         "nonbacktracking": "black",
         "non-backtracking-node2vec": "white",
         "non-backtracking-deepwalk": "white",
@@ -128,9 +128,9 @@ def get_model_markers():
         "non-backtracking-node2vec": "o",
         "depthfirst-node2vec": "o",
         "non-backtracking-deepwalk": "v",
-        "bp": "*",
-        "infomap": "*",
-        "flatsbm": "*",
+        "bp": "v",
+        "infomap": "v",
+        "flatsbm": "v",
     }
 
 
@@ -148,9 +148,9 @@ def get_model_marker_size():
         "non-backtracking-node2vec": 6,
         "depthfirst-node2vec": 6,
         "non-backtracking-deepwalk": 6,
-        "bp": 10,
-        "infomap": 10,
-        "flatsbm": 10,
+        "bp": 7,
+        "infomap": 7,
+        "flatsbm": 7,
     }
 
 

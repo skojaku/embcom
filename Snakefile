@@ -45,7 +45,7 @@ emb_params = {
         #"line",
         "leigenmap",
         "modspec",
-        "linearized-node2vec",
+        #"linearized-node2vec",
         #"nonbacktracking",
         #"torch-modularity",
         #"torch-node2vec",

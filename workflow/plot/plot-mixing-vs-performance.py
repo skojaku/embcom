@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:10
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-12 16:07:17
+# @Last Modified time: 2023-04-20 12:01:00
 # %%
 import numpy as np
 import pandas as pd
@@ -42,9 +42,9 @@ else:
             "node2vec",
             "deepwalk",
             "line",
-            "torch-modularity",
-            "torch-laplacian-eigenmap",
-            "linearized-node2vec",
+            # "torch-modularity",
+            # "torch-laplacian-eigenmap",
+            # "linearized-node2vec",
             "nonbacktracking",
             "infomap",
             "flatsbm",
@@ -83,7 +83,7 @@ plot_data = plot_data[plot_data["name"] != "levy-word2vec"]
 
 
 sns.set_style("white")
-sns.set(font_scale=1.3)
+sns.set(font_scale=1.5)
 sns.set_style("ticks")
 
 model_list = cp.get_model_order()
@@ -160,9 +160,9 @@ if with_legend:
         new_labels[::-1],
         frameon=False,
         loc="upper right",
-        bbox_to_anchor=(1, 1),
+        bbox_to_anchor=(1.01, 1),
         ncol=1,
-        fontsize=9,
+        fontsize=12,
     )
 else:
     ax.legend().remove()
