@@ -2,16 +2,18 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 15:08:01
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-01-21 23:05:19
+# @Last Modified time: 2023-03-24 21:16:12
 #%%
 import logging
 import sys
-import embcom
+
 import GPUtil
 import numpy as np
 import pandas as pd
 from scipy import sparse
 from scipy.sparse.csgraph import connected_components
+
+import embcom
 
 # import node2vecs
 
@@ -32,7 +34,7 @@ if "snakemake" in sys.modules:
     dim = int(params["dim"])
     window_length = int(params["window_length"])
     model_name = params["model_name"]
-    num_walks = 40
+    num_walks = int(params["nWalks"]) if "nWalks" in params else 40
 else:
     netfile = "../../data/multi_partition_model/networks/net_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
     com_file = "../../data/multi_partition_model/networks/node_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"

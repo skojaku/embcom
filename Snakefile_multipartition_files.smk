@@ -33,7 +33,8 @@ FIG_PERFORMANCE_VS_MIXING_SPEC_VS_SGD = j(
 
 net_params = {
     #"n": [1000],  # Network size
-    "n": [10000, 100000],  # Network size
+    "n": [10000],  # Network size
+    #"n": [10000, 100000],  # Network size
     #"n": [1000, 10000],
     #"n": [1000, 10000, 100000],
     "K": [2, 50],  # Number of communities
@@ -314,7 +315,7 @@ rule plot_performance_vs_mixing:
         parameters=fig_perf_vs_mixing_paramspace.instance,
         dimThreshold= False,
         normalize= False,
-        model_names = ["node2vec", "deepwalk", "line", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
+        model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
         #model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
         title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
         with_legend = lambda wildcards: "True" if str(wildcards.cave)=="5" else "False"

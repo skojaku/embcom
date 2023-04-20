@@ -81,27 +81,32 @@ FIG_PERFORMANCE_VS_MIXING_ALL = j(
     "all_perf_vs_mixing.pdf",
 )
 
-include: "./multipartition_files.smk"
+include: "./Snakefile_multipartition_files.smk"
 
 
-include: "./lfr_files.smk"
+include: "./Snakefile_lfr_files.smk"
+
+include: "./Snakefile_robustness_check.smk"
 
 
 # ======
 # RULES
 # ======
 
-#DATA_LIST = ["multi_partition_model"]
-DATA_LIST = ["multi_partition_model", "lfr"]
+DATA_LIST = ["multi_partition_model"]
+#DATA_LIST = ["multi_partition_model", "lfr"]
 
 
 rule all:
     input:
-#        expand(EVAL_FILE, data="multi_partition_model", **net_params, **com_detect_params, **eval_params),
-        expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params),
-        expand(EMB_FILE, data="multi_partition_model", **net_params, **emb_params),
-        expand(LFR_EVAL_EMB_FILE, data="lfr", **lfr_net_params, **emb_params, **clustering_params),
-        expand(LFR_EMB_FILE, data="lfr", **lfr_net_params, **emb_params),
+        #expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params),
+        #expand(EMB_FILE, data="multi_partition_model", **net_params, **emb_params),
+        #expand(LFR_EVAL_EMB_FILE, data="lfr", **lfr_net_params, **emb_params, **clustering_params),
+        #expand(LFR_EMB_FILE, data="lfr", **lfr_net_params, **emb_params),
+        #
+        # Robustness check
+        #
+        expand(ROBUSTNESS_EMB_FILE, data="multi_partition_model", **net_params, **robustness_emb_params),
 #        expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
 #        expand(COM_DETECT_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params)
 
