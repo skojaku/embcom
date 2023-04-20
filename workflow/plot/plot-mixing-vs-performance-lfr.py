@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:07
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-03-16 18:19:54
+# @Last Modified time: 2023-03-29 06:33:03
 # %%
 import numpy as np
 import pandas as pd
@@ -44,7 +44,7 @@ else:
             "node2vec",
             "deepwalk",
             "line",
-            "torch" "linearized-node2vec",
+            "linearized-node2vec",
             "nonbacktracking",
             "infomap",
             "flatsbm",

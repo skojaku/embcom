@@ -2,9 +2,40 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 14:41:52
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2022-12-09 16:00:00
+# @Last Modified time: 2023-04-03 17:38:42
 # %%
+import numpy as np
+from scipy import sparse
+
+
+def fastRP(net, dim, window_size, beta=-1, s=3.0):
+
+    n_nodes = net.shape[0]
+
+    outdeg = np.array(net.sum(axis=1)).reshape(-1)
+    indeg = np.array(net.sum(axis=0)).reshape(-1)
+
+    P = sparse.diags(1 / np.maximum(1, outdeg)) @ net  # Transition matrix
+    L = sparse.diags(np.power(indeg.astype(float), beta))
+    X = sparse.random(
+        n_nodes,
+        dim,
+        density=1 / s,
+        data_rvs=lambda x: np.sqrt(s) * (2 * np.random.randint(2, size=x) - 1),
+    ).toarray()
+    X0 = (P @ L) @ X.copy()  # to include the self-loops
+    h = np.ones((n_nodes, 1))
+    h0 = h.copy()
+    for _ in range(window_size):
+        R = P @ X + X0
+        h = P @ h + h0
+    X = sparse.diags(1.0 / np.maximum(np.array(h).reshape(-1), 1e-8)) @ X
+
+    return R
+
+
 import node2vecs
+
 node2vecs.__path__
 # %%
 import networkx as nx

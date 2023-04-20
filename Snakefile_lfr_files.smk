@@ -182,7 +182,7 @@ rule concatenate_results_lfr:
         data="lfr"
     params:
         to_int=["n", "k", "tau", "tau2", "minc", "dim", "sample", "length", "dim"],
-        to_float=["mu"],
+        to_float=["mu", "tau"],
     script:
         "workflow/evaluation/concatenate_results.py"
 
@@ -200,7 +200,8 @@ rule plot_lfr_performance_vs_mixing:
         title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
         #model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "non-backtracking", "bp", "infomap", "flatsbm"],
         #model_names = ["node2vec", "deepwalk", "line", "modspec", "leigenmap", "non-backtracking", "bp", "infomap", "flatsbm"],
-        model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm"],
+        #model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm"],
+        model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
         with_legend = lambda wildcards: "True" if str(wildcards.k)=="5" else "False"
     resources:
         mem="4G",
