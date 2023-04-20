@@ -4,15 +4,16 @@
 # @Last Modified by:   Sadamori Kojaku
 # @Last Modified time: 2023-04-03 18:45:43
 # %%
-import embcom
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
+import seaborn as sns
 from scipy import sparse
+
+import embcom
 
 
 def fastRP(net, dim, window_size, beta=-1, s=3.0, edge_direction=False):
-    """Fast Random Projection embedding
+    """Fast Random Projection embedding.
 
     See https://arxiv.org/abs/1908.11512.
 

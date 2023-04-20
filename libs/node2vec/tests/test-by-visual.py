@@ -60,11 +60,10 @@ emb = model.transform()
 
 # %%
 import matplotlib.pyplot as plt
-import seaborn as sns
-
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 import pandas as pd
+import seaborn as sns
 from sklearn.decomposition import PCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 # nemb = np.einsum("ij,i->ij", emb, 1 / np.linalg.norm(emb, axis=1))
 xy = PCA(n_components=2).fit_transform(emb)
@@ -74,9 +73,10 @@ x = clf.fit_transform(emb, labels)
 plot_data = pd.DataFrame(
     {"x": xy[:, 0], "y": xy[:, 1], "model": "non-linear", "label": labels}
 )
+import matplotlib.pyplot as plt
+
 # %%
 import seaborn as sns
-import matplotlib.pyplot as plt
 
 sns.set_style("white")
 sns.set(font_scale=1.2)

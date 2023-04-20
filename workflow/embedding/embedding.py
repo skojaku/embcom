@@ -6,12 +6,14 @@
 #%%
 import logging
 import sys
-import embcom
+
 import GPUtil
 import numpy as np
 import pandas as pd
 from scipy import sparse
 from scipy.sparse.csgraph import connected_components
+
+import embcom
 
 # import node2vecs
 

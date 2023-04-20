@@ -4,13 +4,14 @@
 # @Last Modified by:   Sadamori Kojaku
 # @Last Modified time: 2023-03-29 06:33:03
 # %%
+import sys
+import textwrap
+
+import color_palette as cp
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import sys
 import seaborn as sns
-import matplotlib.pyplot as plt
-import color_palette as cp
-import textwrap
 
 if "snakemake" in sys.modules:
     input_file = snakemake.input["input_file"]
