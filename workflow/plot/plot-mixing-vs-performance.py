@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:10
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-04-20 12:01:00
+# @Last Modified time: 2023-05-09 05:26:42
 # %%
 import numpy as np
 import pandas as pd
@@ -83,7 +83,7 @@ plot_data = plot_data[plot_data["name"] != "levy-word2vec"]
 
 
 sns.set_style("white")
-sns.set(font_scale=1.5)
+sns.set(font_scale=2.0)
 sns.set_style("ticks")
 
 model_list = cp.get_model_order()
@@ -136,39 +136,40 @@ else:
 mu_max = 1 - 1 / np.sqrt(params["cave"])
 ax.axvline(mu_max, color="black", linestyle="--", zorder=1)
 ax.set_ylim(-0.03, 1.05)
-ax.set_xlim(0.05, 1)
+ax.set_xlim(0, 1.01)
+xtick_loc = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
+xtick_labels = ["0", "0.2", "0.4", "0.6", "0.8", "1"]
+ax.set_xticks(xtick_loc)
+ax.set_xticklabels(xtick_labels)
+ax.set_yticks(xtick_loc)
+ax.set_yticklabels(xtick_labels)
 
 current_handles, current_labels = ax.get_legend_handles_labels()
-new_handles = []
-new_labels = []
-prev_group = model_groups[current_labels[0]]
+new_handles, new_labels = [], []
 for i, l in enumerate(current_labels):
     if l not in model_groups:
         continue
-
-    curr_group = model_groups[l]
-    if prev_group != curr_group:
-        new_handles.append(dummy)
-        new_labels.append("")
     new_handles.append(current_handles[i])
     new_labels.append(model_names[l] if l in model_names else l)
-    prev_group = curr_group
 
 if with_legend:
     lgd = ax.legend(
         new_handles[::-1],
         new_labels[::-1],
         frameon=False,
-        loc="upper right",
-        bbox_to_anchor=(1.01, 1),
-        ncol=1,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.1),
+        ncol=3,
         fontsize=12,
     )
+    ax.set_xlabel("")
 else:
     ax.legend().remove()
 sns.despine()
+sns.despine()
 if title is not None:
-    ax.set_title(textwrap.fill(title, width=42))
+    ax.set_title("")
+    # ax.set_title(textwrap.fill(title, width=42))
 
 fig.savefig(
     output_file,
