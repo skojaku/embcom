@@ -59,7 +59,7 @@ fig_lfr_params_perf_vs_mixing = {
     "metric": ["cosine"],
     "length": [10],
     "tau":[2.1, 3],
-    "clustering": ["voronoi"],
+    "clustering": ["voronoi", "kmeans"],
     #"clustering": ["voronoi", "kmeans", "birch"],
     "score_type": ["esim"],
     "data": ["lfr"],

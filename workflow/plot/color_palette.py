@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:08
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-04-20 11:47:25
+# @Last Modified time: 2023-05-09 15:12:14
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -136,21 +136,21 @@ def get_model_markers():
 
 def get_model_marker_size():
     return {
-        "node2vec": 6,
-        "line": 6,
+        "node2vec": 10,
+        "line": 10,
         "torch-modularity": 5,
         "torch-laplacian-eigenmap": 5,
-        "deepwalk": 6,
-        "linearized-node2vec": 6,
-        "modspec": 6,
-        "leigenmap": 6,
-        "nonbacktracking": 6,
-        "non-backtracking-node2vec": 6,
-        "depthfirst-node2vec": 6,
-        "non-backtracking-deepwalk": 6,
-        "bp": 7,
-        "infomap": 7,
-        "flatsbm": 7,
+        "deepwalk": 10,
+        "linearized-node2vec": 10,
+        "modspec": 10,
+        "leigenmap": 10,
+        "nonbacktracking": 10,
+        "non-backtracking-node2vec": 10,
+        "depthfirst-node2vec": 10,
+        "non-backtracking-deepwalk": 10,
+        "bp": 10,
+        "infomap": 10,
+        "flatsbm": 10,
     }
 
 

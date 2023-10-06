@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:10
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-05-09 05:26:42
+# @Last Modified time: 2023-05-20 09:52:50
 # %%
 import numpy as np
 import pandas as pd
@@ -138,7 +138,7 @@ ax.axvline(mu_max, color="black", linestyle="--", zorder=1)
 ax.set_ylim(-0.03, 1.05)
 ax.set_xlim(0, 1.01)
 xtick_loc = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
-xtick_labels = ["0", "0.2", "0.4", "0.6", "0.8", "1"]
+xtick_labels = ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"]
 ax.set_xticks(xtick_loc)
 ax.set_xticklabels(xtick_labels)
 ax.set_yticks(xtick_loc)

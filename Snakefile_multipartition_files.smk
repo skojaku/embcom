@@ -9,7 +9,7 @@ fig_params_perf_vs_mixing = {
     "metric": ["cosine"],
     "length": [10],
     #"clustering": ["voronoi"],
-    "clustering": ["voronoi"],
+    "clustering": ["voronoi", "kmeans"],
     #""clustering": ["voronoi", "kmeans", "birch"],
     "score_type": ["esim"],
     "cave": [5, 10, 50],

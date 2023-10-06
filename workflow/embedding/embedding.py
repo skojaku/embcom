@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 15:08:01
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-05-09 05:53:16
+# @Last Modified time: 2023-06-08 17:05:24
 # %%
 import logging
 import sys
@@ -180,7 +180,9 @@ else:
 ids = np.where(u_component_ids[np.argmax(freq)] != component_ids)[0]
 emb = H @ emb_
 emb[ids, :] = np.nan
-
+G = nx.karate_club_graph()
+A = nx.adjacency_matrix(G)
+labels = np.unique([d[1]["club"] for d in G.nodes(data=True)], return_inverse=True)[1]
 # %%
 #
 # Save

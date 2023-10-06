@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:07
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-05-09 05:24:02
+# @Last Modified time: 2023-05-25 16:11:17
 # %%
 import sys
 import textwrap
@@ -95,7 +95,7 @@ model_names = cp.get_model_names()
 model_edge_color = cp.get_model_edge_colors()
 model_groups = cp.get_model_groups()
 
-fig, ax = plt.subplots(figsize=(5.5, 5.5))
+fig, ax = plt.subplots(figsize=(6, 5))
 
 for name in model_list[::-1]:
     color = model_color[name]
@@ -147,7 +147,7 @@ elif params["score_type"] == "esim":
 ax.set_ylim(-0.03, 1.05)
 ax.set_xlim(0, 1.01)
 xtick_loc = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
-xtick_labels = ["0", "0.2", "0.4", "0.6", "0.8", "1"]
+xtick_labels = ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"]
 ax.set_xticks(xtick_loc)
 ax.set_xticklabels(xtick_labels)
 ax.set_yticks(xtick_loc)

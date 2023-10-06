@@ -40,7 +40,7 @@ EVAL_CONCAT_FILE = j(EVA_DIR, f"all-result.csv")
 emb_params = {
     "model_name": [
         "node2vec",
-        #"deepwalk",
+        "deepwalk",
         #"glove",
         #"line",
         "leigenmap",
