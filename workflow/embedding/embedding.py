@@ -2,8 +2,8 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-10-14 15:08:01
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-03-24 21:16:12
-#%%
+# @Last Modified time: 2023-06-08 17:05:24
+# %%
 import logging
 import sys
 
@@ -87,9 +87,13 @@ elif model_name == "depthfirst-node2vec":
     )
 elif model_name == "deepwalk":
     # model = fastnode2vec.DeepWalk(window_length=window_length, num_walks=num_walks)
-    model = embcom.embeddings.DeepWalk(window_length=window_length, num_walks=num_walks)
+    model = embcom.embeddings.DeepWalk(
+        window_length=window_length, num_walks=num_walks * 3
+    )
 elif model_name == "line":
-    model = embcom.embeddings.Node2Vec(window_length=1, num_walks=num_walks, p=1, q=1)
+    model = embcom.embeddings.Node2Vec(
+        window_length=1, num_walks=num_walks * 10, p=1, q=1
+    )
 elif model_name == "glove":
     model = embcom.embeddings.Glove(window_length=window_length, num_walks=num_walks)
 elif model_name == "leigenmap":
@@ -176,7 +180,9 @@ else:
 ids = np.where(u_component_ids[np.argmax(freq)] != component_ids)[0]
 emb = H @ emb_
 emb[ids, :] = np.nan
-
+G = nx.karate_club_graph()
+A = nx.adjacency_matrix(G)
+labels = np.unique([d[1]["club"] for d in G.nodes(data=True)], return_inverse=True)[1]
 # %%
 #
 # Save

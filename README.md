@@ -1,23 +1,113 @@
-# Community detection and Embedding
+# Network clustering via neural embedding
 
-## Research questions:
-- How well can graph embeddings capture communities in the SBM?
-- What is the detectability threshold?
-- Can we improve graph emebddings for community detection?
+## Paper
+```
+```
 
-## Approach
-- Focus on graph embeddings that implictly factorize some matrices
-  - DeepWalk, node2vec, LINE [See Qiu et al. 2018](https://dl.acm.org/doi/10.1145/3159652.3159706) 
-- Explore the spectral property of the matrices to derive the spectral properties 
-  - [Nadakuditi and Newman 2012](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.108.188701), [Krzakara et al. 2013](https://www.pnas.org/content/110/52/20935)
+To cite our work, please use the following BibTeX entry:
+```bibtex
+@article{neuralemb,
+}
+```
 
-## Results 
-- Dense networks:
-  - For fully connected graphs with multi-edges, the node2vec and DeepWalk can capture the community structure well [[note]](https://drive.google.com/file/d/1IR1FBy8NnYvhlytbxjpq5SZJxxOc7_zX/view?usp=sharing)
-- Sparse networks:
-  - Diminishing detectability limit? [[note]](https://drive.google.com/file/d/1o8LOYngQmNSWuivubWj8wBFpBzFLqIOl/view?usp=sharing)
+## Reproducing Our Results
 
-## Todo
+### Setup
 
-- Are the connected nodes closer than non-connected nodes in the embedding?
-- Check the performance of the K-Means algorithm for large sparse networks
+1. Set up the virtual environment and install the required packages:
+```bash
+conda create -n neuralemb python=3.9
+conda activate neuralemb
+conda install -c conda-forge mamba -y
+mamba install pytorch torchvision torchaudio cudatoolkit=11.6 -c pytorch -c conda-forge -y
+mamba install -y -c bioconda -c conda-forge snakemake -y
+mamba install -c conda-forge graph-tool scikit-learn numpy numba scipy pandas networkx seaborn matplotlib gensim ipykernel tqdm black faiss=1.7.3 -y
+```
+
+2. Install the in-house packages:
+```bash
+cd libs/BeliefPropagation && pip install -e .
+cd libs/embcom && pip install -e .
+```
+
+3. Install the Python wrapper for the LFR network generator:
+```bash
+wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1rUMowBj13WDDsZ_s6td-Fxw1qsLNIn6Z' -O - --no-check-certificate 'https://docs.google.com/uc?export=download&id=1rUMowBj13WDDsZ_s6td-Fxw1qsLNIn6Z' -qO- | tar -xz
+mv binary_networks libs/lfr_benchmark/lfr_benchmark/lfr-generator
+cd libs/lfr_benchmark/lfr_benchmark/lfr-generator && make
+```
+
+4. Create a file `config.yaml` with the following content and place it under the `workflow` folder:
+```yaml
+data_dir: "data/"
+```
+
+Note that the script will generate over 1T byte of data under this `data/` folder. Make sure you have sufficient disk space.
+
+### Run Simulation
+
+Run the following command to execute the `Snakemake` workflow:
+```bash
+snakemake --cores 24 all
+```
+This will generate all files needed to produce the figures. Then, run
+```bash
+snakemake --cores 24 figs
+```
+You can change the number of cores to use, instead of 24.
+
+## About the Code
+
+### Graph Embedding
+
+We provide a package for graph embedding methods, including node2vec, DeepWalk, LINE, and some conventional graph embedding. The package can be installed using the following command:
+```bash
+cd libs/embcom && pip install -e .
+```
+
+#### Usage
+```python
+import embcom
+import networkx as nx
+
+Load the network for demonstration
+G = nx.karate_club_graph()
+A = nx.adjacency_matrix(G)
+
+# Loading the node2vec model
+# window_length
+# : Size of window, T
+# num_walks
+# : Number of walks
+model = embcom.embeddings.Node2Vec(window_length=80, num_walks=20)
+
+# Train
+# net
+# : scipy sparse matrix
+model.fit(net)
+
+# Generate an embedding
+# dim
+# : Integer
+emb = model.transform(dim=dim)
+```
+Other embedding models:
+
+```python
+
+# DeepWalk
+model = embcom.embeddings.DeepWalk(window_length=window_length, num_walks=num_walks)
+
+# Laplacian EigenMap
+model = embcom.embeddings.LaplacianEigenMap()
+
+# Modularity spectral Embedding
+model = embcom.embeddings.ModularitySpectralEmbedding()
+
+# Non-backtracking spectral embedding
+model = embcom.embeddings.NonBacktrackingSpectralEmbedding()
+```
+
+### Belief Propagation Algorithm
+
+We have developed a Python wrapper for the belief propagation method. See [this package](https://github.com/skojaku/BeliefPropagation) for details.

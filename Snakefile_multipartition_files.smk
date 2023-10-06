@@ -3,15 +3,15 @@
 # =========
 fig_params_perf_vs_mixing = {
     "q": [2, 50],
-    "dim": [64],
+    "dim": [16, 32, 64, 128],
     #"n": [1000],
     "n": [10000, 100000],
     "metric": ["cosine"],
     "length": [10],
     #"clustering": ["voronoi"],
-    "clustering": ["voronoi"],
+    "clustering": ["voronoi", "kmeans"],
     #""clustering": ["voronoi", "kmeans", "birch"],
-    "score_type": ["esim", "nmi"],
+    "score_type": ["esim"],
     "cave": [5, 10, 50],
     "data": ["multi_partition_model"],
 }
@@ -315,9 +315,8 @@ rule plot_performance_vs_mixing:
         parameters=fig_perf_vs_mixing_paramspace.instance,
         dimThreshold= False,
         normalize= False,
-        model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
-        #model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
-        title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
+        model_names = ["node2vec", "deepwalk", "line", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
+        #title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
         with_legend = lambda wildcards: "True" if str(wildcards.cave)=="5" else "False"
     resources:
         mem="4G",
@@ -336,7 +335,7 @@ rule plot_performance_vs_mixing_mod_vs_spec:
         dimThreshold= False,
         normalize= False,
         model_names = ["node2vec", "modspec", "leigenmap", "torch-modularity", "torch-laplacian-eigenmap", "bp"],
-        title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
+        #title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
         with_legend = lambda wildcards: "True" if str(wildcards.cave)=="5" else "False"
     resources:
         mem="4G",

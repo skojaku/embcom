@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# @Author: Sadamori Kojaku
+# @Date:   2023-01-21 17:11:06
+# @Last Modified by:   Sadamori Kojaku
+# @Last Modified time: 2023-06-08 16:11:27
 """This script generates the benchmark network using the LFR method. This
 script calls the external program, which can be installed as follows.
 
@@ -28,22 +33,22 @@ from scipy import sparse
 class NetworkGenerator:
     """A Python wrapper for LFR benchmark network generator.
 
-        >>> lfr_params_list = {
-        >>>     "N": 1000,
-        >>>     "k": 20,
-        >>>     "maxk": 50,
-        >>>     "minc": 20,
-        >>>     "maxc": 100,
-        >>>     "tau2": 1,
-        >>>     "tau": None,
-        >>>     "mu": None,
-        >>> }
-        >>> tau1_list = [3, 6]
-        >>> mu_list = np.linspace(0.05, 1, 20)
-        >>>
-        >>> generator =  NetworkGenerator()
-        >>> networks = generator.generate(lfr_params_list, mu_list)
-        >>> generator.save_networks(networks, "network-dir")
+    >>> lfr_params_list = {
+    >>>     "N": 1000,
+    >>>     "k": 20,
+    >>>     "maxk": 50,
+    >>>     "minc": 20,
+    >>>     "maxc": 100,
+    >>>     "tau2": 1,
+    >>>     "tau": None,
+    >>>     "mu": None,
+    >>> }
+    >>> tau1_list = [3, 6]
+    >>> mu_list = np.linspace(0.05, 1, 20)
+    >>>
+    >>> generator =  NetworkGenerator()
+    >>> networks = generator.generate(lfr_params_list, mu_list)
+    >>> generator.save_networks(networks, "network-dir")
     """
 
     def __init__(self):
@@ -123,7 +128,6 @@ class NetworkGenerator:
         return networks
 
     def save_network(self, network, datadir):
-
         # Load the network
         A = network["net"]
         community_table = network["community_table"]

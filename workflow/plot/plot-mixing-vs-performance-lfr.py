@@ -2,7 +2,7 @@
 # @Author: Sadamori Kojaku
 # @Date:   2022-07-11 22:08:07
 # @Last Modified by:   Sadamori Kojaku
-# @Last Modified time: 2023-03-29 06:33:03
+# @Last Modified time: 2023-05-25 16:11:17
 # %%
 import sys
 import textwrap
@@ -45,7 +45,7 @@ else:
             "node2vec",
             "deepwalk",
             "line",
-            "linearized-node2vec",
+            # "linearized-node2vec",
             "nonbacktracking",
             "infomap",
             "flatsbm",
@@ -80,7 +80,7 @@ plot_data["name"].unique()
 # Plot
 #
 sns.set_style("white")
-sns.set(font_scale=1.3)
+sns.set(font_scale=2.0)
 sns.set_style("ticks")
 
 model_list = cp.get_model_order()
@@ -95,7 +95,7 @@ model_names = cp.get_model_names()
 model_edge_color = cp.get_model_edge_colors()
 model_groups = cp.get_model_groups()
 
-fig, ax = plt.subplots(figsize=(5.5, 5.5))
+fig, ax = plt.subplots(figsize=(6, 5))
 
 for name in model_list[::-1]:
     color = model_color[name]
@@ -145,40 +145,39 @@ elif params["score_type"] == "esim":
     ax.set_ylabel(r"Element-centric similarity")
 
 ax.set_ylim(-0.03, 1.05)
-ax.set_xlim(0.05, 1)
+ax.set_xlim(0, 1.01)
+xtick_loc = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
+xtick_labels = ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"]
+ax.set_xticks(xtick_loc)
+ax.set_xticklabels(xtick_labels)
+ax.set_yticks(xtick_loc)
+ax.set_yticklabels(xtick_labels)
 # mu_max = 1 - 1 / np.sqrt(params["cave"])
 # ax.axvline(mu_max, color="black", linestyle="--")
 
 current_handles, current_labels = ax.get_legend_handles_labels()
 new_handles = []
 new_labels = []
-prev_group = model_groups.get(current_labels[0], "dummy-tophead")
 for i, l in enumerate(current_labels):
     if l not in model_groups:
         continue
-
-    curr_group = model_groups[l]
-    if prev_group != curr_group:
-        new_handles.append(dummy)
-        new_labels.append("")
     new_handles.append(current_handles[i])
     new_labels.append(model_names[l] if l in model_names else l)
-    prev_group = curr_group
 
 if with_legend:
     lgd = ax.legend(
         new_handles[::-1],
         new_labels[::-1],
         frameon=False,
-        loc="upper right",
-        bbox_to_anchor=(1.05, 1),
-        ncol=1,
-        fontsize=9,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.1),
+        ncol=3,
+        fontsize=12,
     )
+    ax.set_xlabel("")
 else:
     ax.legend().remove()
 sns.despine()
-
 
 if title is not None:
     ax.set_title(textwrap.fill(title, width=42))

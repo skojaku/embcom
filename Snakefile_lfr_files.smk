@@ -51,15 +51,15 @@ LFR_EVAL_FILE = j(EVA_DIR, f"score_{lfr_com_detect_paramspace.wildcard_pattern}.
 # FIGURES
 # =========
 fig_lfr_params_perf_vs_mixing = {
-    "dim": [64],
+    "dim": [16, 32, 64, 128],
     "k": [5, 10, 50],  # Average degree
     #"n": [1000],
     "n": [10000, 100000],
     #"dim":[64, 256],
     "metric": ["cosine"],
     "length": [10],
-    "tau":[2.1],
-    "clustering": ["voronoi"],
+    "tau":[2.1, 3],
+    "clustering": ["voronoi", "kmeans"],
     #"clustering": ["voronoi", "kmeans", "birch"],
     "score_type": ["esim"],
     "data": ["lfr"],
@@ -197,11 +197,8 @@ rule plot_lfr_performance_vs_mixing:
         output_file=FIG_LFR_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_lfr_perf_vs_mixing_paramspace.instance,
-        title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
-        #model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "non-backtracking", "bp", "infomap", "flatsbm"],
-        #model_names = ["node2vec", "deepwalk", "line", "modspec", "leigenmap", "non-backtracking", "bp", "infomap", "flatsbm"],
-        #model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm"],
-        model_names = ["node2vec", "deepwalk", "line", "linearized-node2vec", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
+        #title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
+        model_names = ["node2vec", "deepwalk", "line", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
         with_legend = lambda wildcards: "True" if str(wildcards.k)=="5" else "False"
     resources:
         mem="4G",
