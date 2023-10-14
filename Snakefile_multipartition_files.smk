@@ -37,10 +37,10 @@ net_params = {
     #"n": [10000, 100000],  # Network size
     #"n": [1000, 10000],
     #"n": [1000, 10000, 100000],
-    "K": [2, 50],  # Number of communities
+    "K": [2],  # Number of communities
     #"K": [2, 50],  # Number of communities
-    #"K": [2, 64],  # Number of communities
-    "cave": [5, 10, 50],  # average degree
+    "cave": [5],  # average degree
+    #"cave": [5, 10, 50],  # average degree
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
     "sample": np.arange(3),  # Number of samples
 }

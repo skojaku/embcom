@@ -42,11 +42,11 @@ emb_params = {
         "node2vec",
         "deepwalk",
         #"glove",
-        #"line",
+        "line",
         "leigenmap",
         "modspec",
-        #"linearized-node2vec",
-        #"nonbacktracking",
+        "linearized-node2vec",
+        "nonbacktracking",
         #"torch-modularity",
         #"torch-node2vec",
         #"non-backtracking-node2vec",
@@ -55,7 +55,6 @@ emb_params = {
         #"depthfirst-node2vec",
     ],
     "window_length": [10],
-    #"dim": [16],
     "dim": [64],
 }
 
@@ -69,7 +68,6 @@ com_detect_params = {
 clustering_params = {
     "metric": ["cosine"],
     "clustering": ["voronoi", "kmeans"],
-    #"clustering": ["voronoi", "kmeans", "birch"],
 }
 
 # ============
@@ -94,7 +92,7 @@ include: "./Snakefile_robustness_check.smk"
 # ======
 
 DATA_LIST = ["multi_partition_model"]
-#DATA_LIST = ["multi_partition_model", "lfr"]
+DATA_LIST = ["multi_partition_model", "lfr"]
 
 
 rule all:
@@ -106,7 +104,8 @@ rule all:
         #
         # Robustness check
         #
-        expand(ROBUSTNESS_EMB_FILE, data="multi_partition_model", **net_params, **robustness_emb_params),
+        expand(ROBUSTNESS_EMB_FILE, data="multi_partition_model", **robustness_net_params, **robustness_emb_params),
+        #expand(ROBUSTNESS_LFR_EMB_FILE, data="lfr", **robustness_lfr_net_params, **robustness_emb_params),
 #        expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
 #        expand(COM_DETECT_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params)
 
