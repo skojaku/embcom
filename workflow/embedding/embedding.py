@@ -180,9 +180,9 @@ else:
 ids = np.where(u_component_ids[np.argmax(freq)] != component_ids)[0]
 emb = H @ emb_
 emb[ids, :] = np.nan
-G = nx.karate_club_graph()
-A = nx.adjacency_matrix(G)
-labels = np.unique([d[1]["club"] for d in G.nodes(data=True)], return_inverse=True)[1]
+#G = nx.karate_club_graph()
+#A = nx.adjacency_matrix(G)
+#labels = np.unique([d[1]["club"] for d in G.nodes(data=True)], return_inverse=True)[1]
 # %%
 #
 # Save
