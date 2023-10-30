@@ -62,9 +62,9 @@ robustness_emb_paramspace = to_paramspace([robustness_net_params, robustness_emb
 ROBUSTNESS_EMB_FILE = j(EMB_DIR, "robustness", f"{robustness_emb_paramspace.wildcard_pattern}.npz")
 
 com_detect_robustness_emb_paramspace = to_paramspace([robustness_net_params, robustness_emb_params, clustering_params])
-EVAL_ROBUSTNESS_EMB_FILE = j(EVA_DIR, f"score_clus_{com_detect_robustness_emb_paramspace.wildcard_pattern}.npz")
+EVAL_ROBUSTNESS_EMB_FILE = j(EVA_DIR, "robustness", f"score_clus_{com_detect_robustness_emb_paramspace.wildcard_pattern}.npz")
 COM_DETECT_ROBUSTNESS_EMB_FILE = j(
-    COM_DIR, f"clus_{com_detect_robustness_emb_paramspace.wildcard_pattern}.npz"
+    COM_DIR, "robustness", f"clus_{com_detect_robustness_emb_paramspace.wildcard_pattern}.npz"
 )
 
 
@@ -72,9 +72,9 @@ robustness_lfr_emb_paramspace = to_paramspace([robustness_lfr_net_params, robust
 ROBUSTNESS_LFR_EMB_FILE = j(EMB_DIR, "robustness", f"{robustness_lfr_emb_paramspace.wildcard_pattern}.npz")
 
 lfr_com_detect_robustness_emb_paramspace = to_paramspace([robustness_lfr_net_params, robustness_emb_params, clustering_params])
-EVAL_ROBUSTNESS_LFR_EMB_FILE = j(EVA_DIR, f"score_clus_{lfr_com_detect_robustness_emb_paramspace.wildcard_pattern}.npz")
+EVAL_ROBUSTNESS_LFR_EMB_FILE = j(EVA_DIR, "robustness", f"score_clus_{lfr_com_detect_robustness_emb_paramspace.wildcard_pattern}.npz")
 COM_DETECT_ROBUSTNESS_LFR_EMB_FILE = j(
-    COM_DIR, f"clus_{lfr_com_detect_robustness_emb_paramspace.wildcard_pattern}.npz"
+    COM_DIR, "robustness", f"clus_{lfr_com_detect_robustness_emb_paramspace.wildcard_pattern}.npz"
 )
 
 
@@ -143,6 +143,22 @@ rule kmeans_clustering_multi_partition_model_robustness:
     script:
         "workflow/community-detection/kmeans-clustering.py"
 
+rule hdbscan_clustering_multi_partition_model_robustness:
+    input:
+        emb_file=ROBUSTNESS_EMB_FILE,
+        com_file=NODE_FILE,
+    output:
+        output_file=COM_DETECT_ROBUSTNESS_EMB_FILE,
+    params:
+        parameters=com_detect_robustness_emb_paramspace.instance,
+    wildcard_constraints:
+        clustering="hdbscan",
+    resources:
+        mem="12G",
+        time="01:00:00"
+    script:
+        "workflow/community-detection/hdbscan-clustering.py"
+
 rule voronoi_clustering_lfr_robustness_lfr:
     input:
         emb_file=ROBUSTNESS_LFR_EMB_FILE,
@@ -176,6 +192,21 @@ rule kmeans_clustering_multi_partition_model_robustness_lfr:
     script:
         "workflow/community-detection/kmeans-clustering.py"
 
+rule hdbscan_clustering_multi_partition_model_robustness_lfr:
+    input:
+        emb_file=ROBUSTNESS_LFR_EMB_FILE,
+        com_file=LFR_NODE_FILE,
+    output:
+        output_file=COM_DETECT_ROBUSTNESS_LFR_EMB_FILE,
+    params:
+        parameters=lfr_com_detect_robustness_emb_paramspace.instance,
+    wildcard_constraints:
+        clustering="hdbscan",
+    resources:
+        mem="12G",
+        time="01:00:00"
+    script:
+        "workflow/community-detection/hdbscan-clustering.py"
 #
 # Evaluation
 #
@@ -185,6 +216,18 @@ rule evaluate_communities_for_embedding_robustness:
         com_file=NODE_FILE,
     output:
         output_file=EVAL_ROBUSTNESS_EMB_FILE,
+    resources:
+        mem="12G",
+        time="00:20:00"
+    script:
+        "workflow/evaluation/eval-com-detect-score.py"
+
+rule evaluate_communities_lfr_for_embedding_robustness:
+    input:
+        detected_group_file=COM_DETECT_ROBUSTNESS_LFR_EMB_FILE,
+        com_file=LFR_NODE_FILE,
+    output:
+        output_file=EVAL_ROBUSTNESS_LFR_EMB_FILE,
     resources:
         mem="12G",
         time="00:20:00"
