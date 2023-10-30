@@ -67,7 +67,7 @@ com_detect_params = {
 # Clustering
 clustering_params = {
     "metric": ["cosine"],
-    "clustering": ["voronoi", "kmeans"],
+    "clustering": ["voronoi", "kmeans", "hdbscan"],
 }
 
 # ============
@@ -80,8 +80,6 @@ FIG_PERFORMANCE_VS_MIXING_ALL = j(
 )
 
 include: "./Snakefile_multipartition_files.smk"
-
-
 include: "./Snakefile_lfr_files.smk"
 
 include: "./Snakefile_robustness_check.smk"
@@ -104,10 +102,10 @@ rule all:
         #
         # Robustness check
         #
-        expand(ROBUSTNESS_EMB_FILE, data="multi_partition_model", **robustness_net_params, **robustness_emb_params),
-        #expand(ROBUSTNESS_LFR_EMB_FILE, data="lfr", **robustness_lfr_net_params, **robustness_emb_params),
-#        expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
-#        expand(COM_DETECT_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params)
+        expand(EVAL_ROBUSTNESS_EMB_FILE , data="multi_partition_model", **robustness_net_params, **robustness_emb_params, **clustering_params),
+        expand(EVAL_ROBUSTNESS_LFR_EMB_FILE, data="lfr", **robustness_lfr_net_params, **robustness_emb_params, **clustering_params),
+        #expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
+        #expand(COM_DETECT_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params)
 
 
 rule figs:
