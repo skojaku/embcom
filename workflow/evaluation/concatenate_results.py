@@ -58,15 +58,28 @@ if "snakemake" in sys.modules:
     to_float = snakemake.params["to_float"]
 else:
     # mlt
-    input_files = "../../data/multi_partition_model/evaluations/score*.npz"
-    output_file = "../../data/multi_partition_model/all-result.csv"
-    to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
-    to_float = ["mu"]
+    #input_files = "../../data/multi_partition_model/evaluations/score*.npz"
+    #output_file = "../../data/multi_partition_model/all-result.csv"
+    #to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
+    #to_float = ["mu"]
     # lfr
     #input_files = "../../data/lfr/evaluations/score*.npz"
     #output_file = "../../data/lfr/all-result.csv"
     #to_int=["n", "k", "tau2", "minc", "dim", "sample", "length", "dim"]
     #to_float=["mu", "tau"]
+    # ----------
+    # Robustness
+    # ----------
+    # mlt
+    #input_files = "../../data/multi_partition_model/evaluations/robustness/score*.npz"
+    #output_file = "../../data/multi_partition_model/all-result-robustness.csv"
+    #to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
+    #to_float = ["mu"]
+    # lfr
+    input_files = "../../data/lfr/evaluations/robustness/score*.npz"
+    output_file = "../../data/lfr/all-result-robustness.csv"
+    to_int=["n", "k", "tau2", "minc", "dim", "sample", "length", "dim"]
+    to_float=["mu", "tau"]
 
 #%% Load
 data_table = load_files(input_files).fillna("")

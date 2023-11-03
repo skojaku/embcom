@@ -32,9 +32,9 @@ robustness_emb_params = {
         #"linearized-node2vec",
     ],
     "window_length": [1, 3, 10, 15],
-    "nWalks":[1, 5, 40],
+    "nWalks":[1, 5, 40, 80],
     #"nWalks":[1, 5, 10, 20, 40, 80, 160],
-    "dim": [8, 512],
+    "dim": [8, 64, 128, 256, 512],
 }
 # -------
 # @ network
@@ -240,12 +240,12 @@ rule concatenate_results_robustness:
         expand(
             EVAL_ROBUSTNESS_EMB_FILE,
             data="multi_partition_model",
-            **net_params,
+            **robustness_net_params,
             **robustness_emb_params,
             **clustering_params,
         ),
     output:
-        output_file=EVAL_CONCAT_FILE,
+        output_file=EVAL_CONCAT_ROBUSTNESS_FILE,
     params:
         to_int=["n", "K", "dim", "sample", "length", "dim", "cave", "num_walks"],
         to_float=["mu"],
@@ -257,19 +257,32 @@ rule concatenate_results_robustness:
     script:
         "workflow/evaluation/concatenate_results.py"
 
-rule evaluate_communities_for_embedding_robustness_lfr:
+rule concatenate_results_robustness_lfr:
     input:
-        detected_group_file=COM_DETECT_ROBUSTNESS_LFR_EMB_FILE,
-        com_file=LFR_NODE_FILE,
+        expand(
+            EVAL_ROBUSTNESS_LFR_EMB_FILE,
+            data="lfr",
+            **robustness_lfr_net_params,
+            **robustness_emb_params,
+            **clustering_params,
+        ),
     output:
-        output_file=EVAL_ROBUSTNESS_LFR_EMB_FILE,
+        output_file=EVAL_CONCAT_ROBUSTNESS_FILE,
+    params:
+        to_int=["n", "k", "tau", "tau2", "minc", "dim", "sample", "length", "dim"],
+        to_float=["mu", "tau"],
+    wildcard_constraints:
+        data="lfr",
     resources:
-        mem="12G",
-        time="00:20:00"
+        mem="4G",
+        time="00:50:00"
     script:
-        "workflow/evaluation/eval-com-detect-score.py"
+        "workflow/evaluation/concatenate_results.py"
 
-
+rule robustness_all:
+    input:
+        expand(EVAL_CONCAT_ROBUSTNESS_FILE, data = "multi_partition_model"),
+        expand(EVAL_CONCAT_ROBUSTNESS_FILE, data = "lfr")
 ##
 ## Plot
 ##

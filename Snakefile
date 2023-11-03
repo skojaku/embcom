@@ -31,6 +31,7 @@ VAL_SPEC_DIR = j(DATA_DIR, "{data}", "spectral_analysis")
 
 # All results
 EVAL_CONCAT_FILE = j(EVA_DIR, f"all-result.csv")
+EVAL_CONCAT_ROBUSTNESS_FILE = j(EVA_DIR, f"all-result-robustness.csv")
 
 # ==========
 # Parameters
@@ -67,7 +68,7 @@ com_detect_params = {
 # Clustering
 clustering_params = {
     "metric": ["cosine"],
-    "clustering": ["voronoi", "kmeans", "hdbscan"],
+    "clustering": ["voronoi", "kmeans"],
 }
 
 # ============
