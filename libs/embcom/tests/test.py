@@ -17,6 +17,11 @@ class TestCalc(unittest.TestCase):
         model.fit(self.A)
         vec = model.transform(dim=32)
 
+    def test_mod_spectral(self):
+        model = embcom.embeddings.ModularitySpectralEmbedding2()
+        model.fit(self.A)
+        vec = model.transform(dim=32)
+
     def test_adj_spectral(self):
         model = embcom.embeddings.AdjacencySpectralEmbedding()
         model.fit(self.A)
