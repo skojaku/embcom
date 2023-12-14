@@ -40,14 +40,15 @@ EVAL_CONCAT_ROBUSTNESS_FILE = j(EVA_DIR, f"all-result-robustness.csv")
 # Embedding
 emb_params = {
     "model_name": [
-        "node2vec",
-        "deepwalk",
+        #"node2vec",
+        #"deepwalk",
         #"glove",
-        "line",
-        "leigenmap",
-        "modspec",
-        "linearized-node2vec",
-        "nonbacktracking",
+        #"line",
+        #"leigenmap",
+        #"modspec",
+        "modspec2",
+        #"linearized-node2vec",
+        #"nonbacktracking",
         #"torch-modularity",
         #"torch-node2vec",
         #"non-backtracking-node2vec",
@@ -96,10 +97,10 @@ DATA_LIST = ["multi_partition_model", "lfr"]
 
 rule all:
     input:
-        #expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params),
-        #expand(EMB_FILE, data="multi_partition_model", **net_params, **emb_params),
-        #expand(LFR_EVAL_EMB_FILE, data="lfr", **lfr_net_params, **emb_params, **clustering_params),
-        #expand(LFR_EMB_FILE, data="lfr", **lfr_net_params, **emb_params),
+        expand(EVAL_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params),
+        expand(EMB_FILE, data="multi_partition_model", **net_params, **emb_params),
+        expand(LFR_EVAL_EMB_FILE, data="lfr", **lfr_net_params, **emb_params, **clustering_params),
+        expand(LFR_EMB_FILE, data="lfr", **lfr_net_params, **emb_params),
         #
         # Robustness check
         #

@@ -5,6 +5,7 @@ fig_params_perf_vs_mixing_robustness = {
     "q": [2, 50],
     "dim": [64],
     "n": [10000],
+    #"n": [100000],
     "metric": ["cosine"],
     "length": [10],
     "clustering": ["voronoi", "kmeans"],
@@ -31,16 +32,20 @@ robustness_emb_params = {
         #"modspec",
         #"linearized-node2vec",
     ],
-    "window_length": [1, 3, 10, 15],
-    "nWalks":[1, 5, 40, 80],
+    "window_length": [10],
+    #"window_length": [1, 3, 10, 15],
+    "nWalks":[40],
+    #"nWalks":[1, 5, 40, 80],
     #"nWalks":[1, 5, 10, 20, 40, 80, 160],
-    "dim": [8, 64, 128, 256, 512],
+    "dim": [512],
+    #"dim": [8, 64, 128, 256, 512],
 }
 # -------
 # @ network
 # --------
 robustness_net_params = {
     "n": [10000],  # Network size
+    #"n": [100000],  # Network size
     "K": [2, 50],  # Number of communities
     "cave": [5, 10, 50],  # average degree
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],

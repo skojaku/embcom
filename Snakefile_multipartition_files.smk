@@ -33,7 +33,7 @@ FIG_PERFORMANCE_VS_MIXING_SPEC_VS_SGD = j(
 
 net_params = {
     #"n": [1000],  # Network size
-    "n": [10000],  # Network size
+    "n": [100000],  # Network size
     #"n": [10000, 100000],  # Network size
     #"n": [1000, 10000],
     #"n": [1000, 10000, 100000],
