@@ -18,6 +18,11 @@ FIG_PERFORMANCE_VS_MIXING = j(
     "perf_vs_mixing",
     f"fig_{fig_perf_vs_mixing_paramspace.wildcard_pattern}.pdf",
 )
+FIG_PERFORMANCE_VS_MIXING_NB = j(
+    FIG_DIR,
+    "perf_vs_mixing",
+    f"fig_nonbacktracking_{fig_perf_vs_mixing_paramspace.wildcard_pattern}.pdf",
+)
 
 # ================================
 # Networks and communities
@@ -64,16 +69,8 @@ COM_DETECT_EMB_FILE = j(
 # ==========
 # Evaluation
 # ==========
-eval_params = {
-    "scoreType": ["esim", "nmi"],
-}
-eva_emb_paramspace = to_paramspace(
-    [eval_params, net_params, emb_params, clustering_params]
-)
-EVAL_EMB_FILE = j(EVA_DIR, f"score_clus_{eva_emb_paramspace.wildcard_pattern}.npz")
-
-eva_paramspace = to_paramspace([eval_params, net_params, com_detect_params])
-EVAL_FILE = j(EVA_DIR, f"score_{eva_paramspace.wildcard_pattern}.npz")
+EVAL_EMB_FILE = j(EVA_DIR, f"score_clus_{com_detect_emb_paramspace.wildcard_pattern}.npz")
+EVAL_FILE = j(EVA_DIR, f"score_{com_detect_paramspace.wildcard_pattern}.npz")
 
 
 # ===============================
@@ -192,8 +189,6 @@ rule evaluate_communities:
         com_file=NODE_FILE,
     output:
         output_file=EVAL_FILE,
-    params:
-        parameters=eva_paramspace.instance,
     resources:
         mem="12G",
         time="00:10:00"
@@ -207,8 +202,6 @@ rule evaluate_communities_for_embedding:
         com_file=NODE_FILE,
     output:
         output_file=EVAL_EMB_FILE,
-    params:
-        parameters=eva_paramspace.instance,
     resources:
         mem="12G",
         time="00:20:00"
@@ -223,14 +216,12 @@ rule concatenate_results_multipartition:
             data="multi_partition_model",
             **net_params,
             **com_detect_params,
-            **eval_params
         ) + expand(
             EVAL_EMB_FILE,
             data="multi_partition_model",
             **net_params,
             **emb_params,
             **clustering_params,
-            **eval_params
         ),
     output:
         output_file=EVAL_CONCAT_FILE,
@@ -263,11 +254,28 @@ rule calc_spectral_density_linearized_node2vec:
 #
 rule plot_performance_vs_mixing:
     input:
-        input_file=EVAL_CONCAT_FILE,
+        #input_file=EVAL_CONCAT_FILE,
+        input_file="data/multi_partition_model/all-result.csv",
     output:
         output_file=FIG_PERFORMANCE_VS_MIXING,
     params:
         parameters=fig_perf_vs_mixing_paramspace.instance,
+        model_names = ["non-backtracking-node2vec", "nonbacktracking", "node2vec", "deepwalk", "line", "infomap", "flatsbm"]
+    resources:
+        mem="4G",
+        time="00:50:00"
+    script:
+        "workflow/plot/plot-mixing-vs-performance.py"
+
+rule plot_performance_vs_mixing_nb:
+    input:
+        input_file="data/multi_partition_model/all-result.csv",
+        #input_file=EVAL_CONCAT_FILE,
+    output:
+        output_file=FIG_PERFORMANCE_VS_MIXING_NB,
+    params:
+        parameters=fig_perf_vs_mixing_paramspace.instance,
+        model_names = ["non-backtracking-node2vec", "nonbacktracking", "depthfirst-node2vec", "non-backtracking-deepwalk"]
     resources:
         mem="4G",
         time="00:50:00"

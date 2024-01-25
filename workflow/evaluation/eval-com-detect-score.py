@@ -1,6 +1,7 @@
 """Evaluate the detected communities using the element-centric similarity."""
 
 # %%
+import pathlib
 import sys
 
 import numpy as np
@@ -12,11 +13,9 @@ if "snakemake" in sys.modules:
     detected_group_file = snakemake.input["detected_group_file"]
     com_file = snakemake.input["com_file"]
     output_file = snakemake.output["output_file"]
-    params = snakemake.params["parameters"]
-    scoreType = params["scoreType"]
 else:
-    com_file = "../../data/multi_partition_model/networks/node_n~10000_K~2_cave~50_mu~0.5_sample~0.npz"
-    detected_group_file = "../../data/multi_partition_model/communities/clus_n~10000_K~2_cave~50_mu~0.5_sample~0_model_name~leigenmap_window_length~10_dim~0_metric~cosine_clustering~voronoi.npz"
+    com_file = "../../data/multi_partition_model/networks/node_n~10000_K~2_cave~50_mu~0.50_sample~0.npz"
+    detected_group_file = "../../data/multi_partition_model/communities/clus_n~10000_K~2_cave~50_mu~0.50_sample~0_model_name~leigenmap_window_length~10_dim~0_metric~cosine_clustering~voronoi.npz"
     output_sim_file = "unko"
     scoreType = "nmi"
 
@@ -25,7 +24,7 @@ else:
 # Load
 #
 memberships = pd.read_csv(com_file)["membership"].values.astype(int)
-group_ids = np.load(detected_group_file)["group_ids"]
+groups = np.load(detected_group_file)
 
 
 #
@@ -64,19 +63,32 @@ def calc_esim(y, ypred):
     return Scorrected
 
 
-if scoreType == "nmi":
-    score = normalized_mutual_info_score(memberships, group_ids)
-elif scoreType == "esim":
-    score = calc_esim(memberships, group_ids)
-else:
-    raise ValueError("Unknown score type: {}".format(scoreType))
-print(score)
-# %%
+def get_params(keys, sep="~"):
+    params = keys.split("_")
+    retval = {}
+    for p in params:
+        if sep not in p:
+            continue
+        kv = p.split(sep)
+        retval[kv[0]] = kv[1]
+    return retval
+
+
+results = []
+for keys, group_ids in groups.items():
+    for scoreType in ["nmi", "esim"]:
+        if scoreType == "nmi":
+            score = normalized_mutual_info_score(memberships, group_ids)
+        elif scoreType == "esim":
+            score = calc_esim(memberships, group_ids)
+        else:
+            raise ValueError("Unknown score type: {}".format(scoreType))
+        params = get_params(keys)
+        results.append({"score": score, "score_type": scoreType, **params})
+#
 # Save
 #
-res_table = pd.DataFrame([{"score": score, "score_type": scoreType}]).to_csv(
-    output_file, index=False
-)
+res_table = pd.DataFrame(results).to_csv(output_file, index=False)
 
 # %%
 
