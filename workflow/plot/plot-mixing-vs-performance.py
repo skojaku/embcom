@@ -35,7 +35,7 @@ else:
     params = {
         "q": 2,
         "dim": 64,
-        "n": 10000,
+        "n": 100000,
         "metric": "cosine",
         "length": 10,
         "name": [
@@ -49,6 +49,7 @@ else:
             "infomap",
             "flatsbm",
             "modspec",
+            "modspec2",
             "leigenmap",
             "bp",
         ],
@@ -63,7 +64,7 @@ else:
 #
 data_table = pd.read_csv(input_file)
 
-#
+# %%
 plot_data = data_table.copy()
 for k, v in params.items():
     if k not in plot_data.columns:
@@ -75,7 +76,8 @@ for k, v in params.items():
 plot_data = plot_data[plot_data["name"] != "levy-word2vec"]
 # plot_data = plot_data[plot_data["dimThreshold"] == False]
 # lot_data = plot_data[plot_data["normalize"] == False]
-
+# %%
+plot_data["name"].unique()
 # %%
 #
 # Plot
@@ -160,7 +162,7 @@ if with_legend:
         loc="upper center",
         bbox_to_anchor=(0.5, -0.1),
         ncol=3,
-        fontsize=12,
+        fontsize=10,
     )
     ax.set_xlabel("")
 else:

@@ -266,7 +266,7 @@ class ModularitySpectralEmbedding2(NodeEmbeddings):
                 b = (
                     net @ b / double_m
                     - deg * (deg.T @ b) / double_m**2
-                    - np.einsum("ij,j->ij", eigenvecs, eigvals) @ (eigenvecs.T @ b)
+                    - np.einsum("ij,j->ij", eigenvecs, eigenvals) @ (eigenvecs.T @ b)
                 )
                 b /= np.linalg.norm(b)
                 if np.mean(np.abs(b - b_prev) / np.maximum(1e-12, np.abs(b_prev))) < eps:
@@ -286,12 +286,12 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
 
     def fit(self, net):
         A = utils.to_adjacency_matrix(net)
-        self.A = A
+        self.A = A 
         self.deg = np.array(A.sum(axis=1)).reshape(-1)
         return self
 
     def update_embedding(self, dim):
-
+        
         s, u = sparse.linalg.eigs(self.A, k=dim + 1, which="LR")
         s, u = np.real(s), np.real(u)
         s = s[1:]

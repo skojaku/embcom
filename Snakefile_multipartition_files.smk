@@ -37,10 +37,10 @@ net_params = {
     #"n": [10000, 100000],  # Network size
     #"n": [1000, 10000],
     #"n": [1000, 10000, 100000],
-    "K": [2],  # Number of communities
+    "K": [2, 50],  # Number of communities
     #"K": [2, 50],  # Number of communities
-    "cave": [5],  # average degree
-    #"cave": [5, 10, 50],  # average degree
+    #"cave": [5],  # average degree
+    "cave": [5, 10, 50],  # average degree
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
     "sample": np.arange(3),  # Number of samples
 }
@@ -331,7 +331,7 @@ rule plot_performance_vs_mixing:
         parameters=fig_perf_vs_mixing_paramspace.instance,
         dimThreshold= False,
         normalize= False,
-        model_names = ["node2vec", "deepwalk", "line", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
+        model_names = ["node2vec", "deepwalk", "line", "modspec", "modspec2", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
         #title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
         with_legend = lambda wildcards: "True" if str(wildcards.cave)=="5" else "False"
     resources:
@@ -350,7 +350,7 @@ rule plot_performance_vs_mixing_mod_vs_spec:
         parameters=fig_perf_vs_mixing_paramspace.instance,
         dimThreshold= False,
         normalize= False,
-        model_names = ["node2vec", "modspec", "leigenmap", "torch-modularity", "torch-laplacian-eigenmap", "bp"],
+        model_names = ["node2vec", "modspec", "modspec2", "leigenmap", "torch-modularity", "torch-laplacian-eigenmap", "bp"],
         #title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
         with_legend = lambda wildcards: "True" if str(wildcards.cave)=="5" else "False"
     resources:

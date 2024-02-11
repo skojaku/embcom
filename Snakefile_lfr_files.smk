@@ -4,10 +4,10 @@
 
 lfr_net_params = {
     #"n": [1000],  # Network size
-    "n": [10000, 100000],  # Network size
+    "n": [10000],  # Network size
     #"n": [1000, 10000, 100000],  # Network size
     "k": [5, 10, 50],  # Average degree
-    "tau": [3],  # degree exponent
+    "tau": [2.1, 3],  # degree exponent
     "tau2": [1],  # community size exponent
     "minc": [50],  # min community size
     "mu": ["%.2f" % d for d in np.linspace(0.1, 1, 19)],
@@ -206,7 +206,7 @@ rule plot_lfr_performance_vs_mixing:
     params:
         parameters=fig_lfr_perf_vs_mixing_paramspace.instance,
         #title = lambda wildcards: " | ".join([f"{k}~{v}" for k, v in wildcards.items()]),
-        model_names = ["node2vec", "deepwalk", "line", "modspec", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
+        model_names = ["node2vec", "deepwalk", "line", "modspec", "modspec2", "leigenmap", "nonbacktracking", "bp", "infomap", "flatsbm" ],
         with_legend = lambda wildcards: "True" if str(wildcards.k)=="5" else "False"
     resources:
         mem="4G",
