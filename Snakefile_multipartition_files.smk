@@ -3,13 +3,14 @@
 # =========
 fig_params_perf_vs_mixing = {
     "q": [2, 50],
-    "dim": [16, 32, 64, 128],
+    "dim": [64],
+    #"dim": [16, 32, 64, 128],
     #"n": [1000],
-    "n": [10000, 100000],
+    "n": [100000],
     "metric": ["cosine"],
     "length": [10],
     #"clustering": ["voronoi"],
-    "clustering": ["voronoi", "kmeans"],
+    "clustering": ["voronoi", "kmeans", "knnMod"],
     #""clustering": ["voronoi", "kmeans", "birch"],
     "score_type": ["esim"],
     "cave": [5, 10, 50],
@@ -185,6 +186,23 @@ rule kmeans_clustering_multi_partition_model:
         time="01:00:00"
     script:
         "workflow/community-detection/kmeans-clustering.py"
+
+
+rule knnMod_clustering_multi_partition_model:
+    input:
+        emb_file=EMB_FILE,
+        com_file=NODE_FILE,
+    output:
+        output_file=COM_DETECT_EMB_FILE,
+    params:
+        parameters=com_detect_emb_paramspace.instance,
+    wildcard_constraints:
+        clustering="knnMod",
+    resources:
+        mem="12G",
+        time="01:00:00"
+    script:
+        "workflow/community-detection/modularity-clustering.py"
 
 rule hdbscan_clustering_multi_partition_model:
     input:

@@ -8,7 +8,7 @@ fig_params_perf_vs_mixing_robustness = {
     #"n": [100000],
     "metric": ["cosine"],
     "length": [10],
-    "clustering": ["voronoi", "kmeans"],
+    "clustering": ["voronoi", "kmeans", "knnMod"],
     "score_type": ["esim"],
     "cave": [5, 10, 50],
     "data": ["multi_partition_model", "lfr"],

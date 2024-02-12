@@ -20,14 +20,15 @@ import pandas as pd
 from scipy import sparse
 from scipy.sparse.csgraph import connected_components
 import belief_propagation as bp
+import igraph
 
 if "snakemake" in sys.modules:
     netfile = snakemake.input["net_file"]
     com_file = snakemake.input["com_file"]
     params = snakemake.params["parameters"]
     model_name = params["model_name"]
-    #mu = params["mu"] if "mu" in params["mu"] else None
-    #ave_deg = params["cave"] if "cave" in params["cave"] else None
+    # mu = params["mu"] if "mu" in params["mu"] else None
+    # ave_deg = params["cave"] if "cave" in params["cave"] else None
     output_file = snakemake.output["output_file"]
 else:
     netfile = "../../data/multi_partition_model/networks/net_n~10000_K~50_cave~50_mu~0.30_sample~0.npz"
@@ -74,8 +75,18 @@ def detect_by_flatsbm(A, K):
     b = state.get_blocks()
     return np.unique(np.array(b.a), return_inverse=True)[1]
 
+
+def detect_by_leiden(A, K):
+    r, c, v = sparse.find(A)
+    g = igraph.Graph()
+    edge_list = tuple(zip(r, c))
+    g = igraph.Graph(edge_list, directed=False)
+    partition = g.community_leiden(objective_function="modularity")
+    return partition.membership
+
+
 def detect_by_belief_propagation(A, K, memberships):
-    return bp.detect(A, q=int(K), init_memberships = memberships)
+    return bp.detect(A, q=int(K), init_memberships=memberships)
 
 
 # Get the largest connected component
@@ -95,6 +106,8 @@ elif model_name == "flatsbm":
     group_ids = detect_by_flatsbm(net_, K)
 elif model_name == "bp":
     group_ids = detect_by_belief_propagation(net_, K, memberships[ids])
+elif model_name == "leiden":
+    group_ids = detect_by_leiden(net_, K)
 
 n_nodes = net.shape[0]
 group_ids_ = np.zeros(n_nodes) * np.nan

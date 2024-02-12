@@ -40,15 +40,15 @@ EVAL_CONCAT_ROBUSTNESS_FILE = j(EVA_DIR, f"all-result-robustness.csv")
 # Embedding
 emb_params = {
     "model_name": [
-        #"node2vec",
-        #"deepwalk",
+        "node2vec",
+        "deepwalk",
         #"glove",
-        #"line",
+        "line",
         "leigenmap",
-        #"modspec",
+        "modspec",
         #"modspec2",
         #"linearized-node2vec",
-        #"nonbacktracking",
+        "nonbacktracking",
         #"torch-modularity",
         #"torch-node2vec",
         #"non-backtracking-node2vec",
@@ -57,19 +57,19 @@ emb_params = {
         #"depthfirst-node2vec",
     ],
     "window_length": [10],
-    "dim": [16, 64],
+    "dim": [64],
 }
 
 # Community detection
 com_detect_params = {
-    "model_name": ["bp"],
+    "model_name": ["bp", "leiden"],
     #"model_name": ["infomap", "flatsbm", "bp"],
 }
 
 # Clustering
 clustering_params = {
     "metric": ["cosine"],
-    "clustering": ["voronoi", "kmeans"],
+    "clustering": ["voronoi", "kmeans", "knnMod"],
 }
 
 # ============
@@ -104,8 +104,8 @@ rule all:
         #
         # Robustness check
         #
-        expand(EVAL_ROBUSTNESS_EMB_FILE , data="multi_partition_model", **robustness_net_params, **robustness_emb_params, **clustering_params),
-        expand(EVAL_ROBUSTNESS_LFR_EMB_FILE, data="lfr", **robustness_lfr_net_params, **robustness_emb_params, **clustering_params),
+        #expand(EVAL_ROBUSTNESS_EMB_FILE , data="multi_partition_model", **robustness_net_params, **robustness_emb_params, **clustering_params),
+        #expand(EVAL_ROBUSTNESS_LFR_EMB_FILE, data="lfr", **robustness_lfr_net_params, **robustness_emb_params, **clustering_params),
         #expand(COM_DETECT_FILE, data="multi_partition_model", **net_params, **com_detect_params),
         #expand(COM_DETECT_EMB_FILE, data="multi_partition_model", **net_params, **emb_params, **clustering_params)
 

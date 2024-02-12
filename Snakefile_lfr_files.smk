@@ -59,7 +59,7 @@ fig_lfr_params_perf_vs_mixing = {
     "metric": ["cosine"],
     "length": [10],
     "tau":[2.1, 3],
-    "clustering": ["voronoi", "kmeans"],
+    "clustering": ["voronoi", "kmeans", "knnMod"],
     #"clustering": ["voronoi", "kmeans", "birch"],
     "score_type": ["esim"],
     "data": ["lfr"],
@@ -137,6 +137,15 @@ use rule birch_clustering_multi_partition_model as birch_clustering_lfr with:
         n_clusters = "data"
 
 use rule kmeans_clustering_multi_partition_model as kmeans_clustering_lfr with:
+    input:
+        emb_file=LFR_EMB_FILE,
+        com_file=LFR_NODE_FILE,
+    output:
+        output_file=LFR_COM_DETECT_EMB_FILE,
+    params:
+        parameters=lfr_com_detect_emb_paramspace.instance,
+
+use rule knnMod_clustering_multi_partition_model as knnMod_clustering_lfr with:
     input:
         emb_file=LFR_EMB_FILE,
         com_file=LFR_NODE_FILE,
