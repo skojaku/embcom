@@ -36,12 +36,12 @@ if "snakemake" in sys.modules:
     model_name = params["model_name"]
     num_walks = int(params["nWalks"]) if "nWalks" in params else 40
 else:
-    netfile = "../../data/multi_partition_model/networks/net_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
-    com_file = "../../data/multi_partition_model/networks/node_n~100000_K~2_cave~10_mu~0.10_sample~0.npz"
+    netfile = "../../data/empirical/networks/net_netdata~polblog.npz"
+    com_file = "../../data/empirical/networks/node_netdata~polblog.npz"
     embfile = "tmp.npz"
     dim = 64
     window_length = 10
-    model_name = "torch-modularity"
+    model_name = "leigenmap"
     num_walks = 40
 
 
@@ -170,8 +170,8 @@ H = sparse.csr_matrix(
 )
 HT = sparse.csr_matrix(H.T)
 net_ = HT @ net @ H
+# %%
 model.fit(net_)
-
 if model_name in ["torch-node2vec", "torch-modularity", "torch-laplacian-eigenmap"]:
     emb_ = model.transform()
 else:
@@ -182,9 +182,9 @@ else:
 ids = np.where(u_component_ids[np.argmax(freq)] != component_ids)[0]
 emb = H @ emb_
 emb[ids, :] = np.nan
-#G = nx.karate_club_graph()
-#A = nx.adjacency_matrix(G)
-#labels = np.unique([d[1]["club"] for d in G.nodes(data=True)], return_inverse=True)[1]
+# G = nx.karate_club_graph()
+# A = nx.adjacency_matrix(G)
+# labels = np.unique([d[1]["club"] for d in G.nodes(data=True)], return_inverse=True)[1]
 # %%
 #
 # Save
@@ -196,3 +196,10 @@ np.savez_compressed(
     dim=dim,
     model_name=model_name,
 )
+# %%
+# import seaborn as sns
+
+# df = pd.DataFrame({"x": emb[:, 0], "y": emb[:, 1], "membership": true_membership})
+# sns.pointplot(data=df, x="x", y="y", hue="membership")
+
+# %%

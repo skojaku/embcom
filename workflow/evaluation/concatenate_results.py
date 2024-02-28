@@ -58,30 +58,39 @@ if "snakemake" in sys.modules:
     to_float = snakemake.params["to_float"]
 else:
     # mlt
-    input_files = "../../data/multi_partition_model/evaluations/score*.npz"
-    output_file = "../../data/multi_partition_model/all-result.csv"
-    to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
-    to_float = ["mu"]
+    if sys.argv[1] == "mlt":
+        input_files = "../../data/multi_partition_model/evaluations/score*.npz"
+        output_file = "../../data/multi_partition_model/all-result.csv"
+        to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
+        to_float = ["mu"]
     # lfr
-    input_files = "../../data/lfr/evaluations/score*.npz"
-    output_file = "../../data/lfr/all-result.csv"
-    to_int=["n", "k", "tau2", "minc", "dim", "sample", "length", "dim"]
-    to_float=["mu", "tau"]
+    elif sys.argv[1] == "lfr":
+        input_files = "../../data/lfr/evaluations/score*.npz"
+        output_file = "../../data/lfr/all-result.csv"
+        to_int=["n", "k", "tau2", "minc", "dim", "sample", "length", "dim"]
+        to_float=["mu", "tau"]
+    elif sys.argv[1] == "emp":
+    # emp
+        input_files = "../../data/empirical/evaluations/score*.csv"
+        output_file = "../../data/empirical/all-result.csv"
+        to_int = ["length", "dim"]
+        to_float = []
+
     # ----------
     # Robustness
     # ----------
     # mlt
-    #input_files = "../../data/multi_partition_model/evaluations/robustness/score*.npz"
-    #output_file = "../../data/multi_partition_model/all-result-robustness.csv"
-    #to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
-    #to_float = ["mu"]
+    # input_files = "../../data/multi_partition_model/evaluations/robustness/score*.npz"
+    # output_file = "../../data/multi_partition_model/all-result-robustness.csv"
+    # to_int = ["n", "K", "dim", "sample", "length", "dim", "cave"]
+    # to_float = ["mu"]
     # lfr
-    #input_files = "../../data/lfr/evaluations/robustness/score*.npz"
-    #output_file = "../../data/lfr/all-result-robustness.csv"
-    #to_int=["n", "k", "tau2", "minc", "dim", "sample", "length", "dim"]
-    #to_float=["mu", "tau"]
+    # input_files = "../../data/lfr/evaluations/robustness/score*.npz"
+    # output_file = "../../data/lfr/all-result-robustness.csv"
+    # to_int=["n", "k", "tau2", "minc", "dim", "sample", "length", "dim"]
+    # to_float=["mu", "tau"]
 
-#%% Load
+# %% Load
 data_table = load_files(input_files).fillna("")
 
 # %% Type conversion

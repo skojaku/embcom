@@ -33,7 +33,7 @@ else:
     output_file = "../data/"
     with_legend = True
     params = {
-        "q": 2,
+        "q": 50,
         "dim": 64,
         "n": 100000,
         "metric": "cosine",
@@ -53,11 +53,13 @@ else:
             "leigenmap",
             "bp",
         ],
-        "clustering": "voronoi",
+        # "clustering": "knnMod",
+        # "clustering": "kmeans",
+        "clustering": "eigengap-kmeans",
         "score_type": "esim",
-        "cave": 5,
+        "cave": 10,
         "dimThreshold": False,
-        "normalize": False,
+        "normalize": True,
     }
 #
 # Load

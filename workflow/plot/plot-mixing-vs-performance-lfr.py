@@ -37,8 +37,10 @@ else:
         "metric": "cosine",
         "length": 10,
         "k": 10,
-        "tau": 2.1,
-        "clustering": "voronoi",
+        "tau": 3.0,
+        "clustering": "knnMod",
+        # "clustering": "eigengap-kmeans",
+        # "clustering": "kmeans",
         "score_type": "esim",
         "dimThreshold": True,
         "name": [

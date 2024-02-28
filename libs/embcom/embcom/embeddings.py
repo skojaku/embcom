@@ -223,6 +223,7 @@ class AdjacencySpectralEmbedding(NodeEmbeddings):
         # u, s, v = rsvd.rSVD(self.A, dim=dim)
         self.in_vec = u @ sparse.diags(s)
 
+
 class ModularitySpectralEmbedding2(NodeEmbeddings):
     def __init__(self, verbose=False, reconstruction_vector=False, p=100, q=40):
         self.in_vec = None  # In-vector
@@ -238,7 +239,7 @@ class ModularitySpectralEmbedding2(NodeEmbeddings):
         return self
 
     def update_embedding(self, dim):
-        s, u = self.powerIteratedModularityEmbedding(self.A, k = dim)
+        s, u = self.powerIteratedModularityEmbedding(self.A, k=dim)
         s, u = np.real(s), np.real(u)
         if self.reconstruction_vector:
             is_positive = s > 0
@@ -251,13 +252,13 @@ class ModularitySpectralEmbedding2(NodeEmbeddings):
 
     def powerIteratedModularityEmbedding(self, net, k, n_iter=100, eps=1e-12):
         deg = np.array(net.sum(axis=1)).flatten()
-    
+
         double_m = np.sum(deg)
-    
+
         n_nodes = len(deg)
         eigenvecs = np.zeros((n_nodes, k))
         eigenvals = np.zeros(k)
-    
+
         for ell in range(k):
             b = np.random.randn(len(deg))
             b /= np.linalg.norm(b)
@@ -269,12 +270,16 @@ class ModularitySpectralEmbedding2(NodeEmbeddings):
                     - np.einsum("ij,j->ij", eigenvecs, eigenvals) @ (eigenvecs.T @ b)
                 )
                 b /= np.linalg.norm(b)
-                if np.mean(np.abs(b - b_prev) / np.maximum(1e-12, np.abs(b_prev))) < eps:
+                if (
+                    np.mean(np.abs(b - b_prev) / np.maximum(1e-12, np.abs(b_prev)))
+                    < eps
+                ):
                     break
                 b_prev = b.copy()
             eigenvecs[:, ell] = b.copy()
             eigenvals[ell] = b.T @ net @ b / double_m - (b.T @ deg) ** 2 / double_m**2
         return eigenvals, eigenvecs
+
 
 class ModularitySpectralEmbedding(NodeEmbeddings):
     def __init__(self, verbose=False, reconstruction_vector=False, p=100, q=40):
@@ -286,12 +291,12 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
 
     def fit(self, net):
         A = utils.to_adjacency_matrix(net)
-        self.A = A 
+        self.A = A
         self.deg = np.array(A.sum(axis=1)).reshape(-1)
         return self
 
     def update_embedding(self, dim):
-        
+
         s, u = sparse.linalg.eigs(self.A, k=dim + 1, which="LR")
         s, u = np.real(s), np.real(u)
         s = s[1:]
@@ -404,10 +409,14 @@ class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
         B = sparse.bmat([[Z, D - I], [-I, self.A]], format="csr")
 
         if self.auto_dim is False:
-            s, v = sparse.linalg.eigs(B, k=dim, tol=1e-4)
+            s, v = sparse.linalg.eigs(B, k=dim + 1, tol=1e-4)
             s, v = np.real(s), np.real(v)
+
+            self.n_estimated_clusters = np.sum(s > np.sqrt(np.max(s))) - 1
+
             order = np.argsort(-np.abs(s))
             s, v = s[order], v[:, order]
+            s, v = s[1:], v[:, 1:]
             v = v[N:, :]
 
             # Normalize the eigenvectors because we cut half the vec
@@ -422,8 +431,10 @@ class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
             dim = np.minimum(dim, N - 1)
 
             s, v = sparse.linalg.eigs(B, k=dim + 1, tol=1e-4)
+            self.n_estimated_clusters = np.sum(s > np.sqrt(np.max(s))) - 1
 
-            c = int(self.A.sum() / N)
+            largest_eigenvalue = np.max(s)
+            c = np.sqrt(largest_eigenvalue)
             s, v = s[np.abs(s) > c], v[:, np.abs(s) > c]
 
             order = np.argsort(s)
@@ -432,7 +443,6 @@ class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
             v = v[N:, :]
             c = np.array(np.linalg.norm(v, axis=0)).reshape(-1)
             v = v @ np.diag(1 / c)
-
         self.in_vec = v
 
 

@@ -46,8 +46,8 @@ emb_params = {
         "line",
         "leigenmap",
         "modspec",
-        #"modspec2",
-        #"linearized-node2vec",
+        "modspec2",
+        "linearized-node2vec",
         "nonbacktracking",
         #"torch-modularity",
         #"torch-node2vec",
@@ -57,19 +57,21 @@ emb_params = {
         #"depthfirst-node2vec",
     ],
     "window_length": [10],
+    #"dim": [64,128],
     "dim": [64],
 }
 
 # Community detection
 com_detect_params = {
-    "model_name": ["bp", "leiden"],
+    "model_name": ["bp", "leiden", "flatsbm","infomap"],
     #"model_name": ["infomap", "flatsbm", "bp"],
 }
 
 # Clustering
 clustering_params = {
     "metric": ["cosine"],
-    "clustering": ["voronoi", "kmeans", "knnMod"],
+    "clustering": ["voronoi", "kmeans", "knnMod", "eigengap-kmeans"],
+    #"clustering": ["voronoi", "kmeans", "knnMod", "eigengap-kmeans", "nonbacktrack-kmeans"],
 }
 
 # ============
@@ -83,6 +85,7 @@ FIG_PERFORMANCE_VS_MIXING_ALL = j(
 
 include: "./Snakefile_multipartition_files.smk"
 include: "./Snakefile_lfr_files.smk"
+include: "./Snakefile_empirical.smk"
 
 include: "./Snakefile_robustness_check.smk"
 
@@ -118,3 +121,11 @@ rule figs:
         expand(FIG_LFR_PERFORMANCE_VS_MIXING, **fig_lfr_params_perf_vs_mixing),
         expand(FIG_PERFORMANCE_VS_MIXING_ALL, data = DATA_LIST),
         #expand(FIG_LOSS_LANDSCAPE, model = LOSS_LANDSCAPE_MODEL_LIST, )
+
+
+rule _all:
+    input:
+        expand(NET_EMP_FILE,  **net_emp_params),
+        expand(EMB_EMP_FILE, **net_emp_params, **emb_params, sample = range(N_SAMPLES_EMP)),
+        expand(EVAL_EMB_EMP_FILE, **net_emp_params, **emb_params, **clustering_params, sample = range(N_SAMPLES_EMP)),
+        expand(EVAL_EMP_FILE, **net_emp_params, **clustering_params, **com_detect_params, sample = range(N_SAMPLES_EMP))
