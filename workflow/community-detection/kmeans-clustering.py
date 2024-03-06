@@ -2,7 +2,7 @@
 
 # %%
 import sys
-
+import embcom
 import numpy as np
 import pandas as pd
 from scipy import sparse, stats
@@ -11,17 +11,17 @@ from sklearn.metrics import normalized_mutual_info_score
 if "snakemake" in sys.modules:
     emb_file = snakemake.input["emb_file"]
     com_file = snakemake.input["com_file"]
+    net_file = snakemake.input["net_file"]
     output_file = snakemake.output["output_file"]
     params = snakemake.params["parameters"]
     metric = params["metric"]
     model_name = params["model_name"]
 
 else:
-    emb_file = "../../data/empirical/embedding/netdata~polblog_model_name~leigenmap_window_length~10_dim~64.npz"
+    emb_file = "../../data/empirical/embedding/netdata~polblog_model_name~modspec_window_length~10_dim~64.npz"
     com_file = "../../data/empirical/networks/node_netdata~polblog.npz"
-    # emb_file = "../../data/multi_partition_model/embedding/n~1000_K~2_cave~50_mu~0.70_sample~1_model_name~leigenmap_window_length~10_dim~64.npz"
-    # com_file = "../../data/multi_partition_model/networks/node_n~2500_K~2_cave~50_mu~0.70_sample~1.npz"
-    model_name = "leigenmap"
+    net_file = "../../data/empirical/networks/net_netdata~polblog.npz"
+    model_name = "modspec"
     output_file = "unko"
     metric = "cosine"
 
@@ -35,10 +35,9 @@ def KMeans(emb, group_ids, metric="euclidean"):
         X = np.einsum(
             "ij,i->ij", emb, 1 / np.maximum(np.linalg.norm(emb, axis=1), 1e-24)
         )
-        X = emb
     else:
         X = emb.copy()
-    kmeans = cluster.KMeans(n_clusters=K, random_state=0).fit(X)
+    kmeans = cluster.KMeans(n_clusters=K).fit(X)
     # kmeans = cluster.MiniBatchKMeans(n_clusters=K, random_state=0).fit(X)
     # kmeans = cluster.MiniBatchKMeans(n_clusters=K, random_state=0).fit(X)
     return kmeans.labels_
@@ -48,24 +47,37 @@ def KMeans(emb, group_ids, metric="euclidean"):
 emb = np.load(emb_file)["emb"]
 emb = emb.copy(order="C").astype(np.float32)
 memberships = pd.read_csv(com_file)["membership"].values.astype(int)
+A = sparse.load_npz(net_file)
 
-# if model_name in [
-#    "leigenmap",
-#    "modspec",
-#    "modspec2",
-#    "linearized-node2vec",
-#    "nonbacktracking",
-# ]:
-#    K = np.max(memberships) + 1  # proposed framework
-#    emb_copy = emb.copy()[:, : np.maximum((K - 1), 1)].reshape((emb.shape[0], -1))
-# else:
-emb_copy = emb.copy()
-# %%
-# Remove nan embedding
 emb = np.nan_to_num(emb)
 emb_copy = emb.copy()
 
-# Normalize the eigenvector by dimensions
+if model_name in [
+    "leigenmap",
+    "modspec",
+    "modspec2",
+    "linearized-node2vec",
+    "nonbacktracking",
+]:
+    K = np.max(memberships) + 1  # proposed framework
+    if model_name == "nonbacktracking":
+        model = embcom.NonBacktrackingSpectralEmbedding()
+    elif model_name == "leigenmap":
+        model = embcom.LaplacianEigenMap()
+    elif model_name == "linearized-node2vec":
+        model = embcom.LaplacianEigenMap()
+    elif model_name == "modspec":
+        model = embcom.ModularitySpectralEmbedding()
+    elif model_name == "modspec2":
+        model = embcom.ModularitySpectralEmbedding()
+    elif model_name == "leigenmap":
+        model = embcom.LaplacianEigenMap()
+    model.fit(A)
+    emb_copy = model.shave_embedding(emb, K + 1)
+else:
+    emb_copy = emb.copy()
+# %%
+# Remove nan embedding
 results = {}
 for dimThreshold in [True, False]:
     for normalize in [True, False]:
@@ -97,5 +109,3 @@ for dimThreshold in [True, False]:
 # Save
 #
 np.savez(output_file, **results)
-
-# %%

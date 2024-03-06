@@ -175,6 +175,7 @@ rule kmeans_clustering_multi_partition_model:
     input:
         emb_file=EMB_FILE,
         com_file=NODE_FILE,
+        net_file=NET_FILE,
     output:
         output_file=COM_DETECT_EMB_FILE,
     params:

@@ -137,7 +137,8 @@ class DeepWalk(Node2Vec):
     def __init__(self, **params):
         Node2Vec.__init__(self, **params)
         self.w2vparams = {
-            "sg": 0,
+            "sg": 1,
+            # "sg": 0,
             "hs": 1,
             "min_count": 0,
             "workers": 4,
@@ -202,6 +203,20 @@ class LaplacianEigenMap(NodeEmbeddings):
             self.in_vec = Dsqrt @ u @ sparse.diags(np.sqrt(np.abs(s)))
             self.out_vec = u
 
+    def shave_embedding(self, emb, K):
+        # Column normalize emb
+        nemb = emb / np.maximum(
+            1e-12, np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
+        )
+
+        # Compute the modularity eigenvalues
+        eigvals = np.diag(nemb.T @ self.L @ nemb)
+
+        # Shave
+        order = np.argsort(-eigvals)
+        shaved_emb = emb[:, order[: (K - 1)]]
+        return shaved_emb
+
 
 class AdjacencySpectralEmbedding(NodeEmbeddings):
     def __init__(
@@ -222,6 +237,20 @@ class AdjacencySpectralEmbedding(NodeEmbeddings):
         s = svd.singular_values_
         # u, s, v = rsvd.rSVD(self.A, dim=dim)
         self.in_vec = u @ sparse.diags(s)
+
+    def shave_embedding(self, emb, K):
+        # Column normalize emb
+        nemb = emb / np.maximum(
+            1e-12, np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
+        )
+
+        # Compute the modularity eigenvalues
+        eigvals = np.diag(nemb.T @ self.A @ nemb)
+
+        # Shave
+        order = np.argsort(-eigvals)
+        shaved_emb = emb[:, order[: (K - 1)]]
+        return shaved_emb
 
 
 class ModularitySpectralEmbedding2(NodeEmbeddings):
@@ -249,6 +278,23 @@ class ModularitySpectralEmbedding2(NodeEmbeddings):
         else:
             self.in_vec = u @ sparse.diags(np.sqrt(np.abs(s)))
         self.out_vec = u
+
+    def shave_embedding(self, emb, K):
+        # Column normalize emb
+        # nemb = emb / np.maximum(1e-12, np.linalg.norm(emb, axis=0))
+        nemb = emb / np.maximum(
+            1e-12, np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
+        )
+
+        # Compute the modularity eigenvalues
+        vals = np.diag(nemb.T @ self.A @ nemb) - np.sum(
+            np.power(nemb.T @ self.deg, 2)
+        ) / np.sum(self.deg)
+
+        # Shave
+        order = np.argsort(-vals)
+        shaved_emb = emb[:, order[: (K - 1)]]
+        return shaved_emb
 
     def powerIteratedModularityEmbedding(self, net, k, n_iter=100, eps=1e-12):
         deg = np.array(net.sum(axis=1)).flatten()
@@ -294,6 +340,21 @@ class ModularitySpectralEmbedding(NodeEmbeddings):
         self.A = A
         self.deg = np.array(A.sum(axis=1)).reshape(-1)
         return self
+
+    def shave_embedding(self, emb, K):
+        # Column normalize emb
+        nemb = emb / np.maximum(
+            1e-12, np.array(np.linalg.norm(emb, axis=0)).reshape(-1)
+        )
+
+        # Compute the modularity eigenvalues
+        eigvals = np.diag(nemb.T @ self.A @ nemb) - np.sum(
+            np.power(nemb.T @ self.deg, 2)
+        ) / np.sum(self.deg)
+        # Shave
+        order = np.argsort(-eigvals)
+        shaved_emb = emb[:, order[: (K - 1)]]
+        return shaved_emb
 
     def update_embedding(self, dim):
 
@@ -399,6 +460,11 @@ class NonBacktrackingSpectralEmbedding(NodeEmbeddings):
         self.deg = np.array(A.sum(axis=1)).reshape(-1)
         self.A = A
         return self
+
+    def shave_embedding(self, emb, K):
+        # Column normalize emb
+        shaved_emb = emb[:, : (K - 1)]
+        return shaved_emb
 
     def update_embedding(self, dim):
 

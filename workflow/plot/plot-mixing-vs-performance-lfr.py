@@ -32,15 +32,15 @@ else:
     output_file = "../data/"
     with_legend = True
     params = {
-        "dim": 64,
+        "dim": 128,
         "n": 10000,
         "metric": "cosine",
         "length": 10,
         "k": 10,
         "tau": 3.0,
-        "clustering": "knnMod",
+        # "clustering": "knnMod",
         # "clustering": "eigengap-kmeans",
-        # "clustering": "kmeans",
+        "clustering": "kmeans",
         "score_type": "esim",
         "dimThreshold": True,
         "name": [

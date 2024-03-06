@@ -140,6 +140,7 @@ use rule kmeans_clustering_multi_partition_model as kmeans_clustering_lfr with:
     input:
         emb_file=LFR_EMB_FILE,
         com_file=LFR_NODE_FILE,
+        net_file=LFR_NET_FILE,
     output:
         output_file=LFR_COM_DETECT_EMB_FILE,
     params:
